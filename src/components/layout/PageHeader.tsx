@@ -25,11 +25,11 @@ export default function PageHeader({ title, subtitle, actions, season = true }: 
         <Link to="/messages" className="m-bell" aria-label={badge ? `${badge} farmers need a message` : 'Messages'}><Bell size={22} />{badge > 0 && <i />}</Link>
         <span className="m-me" aria-label="Demo manager"><UserRound size={21} /></span>
       </div>
-      {season && <>
-        <label className="m-select-pill"><CalendarDays size={18} /><span className="sr-only">Season</span><select aria-label="Season" defaultValue="rabi"><option value="rabi">Rabi (Nov – Apr)</option></select></label>
-        <span className="m-asof">Planning as of {fmtDate(PLANNING_DATE)} · synthetic demo data</span>
-      </>}
-      {actions}
+      <div className="m-top-row">
+        {actions}
+        {season && <label className="m-select-pill"><CalendarDays size={18} /><span className="sr-only">Season</span><select aria-label="Season" defaultValue="rabi"><option value="rabi">Rabi (Nov – Apr)</option></select></label>}
+      </div>
+      {season && <span className="m-asof">Planning as of {fmtDate(PLANNING_DATE)} · synthetic demo data</span>}
     </div>
   </header>
 }

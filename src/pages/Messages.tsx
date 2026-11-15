@@ -241,20 +241,20 @@ export default function Messages() {
             {rows.map((r) => <button type="button" key={r.id} className="m-resp" aria-pressed={showFarmers && bucket === r.id} onClick={() => openWorkspace(r.id)}>
               <span className={`m-roundico ${r.cls}`} style={{ width: 34, height: 34 }}>{r.icon}</span>{r.label}<b>{counts[r.id]}</b><em>{pct(counts[r.id], campFarmers.length)}%</em><ArrowRight size={16} />
             </button>)}
-            <button type="button" className="m-btn m-btn-secondary" style={{ width: '100%', marginTop: 14, borderRadius: 12, background: '#e5f1de', justifyContent: 'space-between' }} onClick={() => openWorkspace(null)}><span className="m-row" style={{ gap: 10 }}><MessageSquareText size={19} />View farmer-wise responses</span><ArrowRight size={18} /></button>
+            <button type="button" className="m-btn m-btn-secondary" style={{ width: '100%', marginTop: 14, borderRadius: 12, background: '#e5f1de', justifyContent: 'space-between' }} onClick={() => openWorkspace(null)}><span className="m-row" style={{ gap: 10, flexWrap: 'nowrap' }}><MessageSquareText size={18} />View farmer-wise responses</span><ArrowRight size={18} /></button>
           </div>
         </div>
       </section>
     </div>
 
     {showFarmers && <section className="m-panel" ref={workspaceRef} aria-labelledby="fw-title" style={{ scrollMarginTop: 16 }}>
-      <div className="m-panel-head"><div><h2 className="m-panel-title" id="fw-title" style={{ fontSize: 22 }}>Farmer-wise responses{bucket ? ` · ${rows.find((r) => r.id === bucket)?.label}` : ''}</h2><p className="m-panel-sub">Send or resend each farmer’s instructions and simulate their reply.</p></div>
+      <div className="m-panel-head"><div><h2 className="m-panel-title sm" id="fw-title">Farmer-wise responses{bucket ? ` · ${rows.find((r) => r.id === bucket)?.label}` : ''}</h2><p className="m-panel-sub">Send or resend each farmer’s instructions and simulate their reply.</p></div>
         <div className="m-row">{bucket && <button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => setBucket(null)}>Show all farmers</button>}<button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => setShowFarmers(false)}>Close</button></div></div>
       <FarmerWorkspace key={`${bucket ?? 'all'}`} only={bucket ? campFarmers.filter((id) => bucketOf(id) === bucket) : undefined} />
     </section>}
 
     <section className="m-panel" aria-labelledby="flow-title">
-      <div className="m-row" style={{ gap: 14, marginBottom: 16, flexWrap: 'nowrap' }}><span className="m-roundico" style={{ width: 48, height: 48 }}><Sprout size={24} /></span><div><h2 className="m-panel-title" id="flow-title" style={{ fontSize: 24 }}>How responses update the planting plan</h2><p className="m-panel-sub">Farmer confirmations and constraints automatically adjust the season plan.</p></div></div>
+      <div className="m-row" style={{ gap: 14, marginBottom: 16, flexWrap: 'nowrap' }}><span className="m-roundico" style={{ width: 48, height: 48 }}><Sprout size={24} /></span><div><h2 className="m-panel-title sm" id="flow-title">How responses update the planting plan</h2><p className="m-panel-sub">Farmer confirmations and constraints automatically adjust the season plan.</p></div></div>
       <div className="m-flow">
         <div className="m-flowcard"><span className="m-roundico"><CalendarDays size={20} /></span><div><strong>Plan (before responses)</strong><strong className="big">{camp.crop.name}: {fmtT(bPlan?.expectedKg ?? 0)}</strong><span className="m-small">({bFarmers.size} farmer{bFarmers.size === 1 ? '' : 's'}, {(bPlan?.plannedAcres ?? 0).toFixed(1)} acres)</span></div></div>
         <span className="arrow" style={{ textAlign: 'center' }}><ArrowRight size={26} /></span>

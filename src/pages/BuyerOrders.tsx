@@ -46,13 +46,13 @@ function PlantingImpact({ order }: { order: BuyerOrder }) {
   return <>
     <div className="m-impact-head">
       <span className="e" aria-hidden="true">{crop.emoji}</span>
-      <div style={{ flex: 1, minWidth: 0 }}><strong style={{ fontSize: 17 }}>{crop.name} demand</strong> <span className="m-small">(Selected)</span><div className="m-small">{order.buyer.name} · {marketOf(order)}</div></div>
+      <div style={{ flex: 1, minWidth: 0 }}><strong>{crop.name} demand</strong> <span className="m-small">(Selected)</span><div className="m-small">{order.buyer.name} · {marketOf(order)}</div></div>
       <span className={`m-dotstatus ${order.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{order.product.orderType}</span>
     </div>
     <div className="m-impact-row"><span><Wheat size={20} />Recommended area <InfoTip text="Quantity ÷ expected yield per acre (indicative)" /></span><strong>{crop.perennial ? 'Orchard' : `~${acres.toFixed(1)} ac`}</strong></div>
     <div className="m-impact-row"><span><Sprout size={20} />Seed requirement <InfoTip text="Indicative seed rate × area. Nursery seed for transplanted crops." /></span><strong>{crop.perennial ? '—' : `~${(acres * crop.seedKgPerAcre).toFixed(acres * crop.seedKgPerAcre < 1 ? 2 : 1)} kg`}</strong></div>
-    <div className="m-impact-row"><span><CalendarDays size={20} />Suggested sowing window</span><strong style={{ color: missed ? 'var(--bad)' : undefined }}>{crop.perennial ? 'No new planting' : missed ? `Passed (${fmtDay(sowBy)})` : sowBy ? `${fmtDay(sowFrom)} – ${fmtDay(sowBy)}` : 'Add delivery dates'}</strong></div>
-    <div className="m-impact-row"><span><Sprout size={20} />Expected harvest window</span><strong>{harvestStart ? `${fmtDay(harvestStart)} – ${fmtDay(harvestEnd)}` : '—'}</strong></div>
+    <div className="m-impact-row"><span><CalendarDays size={20} />Sowing window</span><strong style={{ color: missed ? 'var(--bad)' : undefined }}>{crop.perennial ? 'No new planting' : missed ? `Passed (${fmtDay(sowBy)})` : sowBy ? `${fmtDay(sowFrom)} – ${fmtDay(sowBy)}` : 'Add delivery dates'}</strong></div>
+    <div className="m-impact-row"><span><Sprout size={20} />Harvest window</span><strong>{harvestStart ? `${fmtDay(harvestStart)} – ${fmtDay(harvestEnd)}` : '—'}</strong></div>
     {sowBy && !missed && <p className="m-small" style={{ margin: '8px 0 0' }}>{daysBetween(PLANNING_DATE, sowBy)} days left to sow · {crop.daysToFirstHarvest} days to first harvest</p>}
     <div className="m-reco"><Info size={20} color="var(--forest)" style={{ flex: 'none', marginTop: 2 }} /><div><strong>Planting recommendation</strong><p>{reco}</p></div></div>
     <div className="m-row" style={{ marginTop: 14 }}>
@@ -82,7 +82,7 @@ export default function BuyerOrders() {
     <PageHeader title="Buyer demand" subtitle="Pre-sowing demand from buyers to plan your crop mix, area, and schedule." actions={<Link to="/buyer-orders/new" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}><Plus size={17} />Add buyer demand</Link>} />
 
     <section className="m-panel" aria-labelledby="dov-title">
-      <h2 className="m-panel-title" id="dov-title" style={{ fontSize: 22, marginBottom: 16 }}>Demand overview <small>(Rabi season)</small> <InfoTip text="Active orders only. Drafts and past orders are excluded." /></h2>
+      <h2 className="m-panel-title sm" id="dov-title" style={{ marginBottom: 16 }}>Demand overview <small>(Rabi season)</small> <InfoTip text="Active orders only. Drafts and past orders are excluded." /></h2>
       <div className="m-stats three">
         <StatCard icon={<CheckCircle2 size={24} />} label="Confirmed demand" tip="Buyer has committed to quantity, window and price" value={fmtT(sum(confirmed))} sub={<>{confirmed.length} orders · always planned first</>} />
         <StatCard icon={<Sprout size={24} />} label="Indicative demand" tip="Buyer interest that isn't committed yet" value={fmtT(sum(indicative))} sub={<>{indicative.length} orders · confirm before sowing</>} />
@@ -97,25 +97,23 @@ export default function BuyerOrders() {
           <div className="m-seg2" role="group" aria-label="Market">{(['All', 'India', 'Singapore'] as MarketFilter[]).map((m) => <button key={m} type="button" aria-pressed={market === m} onClick={() => setMarket(m)}>{m}</button>)}</div>
         </div>
         <div className="m-dt-scroll"><table className="m-dt">
-          <thead><tr><th>Crop</th><th>Buyer</th><th>Variety</th><th>Quantity <InfoTip text="Required quantity" /></th><th>Delivery window <InfoTip text="When the buyer wants delivery" /></th><th>Market</th><th>Status <InfoTip text="Confirmed = committed; Indicative = interest only" /></th><th>Expected price <InfoTip text="Agreed or expected price" /></th></tr></thead>
+          <thead><tr><th>Crop</th><th>Buyer &amp; market</th><th>Quantity</th><th>Delivery</th><th>Status <InfoTip text="Confirmed = committed; Indicative = interest only" /></th><th>Price</th></tr></thead>
           <tbody>{visible.map((o) => {
             const crop = findCrop(o.product.crop)
             return <tr key={o.id} className={`click ${selected?.id === o.id ? 'sel' : ''}`} onClick={() => setSelectedId(o.id)} aria-selected={selected?.id === o.id}>
-              <td><span className="m-crop"><span className="e" aria-hidden="true">{crop?.emoji ?? '🌾'}</span>{o.product.crop}</span></td>
-              <td style={{ maxWidth: 160 }}>{o.buyer.name}</td>
-              <td>{o.product.variety || '—'}</td>
-              <td style={{ whiteSpace: 'nowrap' }}><strong>{fmtT(Number(o.product.requiredQuantityKg))}</strong></td>
-              <td style={{ whiteSpace: 'nowrap' }}>{fmtRange(o.product.deliveryStartDate, o.product.deliveryEndDate)}</td>
-              <td><span className={`m-mkt ${marketOf(o) === 'Singapore' ? 'sg' : ''}`}>{marketOf(o)}</span></td>
+              <td><span className="m-crop"><span className="e" aria-hidden="true">{crop?.emoji ?? '🌾'}</span><span>{o.product.crop}<small>{o.product.variety || 'Any variety'}</small></span></span></td>
+              <td style={{ minWidth: 130 }}>{o.buyer.name}<small><span className={`m-mkt sm ${marketOf(o) === 'Singapore' ? 'sg' : ''}`}>{marketOf(o)}</span></small></td>
+              <td className="num"><strong>{fmtT(Number(o.product.requiredQuantityKg))}</strong></td>
+              <td className="nowrap">{fmtRange(o.product.deliveryStartDate, o.product.deliveryEndDate)}</td>
               <td><span className={`m-dotstatus ${o.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{o.product.orderType}</span></td>
-              <td style={{ whiteSpace: 'nowrap' }}>{price(o)}</td>
+              <td className="num">{price(o)}</td>
             </tr>
-          })}{!visible.length && <tr><td colSpan={8}><span className="m-small">No active {market === 'All' ? '' : `${market} `}demand.</span></td></tr>}</tbody>
+          })}{!visible.length && <tr><td colSpan={6}><span className="m-small">No active {market === 'All' ? '' : `${market} `}demand.</span></td></tr>}</tbody>
         </table></div>
       </section>
 
       <section className="m-panel" aria-labelledby="impact-title">
-        <h2 className="m-panel-title" id="impact-title" style={{ fontSize: 24 }}><Sprout size={26} color="var(--forest)" />Planting impact</h2>
+        <h2 className="m-panel-title sm" id="impact-title"><Sprout size={26} color="var(--forest)" />Planting impact</h2>
         <p className="m-panel-sub" style={{ marginBottom: 14 }}>How this buyer demand affects your planting plan.</p>
         {selected ? <PlantingImpact order={selected} /> : <p className="m-small">Select a buyer request.</p>}
       </section>

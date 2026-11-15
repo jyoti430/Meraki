@@ -32,7 +32,7 @@ function actionFor(o: Opportunity): { label: string; to: string; tone: '' | 'war
 }
 
 function DemandBar({ o, max }: { o: Opportunity; max: number }) {
-  const w = (kg: number) => `${Math.max(kg > 0 ? 6 : 0, (kg / max) * 140)}px`
+  const w = (kg: number) => `${Math.max(kg > 0 ? 6 : 0, (kg / max) * 110)}px`
   if (!o.plan) return <div className="m-dbar" title="Market forecast only – no buyer orders"><i className="f" style={{ width: 60 }} /></div>
   return <div className="m-dbar" title={`${fmtT(o.plan.confirmedKg)} confirmed · ${fmtT(o.plan.indicativeKg)} indicative`}>
     {o.plan.confirmedKg > 0 && <i className="c" style={{ width: w(o.plan.confirmedKg) }} />}
@@ -90,7 +90,7 @@ export default function Overview() {
           </div>
         </div>
         <div className="m-dt-scroll"><table className="m-dt">
-          <thead><tr><th>Crop</th><th>Expected demand <InfoTip text="Active buyer orders" /></th><th>Projected supply <InfoTip text="Expected harvest from the current plan" /></th><th>Feasibility <InfoTip text="Can participating farms grow it in time, with their water and soil?" /></th><th>Recommended action</th><th><span className="sr-only">Details</span></th></tr></thead>
+          <thead><tr><th>Crop</th><th>Demand <InfoTip text="Active buyer orders: confirmed, indicative and forecast" /></th><th>Supply <InfoTip text="Expected harvest from the current plan" /></th><th>Feasibility <InfoTip text="Can participating farms grow it in time, with their water and soil?" /></th><th>Recommended action</th><th><span className="sr-only">Details</span></th></tr></thead>
           <tbody>{result.opportunities.map((o) => {
             const a = actionFor(o)
             const isOpen = open === o.crop.id
@@ -114,7 +114,7 @@ export default function Overview() {
 
       <div className="m-stack" style={{ gap: 20 }}>
         <section className="m-panel" aria-labelledby="next-title">
-          <h2 className="m-panel-title" id="next-title" style={{ fontSize: 24 }}><Zap size={24} />Next actions</h2>
+          <h2 className="m-panel-title sm" id="next-title"><Zap size={24} />Next actions</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Keep your seasonal plan on track.</p>
           <ul className="m-checklist">{result.actions.slice(0, 5).map((a) => {
             const isDone = done.includes(a.id)
@@ -125,7 +125,7 @@ export default function Overview() {
           })}</ul>
         </section>
         <section className="m-panel" aria-labelledby="watch-title">
-          <h2 className="m-panel-title" id="watch-title" style={{ fontSize: 24 }}><AlertTriangle size={24} />Watchouts</h2>
+          <h2 className="m-panel-title sm" id="watch-title"><AlertTriangle size={24} />Watchouts</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Risks to monitor for this season.</p>
           <ul className="m-why2">{watchouts.map((w) => <li key={w.title}><span className={`m-roundico ${w.tone}`}>{w.icon}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
         </section>

@@ -59,7 +59,7 @@ function ScenarioCompare() {
   }), [orders, data, responses, exclusions])
   const set = (patch: Partial<Scenario>) => setScenario({ ...scenario, ...patch })
   return <section className="m-panel" aria-labelledby="scen-title">
-    <div className="m-panel-head"><div><h2 className="m-panel-title" id="scen-title" style={{ fontSize: 22 }}>Compare scenarios</h2><p className="m-panel-sub">Each scenario reruns the whole plan with the same farms and orders.</p></div>{!presetFor(scenario) && <span className="m-status review"><AlertTriangle size={15} />Custom assumptions</span>}</div>
+    <div className="m-panel-head"><div><h2 className="m-panel-title sm" id="scen-title">Compare scenarios</h2><p className="m-panel-sub">Each scenario reruns the whole plan with the same farms and orders.</p></div>{!presetFor(scenario) && <span className="m-status review"><AlertTriangle size={15} />Custom assumptions</span>}</div>
     <div className="m-scenarios">
       {rows.map((c) => <button type="button" key={c.preset.id} className="m-scenario" aria-pressed={presetFor(scenario)?.id === c.preset.id} onClick={() => setScenario(c.preset.scenario)}>
         <span className="m-scenario-title">{c.preset.label}{presetFor(scenario)?.id === c.preset.id && <span className="m-tag m-tag-plan">Active</span>}</span>
@@ -68,8 +68,8 @@ function ScenarioCompare() {
           <div><dt>Land</dt><dd>{c.acres.toFixed(1)} ac</dd></div>
           <div><dt>Farmers</dt><dd>{c.farmers}</dd></div>
           <div><dt>Crops short</dt><dd>{c.gaps}</dd></div>
-          <div><dt>Confirmed covered</dt><dd>{fmtPct(c.confirmed)}</dd></div>
-          <div><dt>All demand covered</dt><dd>{fmtPct(c.all)}</dd></div>
+          <div><dt>Confirmed</dt><dd>{fmtPct(c.confirmed)} <span className="m-small">covered</span></dd></div>
+          <div><dt>All demand</dt><dd>{fmtPct(c.all)} <span className="m-small">covered</span></dd></div>
         </dl>
       </button>)}
     </div>
@@ -177,14 +177,13 @@ export default function PlantingPlan() {
       {plan.window === 'missed' && <div className="m-alert m-alert-warn" style={{ marginBottom: 12 }}><Info size={18} style={{ flex: 'none' }} />To deliver from {fmtDay(plan.deliveryStart)}, {plan.crop.name.toLowerCase()} needed sowing by {fmtDay(plan.sowBy)}. Only crops already in the ground can contribute.</div>}
 
       <div className="m-dt-scroll"><table className="m-dt">
-        <thead><tr><th>Farmer / Plot</th><th>Crop</th><th>Suggested planting window <InfoTipInline /></th><th>Expected harvest window</th><th>Quantity</th><th>Feasibility</th><th>Status</th>{editing && <th><span className="sr-only">Edit</span></th>}</tr></thead>
+        <thead><tr><th>Farmer / Plot</th><th>Suggested planting window <InfoTipInline /></th><th>Expected harvest window</th><th>Quantity</th><th>Feasibility</th><th>Status</th>{editing && <th><span className="sr-only">Edit</span></th>}</tr></thead>
         <tbody>
           {plan.existing.map((e) => <tr key={e.cycle.id}>
             <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{e.farmer?.name}</strong><small>{e.plot.name} · {e.farmer?.village}</small></span></span></td>
-            <td><span className="m-crop" style={{ fontWeight: 500, fontSize: 15 }}><span className="e" style={{ fontSize: 20 }}>{plan.crop.emoji}</span>{plan.crop.name}</span></td>
             <td><span className="m-chipdate">Already planted</span></td>
             <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(e.cycle.expectedHarvestStartDate)} – {fmtDay(e.cycle.expectedHarvestEndDate)}</span></td>
-            <td><strong>{fmtT(e.kg)}</strong><small>in delivery window</small></td>
+            <td><strong>{fmtT(e.kg)}</strong><small>in window</small></td>
             <td><Feasibility level="high" /></td>
             <td><span className="m-status"><Sprout size={15} />Growing</span></td>
             {editing && <td />}
@@ -194,18 +193,17 @@ export default function PlantingPlan() {
             return <Fragment key={a.plotId}>
               <tr className="click" onClick={() => setOpen(isOpen ? null : a.plotId)} aria-expanded={isOpen}>
                 <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{a.farmerName}</strong><small>{a.plotName} · {fmtAcres(a.acres)} · {data.farmers.find((f) => f.id === a.farmerId)?.village}</small></span></span></td>
-                <td><span className="m-crop" style={{ fontWeight: 500, fontSize: 15 }}><span className="e" style={{ fontSize: 20 }}>{plan.crop.emoji}</span>{plan.crop.name}</span></td>
-                <td><span className="m-chipdate"><CalendarDays size={16} />{fmtDay(plan.sowFrom)} – {fmtDay(plan.sowBy)}</span></td>
+                    <td><span className="m-chipdate"><CalendarDays size={16} />{fmtDay(plan.sowFrom)} – {fmtDay(plan.sowBy)}</span></td>
                 <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(plan.harvestStart)} – {fmtDay(plan.harvestEnd)}</span></td>
                 <td><strong>{fmtT(a.kg)}</strong><small>{fmtT(a.kgRange[0])}–{fmtT(a.kgRange[1])}</small></td>
                 <td><Feasibility level={a.fit === 'good' ? 'high' : 'medium'} /></td>
                 <td>{statusOf(a.farmerId, a.fit)}</td>
                 {editing && <td><button type="button" className="m-btn m-btn-danger m-btn-xs" onClick={(e) => { e.stopPropagation(); toggleExclusion(a.plotId, plan.crop.name) }}><MinusCircle size={14} />Remove</button></td>}
               </tr>
-              {isOpen && <tr><td colSpan={editing ? 8 : 7} style={{ background: '#fafcf8' }}><strong style={{ fontSize: 14 }}>Why this plot:</strong> <Reasons reasons={a.reasons} />{a.phase === 'indicative' && <small style={{ marginTop: 6 }}>Assigned to cover indicative demand.</small>}</td></tr>}
+              {isOpen && <tr><td colSpan={editing ? 7 : 6} style={{ background: '#fafcf8' }}><strong style={{ fontSize: 14 }}>Why this plot:</strong> <Reasons reasons={a.reasons} />{a.phase === 'indicative' && <small style={{ marginTop: 6 }}>Assigned to cover indicative demand.</small>}</td></tr>}
             </Fragment>
           })}
-          {!plan.allocations.length && !plan.existing.length && <tr><td colSpan={7}><span className="m-small">No farmers assigned to {plan.crop.name.toLowerCase()} in this scenario.</span></td></tr>}
+          {!plan.allocations.length && !plan.existing.length && <tr><td colSpan={6}><span className="m-small">No farmers assigned to {plan.crop.name.toLowerCase()} in this scenario.</span></td></tr>}
         </tbody>
       </table></div>
 
@@ -223,7 +221,7 @@ export default function PlantingPlan() {
 
     <div className="m-cols-even">
       <section className="m-panel" aria-labelledby="crop-sd-title">
-        <h2 className="m-panel-title" id="crop-sd-title" style={{ fontSize: 24 }}><BarChart3 size={24} color="var(--forest)" />Supply vs. demand <small>({plan.crop.name})</small></h2>
+        <h2 className="m-panel-title sm" id="crop-sd-title"><BarChart3 size={24} color="var(--forest)" />Supply vs. demand <small>({plan.crop.name})</small></h2>
         <p className="m-panel-sub" style={{ marginBottom: 12 }}>{plan.expectedKg >= demandTotal ? 'Planned production meets or exceeds buyer demand.' : 'Planned production is below total buyer demand.'}</p>
         {weeks.length > 1 ? <div className="m-chartwrap">
           <LineChart ariaLabel={`Cumulative demand and planned supply for ${plan.crop.name}`} labels={weeks.map((w) => fmtDay(w.start))}
@@ -236,7 +234,7 @@ export default function PlantingPlan() {
         </div> : <SupplyMeter plan={plan} showLegend />}
       </section>
       <section className="m-panel" aria-labelledby="why-title">
-        <h2 className="m-panel-title" id="why-title" style={{ fontSize: 24 }}><Zap size={24} color="var(--forest)" />Why this plan is recommended</h2>
+        <h2 className="m-panel-title sm" id="why-title"><Zap size={24} color="var(--forest)" />Why this plan is recommended</h2>
         <p className="m-panel-sub" style={{ marginBottom: 8 }}>How Meraki matched {plan.crop.name.toLowerCase()} demand to your farmers.</p>
         <ul className="m-why2">{why.map((w) => <li key={w.title}><span className={`m-roundico ${w.ok ? '' : 'warn'}`} style={{ width: 34, height: 34 }}>{w.ok ? <Check size={18} /> : <AlertTriangle size={17} />}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
       </section>
@@ -245,19 +243,19 @@ export default function PlantingPlan() {
     <ScenarioCompare />
 
     <section className="m-panel" aria-labelledby="cal-title">
-      <h2 className="m-panel-title" id="cal-title" style={{ fontSize: 22 }}>Season calendar</h2>
+      <h2 className="m-panel-title sm" id="cal-title">Season calendar</h2>
       <p className="m-panel-sub" style={{ marginBottom: 14 }}>Sowing dates are worked back from each buyer’s delivery window and the crop’s days to harvest.</p>
       <Calendar plans={plans} />
     </section>
 
     <div className="m-cols-even">
       <section className="m-panel" id="history" aria-labelledby="history-title" style={{ scrollMarginTop: 16 }}>
-        <h2 className="m-panel-title" id="history-title" style={{ fontSize: 22 }}><History size={22} />Plan updates</h2>
+        <h2 className="m-panel-title sm" id="history-title"><History size={22} />Plan updates</h2>
         <div style={{ marginTop: 12 }}>{changes.length ? changes.map((c) => <div className="m-change" key={c.id}><strong>{c.title}</strong> <span className="m-small">· {new Date(c.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span><ul>{c.details.map((d) => <li key={d}>{d}</li>)}</ul></div>)
           : <p className="m-small" style={{ margin: 0 }}>No changes yet. When farmers decline, report a problem, or you remove a plot, Meraki rebalances the plan and records what changed here.</p>}</div>
       </section>
       <section className="m-panel" aria-labelledby="out-title">
-        <h2 className="m-panel-title" id="out-title" style={{ fontSize: 22 }}><UserX size={22} />Farmers not in this plan</h2>
+        <h2 className="m-panel-title sm" id="out-title"><UserX size={22} />Farmers not in this plan</h2>
         <div className="m-stack" style={{ gap: 8, marginTop: 12 }}>
           {result.ineligible.map(({ farmer, reason }) => <div key={farmer.id} className="m-row" style={{ justifyContent: 'space-between' }}><Link className="m-link" to={`/farmers-plots/${farmer.id}`}>{farmer.name}</Link><span className="m-tag m-tag-neutral">{reason}</span></div>)}
           {!result.ineligible.length && <p className="m-small" style={{ margin: 0 }}>Every member is participating.</p>}

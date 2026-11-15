@@ -651,3 +651,167 @@ body { background: linear-gradient(180deg, #f7f9f4 0%, #f3f6ef 100%); }
   .m-resp em { width: auto; }
 }
 .m-cal-months span { overflow: hidden; white-space: nowrap; } .m-cal > * { min-width: 0; }
+
+/* =========================================================================
+   Polish layer: one type scale + 4px spacing rhythm
+   Type: 12 meta · 13 small · 14 body-sm · 15 body · 16 item title ·
+         19 card title · 22 section title · 32 stat · 34 page title
+   Space: 4 · 8 · 12 · 16 · 20 · 24 · 32
+   ========================================================================= */
+:root { --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-base: 15px; --fs-lg: 16px; --fs-card: 19px; --fs-section: 22px; --fs-stat: 32px; --fs-title: 34px; font-size: var(--fs-base); }
+
+/* Shell */
+.m-main { padding: 24px 40px 64px 24px; }
+.m-page { max-width: 1320px; gap: 24px; }
+.m-sidebar { padding: 28px 16px 20px; gap: 32px; }
+.m-brand-name { font-size: 24px; }
+.m-nav { gap: 4px; }
+.m-nav a { font-size: var(--fs-base); padding: 10px 14px; gap: 12px; }
+.m-nav a svg { width: 20px; height: 20px; }
+
+/* Page header */
+.m-greet { font-size: var(--fs-md); margin: 4px 0 4px; }
+.m-title { font-size: var(--fs-title); letter-spacing: -1px; line-height: 1.15; margin: 0 0 6px; }
+.m-subtitle { font-size: var(--fs-base); color: var(--mute); }
+.m-top-tools { gap: 12px; }
+.m-top-row { gap: 12px; }
+.m-select-pill { font-size: var(--fs-md); padding: 8px 14px; border-radius: 10px; gap: 8px; }
+.m-select-pill svg { width: 18px; height: 18px; }
+.m-asof { font-size: var(--fs-xs); margin-top: -4px; }
+
+/* Stat cards */
+.m-stats { gap: 16px; }
+.m-stat { padding: 20px; gap: 14px; border-radius: 16px; align-items: center; }
+.m-stat-ico { width: 44px; height: 44px; }
+.m-stat-ico svg { width: 22px; height: 22px; }
+.m-stat small { font-size: var(--fs-md); color: var(--body); font-weight: 600; }
+.m-stat strong { font-size: var(--fs-stat); margin: 4px 0 2px; letter-spacing: -.8px; }
+.m-stat span.m-stat-sub { font-size: var(--fs-sm); color: var(--mute); }
+.m-pillbig { font-size: 20px; padding: 2px 14px; margin: 4px 0 2px; }
+
+/* Panels */
+.m-panel { padding: 24px; border-radius: 16px; }
+.m-panel-head { margin-bottom: 16px; gap: 12px 16px; align-items: center; }
+.m-panel-title { font-size: var(--fs-section); letter-spacing: -.4px; gap: 10px; }
+.m-panel-title.sm { font-size: var(--fs-card); letter-spacing: -.2px; }
+.m-panel-title svg { width: 22px; height: 22px; flex: none; }
+.m-panel-title.sm svg { width: 20px; height: 20px; }
+.m-panel-title small { font-size: var(--fs-lg); color: var(--mute); }
+.m-panel-sub { font-size: var(--fs-md); color: var(--mute); margin-top: 4px; }
+.m-cols { grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; }
+.m-cols-even { gap: 24px; }
+.m-cols-demand { grid-template-columns: minmax(0, 1fr) 340px; }
+.m-stack { gap: 16px; }
+.m-h3 { font-size: var(--fs-lg); }
+
+/* Tables */
+.m-dt { font-size: var(--fs-md); }
+.m-dt th { font-size: var(--fs-sm); font-weight: 600; color: var(--mute); padding: 8px 12px; }
+.m-dt td { padding: 12px; line-height: 1.4; }
+.m-dt th:first-child, .m-dt td:first-child { padding-left: 4px; }
+.m-dt td small { font-size: var(--fs-sm); margin-top: 2px; }
+.m-dt .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.m-dt .nowrap { white-space: nowrap; }
+.m-crop { font-size: var(--fs-base); gap: 10px; }
+.m-crop .e { font-size: 20px; }
+.m-crop small { font-weight: 400; }
+
+/* Chips & pills – one size */
+.m-feas, .m-status, .m-dotstatus, .m-chipdate, .m-mkt, .m-camp-pill { font-size: var(--fs-sm); padding: 4px 10px; border-radius: 8px; gap: 6px; line-height: 1.4; }
+.m-dotstatus { border-radius: 999px; }
+.m-status svg, .m-chipdate svg { width: 14px; height: 14px; }
+.m-mkt.sm { padding: 1px 8px; font-size: var(--fs-xs); margin-top: 4px; }
+.m-action-btn { font-size: var(--fs-sm); min-width: 0; padding: 6px 10px; gap: 8px; border-radius: 8px; }
+.m-action-btn svg { width: 15px; height: 15px; }
+.m-chip-target { font-size: var(--fs-md); padding: 6px 12px; }
+.m-legend2 { font-size: var(--fs-sm); gap: 14px; color: var(--body); }
+.m-seg2 button { font-size: var(--fs-md); padding: 8px 16px; }
+.m-tag { font-size: var(--fs-xs); }
+.m-dbar { width: 110px; height: 8px; margin-top: 6px; }
+
+/* Lists */
+.m-checklist li { padding: 12px 0; gap: 12px; }
+.m-checklist input { width: 18px; height: 18px; }
+.m-checklist strong { font-size: var(--fs-base); line-height: 1.35; }
+.m-checklist span, .m-checklist a { font-size: var(--fs-sm); }
+.m-checklist span { display: block; margin-top: 2px; color: var(--mute); }
+.m-why2 li { padding: 12px 0; gap: 12px; align-items: flex-start; }
+.m-why2 strong { font-size: var(--fs-base); line-height: 1.35; }
+.m-why2 span { font-size: var(--fs-sm); color: var(--mute); display: block; margin-top: 2px; line-height: 1.45; }
+.m-roundico { width: 36px; height: 36px; }
+.m-roundico svg { width: 18px; height: 18px; }
+.m-why { font-size: var(--fs-md); gap: 8px; }
+
+/* Charts & minis */
+.m-chartwrap { grid-template-columns: minmax(0, 1fr) 132px; gap: 16px; }
+.m-mini { padding: 10px 12px; border-radius: 10px; }
+.m-mini small { font-size: var(--fs-xs); color: var(--mute); }
+.m-mini strong { font-size: 20px; }
+.m-minis { gap: 8px; }
+.m-footnote { font-size: var(--fs-sm); }
+
+/* Demand impact */
+.m-impact-head { padding: 12px 14px; border-radius: 12px; gap: 12px; }
+.m-impact-head .e { font-size: 28px; }
+.m-impact-head strong { font-size: var(--fs-lg); }
+.m-impact-row { font-size: var(--fs-md); padding: 12px 2px; }
+.m-impact-row svg { width: 18px; height: 18px; }
+.m-reco { padding: 14px; gap: 10px; }
+.m-reco strong { font-size: var(--fs-base); }
+.m-reco p { font-size: var(--fs-md); line-height: 1.5; }
+
+/* Messages */
+.m-camp { padding: 12px; gap: 12px; }
+.m-camp strong { font-size: var(--fs-base); }
+.m-camp .m-small { font-size: var(--fs-sm); }
+.m-camp .m-roundico { width: 40px !important; height: 40px !important; }
+.m-wa { padding: 14px; gap: 10px; min-height: 0; }
+.m-wa-bubble { font-size: var(--fs-md); padding: 10px 12px 6px; }
+.m-resp { padding: 10px 4px; font-size: var(--fs-md); gap: 10px; }
+.m-resp b { font-size: var(--fs-lg); }
+.m-resp em { font-size: var(--fs-sm); width: 40px; }
+.m-flow { gap: 16px; }
+.m-flowcard { padding: 16px; gap: 12px; }
+.m-flowcard strong { font-size: var(--fs-md); }
+.m-flowcard strong.big { font-size: 24px; margin: 4px 0 0; }
+.m-changed { font-size: var(--fs-md); gap: 8px; }
+
+/* Avatars */
+.m-avatar { width: 36px; height: 36px; font-size: var(--fs-sm); }
+
+@media (max-width: 1280px) {
+  .m-main { padding: 20px 24px 56px 16px; }
+  .m-stat { padding: 16px; }
+  .m-stat strong { font-size: 28px; }
+}
+@media (max-width: 900px) {
+  .m-main { padding: 16px 16px 24px; }
+  .m-title { font-size: 28px; }
+  .m-page { gap: 20px; }
+}
+@media (max-width: 640px) {
+  .m-panel { padding: 18px 16px; }
+  .m-panel-title { font-size: 20px; }
+  .m-panel-title.sm { font-size: 18px; }
+  .m-stat strong { font-size: 26px; }
+}
+/* Normalise older sub-components to the scale */
+.m-scenario dt { font-size: var(--fs-xs); }
+.m-scenario-title { font-size: var(--fs-lg); }
+.m-scenario dd { font-size: var(--fs-base); }
+.m-scenario p { font-size: var(--fs-sm); }
+.m-scenario { padding: 16px; gap: 10px; border-radius: 14px; }
+.m-meter-legend, .m-cal-label, .m-cal { font-size: var(--fs-sm); }
+.m-details > summary { font-size: var(--fs-md); }
+.m-change ul { font-size: var(--fs-md); }
+.m-dt-scroll::-webkit-scrollbar { height: 8px; }
+.m-top-tools { gap: 10px; } .m-impact-row span { white-space: nowrap; }
+.m-scenario dl { gap: 10px 8px; } .m-scenario dd .m-small { font-weight: 400; font-size: var(--fs-xs); } .m-cal-label { white-space: nowrap; gap: 6px; }
+@media (max-width: 900px) {
+  .m-topbar { flex-direction: column; gap: 14px; }
+  .m-top-tools { width: 100%; }
+  .m-top-row { flex-wrap: wrap; gap: 8px; }
+  .m-asof { margin-top: 0; }
+}
+@media (max-width: 1180px) { .m-cols, .m-cols-demand, .m-cols-msg { grid-template-columns: minmax(0, 1fr); } }
+.m-cols-demand { grid-template-columns: minmax(0, 1fr) 320px; } @media (max-width: 1180px) { .m-cols-demand { grid-template-columns: minmax(0, 1fr); } }

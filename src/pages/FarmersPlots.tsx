@@ -142,7 +142,7 @@ export default function FarmersPlots() {
 
     <div className="m-cols-even">
         <section className="m-panel" aria-labelledby="attn-title">
-          <h2 className="m-panel-title" id="attn-title" style={{ fontSize: 24 }}><AlertTriangle size={24} />Needs attention</h2>
+          <h2 className="m-panel-title sm" id="attn-title"><AlertTriangle size={24} />Needs attention</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Details that would let more land into the plan.</p>
           <ul className="m-why2">
             {notRecorded.map((f) => <li key={f.id}><span className="m-roundico warn"><UsersRound size={19} /></span><div><strong>Ask {f.name} about joining</strong><span>Participation not recorded, so their land isn’t used.</span><div style={{ marginTop: 8 }}><ParticipationCell farmer={f} reason={null} /></div></div></li>)}
@@ -151,7 +151,7 @@ export default function FarmersPlots() {
           </ul>
         </section>
         <section className="m-panel" aria-labelledby="how-title">
-          <h2 className="m-panel-title" id="how-title" style={{ fontSize: 24 }}><Layers size={24} />How conditions shape the plan</h2>
+          <h2 className="m-panel-title sm" id="how-title"><Layers size={24} />How conditions shape the plan</h2>
           <ul className="m-why2" style={{ marginTop: 8 }}>
             <li><span className="m-roundico"><CalendarClock size={19} /></span><div><strong>Timing</strong><span>A plot still growing another crop past the sow-by date is skipped. 7 days are allowed to prepare land.</span></div></li>
             <li><span className="m-roundico"><Droplets size={19} /></span><div><strong>Water</strong><span>No water rules a plot out. Limited water rules out thirsty crops; drip makes medium-water crops workable.</span></div></li>
