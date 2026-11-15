@@ -1,0 +1,32 @@
+import type { CropCycle, Farmer, ParticipationRecord, Plot } from '../types'
+
+const time = (value: string) => new Date(value).toISOString()
+
+// All names, contact numbers, locations and production figures below are synthetic demo records.
+export const demoFarmers: Farmer[] = [
+  { id: 'FPO-DEMO-001', name: 'Anita Patil', phone: '+91 90000 00001', village: 'Khadki', district: 'Pune', state: 'Maharashtra', preferredLanguage: 'Marathi', membershipStatus: 'Active', consent: { consented: true, status: 'opted-in', recordedAt: time('2026-10-10T10:00:00Z'), reason: 'Farmer confirmed participation', notes: '' }, notes: '', createdAt: time('2026-09-04T08:00:00Z'), updatedAt: time('2026-10-10T10:00:00Z') },
+  { id: 'FPO-DEMO-002', name: 'Ramesh Kumar', phone: '+91 90000 00002', village: 'Nandgaon', district: 'Nashik', state: 'Maharashtra', preferredLanguage: 'Hindi', membershipStatus: 'Active', consent: { consented: true, status: 'opted-in', recordedAt: time('2026-10-18T09:30:00Z'), reason: 'Farmer confirmed participation', notes: 'Contact before harvest collection.' }, notes: 'Prefers phone contact.', createdAt: time('2026-09-08T08:00:00Z'), updatedAt: time('2026-10-18T09:30:00Z') },
+  { id: 'FPO-DEMO-003', name: 'Sunita Deshmukh', phone: '+91 90000 00003', village: 'Pimpalgaon', district: 'Nashik', state: 'Maharashtra', preferredLanguage: 'Marathi', membershipStatus: 'Active', consent: { consented: false, status: 'opted-out', recordedAt: time('2026-11-02T07:15:00Z'), reason: 'Unavailable this season', notes: 'Asked to pause supply programme participation.' }, notes: '', createdAt: time('2026-09-14T08:00:00Z'), updatedAt: time('2026-11-02T07:15:00Z') },
+  { id: 'FPO-DEMO-004', name: 'Imran Shaikh', phone: '+91 90000 00004', village: 'Wadgaon', district: 'Pune', state: 'Maharashtra', preferredLanguage: 'Urdu', membershipStatus: 'Inactive', consent: { consented: false, status: 'not-recorded', recordedAt: null, reason: '', notes: '' }, notes: 'Membership inactive in this synthetic example.', createdAt: time('2026-09-20T08:00:00Z'), updatedAt: time('2026-09-20T08:00:00Z') },
+]
+
+export const demoPlots: Plot[] = [
+  { id: 'PLOT-DEMO-001', farmerId: 'FPO-DEMO-001', name: 'North field', villageLocation: 'Khadki, Pune', area: 2.5, areaUnit: 'acre', waterAvailability: 'Limited', irrigationType: 'Drip', soilType: 'Black soil', soilReport: { details: 'Sample report summary: pH and nutrient panel recorded by farmer.', reportDate: '2026-08-12' }, notes: '', createdAt: time('2026-09-06T08:00:00Z'), updatedAt: time('2026-09-06T08:00:00Z') },
+  { id: 'PLOT-DEMO-002', farmerId: 'FPO-DEMO-001', name: 'Canal-side plot', villageLocation: 'Khadki, Pune', area: 1.2, areaUnit: 'hectare', waterAvailability: 'Available', irrigationType: 'Furrow', soilType: 'Loamy', soilReport: null, notes: 'Synthetic plot record.', createdAt: time('2026-09-09T08:00:00Z'), updatedAt: time('2026-09-09T08:00:00Z') },
+  { id: 'PLOT-DEMO-003', farmerId: 'FPO-DEMO-002', name: 'Upper orchard', villageLocation: 'Nandgaon, Nashik', area: 3, areaUnit: 'acre', waterAvailability: 'Limited', irrigationType: '', soilType: 'Sandy loam', soilReport: { details: 'Sample report reference: DEMO-SOIL-23.', reportDate: '2026-07-20' }, notes: '', createdAt: time('2026-09-12T08:00:00Z'), updatedAt: time('2026-09-12T08:00:00Z') },
+  { id: 'PLOT-DEMO-004', farmerId: 'FPO-DEMO-003', name: 'East parcel', villageLocation: 'Pimpalgaon, Nashik', area: 1.75, areaUnit: 'acre', waterAvailability: 'Unknown', irrigationType: '', soilType: '', soilReport: null, notes: '', createdAt: time('2026-09-18T08:00:00Z'), updatedAt: time('2026-09-18T08:00:00Z') },
+]
+
+export const demoCropCycles: CropCycle[] = [
+  { id: 'CYCLE-DEMO-001', plotId: 'PLOT-DEMO-001', crop: 'Mango', variety: 'Alphonso', plantingDate: '2026-06-01', expectedHarvestStartDate: '2027-03-15', expectedHarvestEndDate: '2027-04-15', estimatedProductionKg: 1800, status: 'Growing', previousCrop: '', notes: 'Sample estimate only.', waterConstraints: 'Limited water availability in late summer.', capitalInputConstraints: '', otherLimitations: '', createdAt: time('2026-10-01T08:00:00Z'), updatedAt: time('2026-10-01T08:00:00Z') },
+  { id: 'CYCLE-DEMO-002', plotId: 'PLOT-DEMO-002', crop: 'Okra', variety: 'Arka Anamika', plantingDate: '2026-10-15', expectedHarvestStartDate: '2027-01-05', expectedHarvestEndDate: '2027-02-05', estimatedProductionKg: 650, status: 'Planned', previousCrop: 'Onion', notes: '', waterConstraints: '', capitalInputConstraints: 'Input costs under review.', otherLimitations: '', createdAt: time('2026-10-20T08:00:00Z'), updatedAt: time('2026-10-20T08:00:00Z') },
+  { id: 'CYCLE-DEMO-003', plotId: 'PLOT-DEMO-003', crop: 'Mango', variety: 'Kesar', plantingDate: '2026-05-20', expectedHarvestStartDate: '2027-03-25', expectedHarvestEndDate: '2027-04-25', estimatedProductionKg: 2200, status: 'Harvest-ready', previousCrop: '', notes: 'Sample estimate only.', waterConstraints: '', capitalInputConstraints: '', otherLimitations: '', createdAt: time('2026-10-02T08:00:00Z'), updatedAt: time('2026-10-02T08:00:00Z') },
+  { id: 'CYCLE-DEMO-004', plotId: 'PLOT-DEMO-004', crop: 'Onion', variety: 'Local red', plantingDate: '2026-01-04', expectedHarvestStartDate: '2026-04-20', expectedHarvestEndDate: '2026-05-10', estimatedProductionKg: 900, status: 'Harvested', previousCrop: '', notes: '', waterConstraints: '', capitalInputConstraints: '', otherLimitations: '', createdAt: time('2026-01-10T08:00:00Z'), updatedAt: time('2026-05-12T08:00:00Z') },
+]
+
+export const demoParticipationRecords: ParticipationRecord[] = [
+  { id: 'PART-DEMO-001', farmerId: 'FPO-DEMO-001', scope: 'supply-programme', scopeId: null, status: 'opted-in', recordedAt: time('2026-10-10T10:00:00Z'), reason: 'Farmer confirmed participation', notes: '' },
+  { id: 'PART-DEMO-002', farmerId: 'FPO-DEMO-001', scope: 'buyer-order', scopeId: 'ORD-DEMO-024', status: 'unavailable', recordedAt: time('2026-11-01T09:00:00Z'), reason: 'Unavailable for this order window', notes: 'Participation for other programmes is unchanged.' },
+  { id: 'PART-DEMO-003', farmerId: 'FPO-DEMO-002', scope: 'supply-programme', scopeId: null, status: 'opted-in', recordedAt: time('2026-10-18T09:30:00Z'), reason: 'Farmer confirmed participation', notes: '' },
+  { id: 'PART-DEMO-004', farmerId: 'FPO-DEMO-003', scope: 'supply-programme', scopeId: null, status: 'opted-out', recordedAt: time('2026-11-02T07:15:00Z'), reason: 'Unavailable this season', notes: 'Asked to pause supply programme participation.' },
+]
