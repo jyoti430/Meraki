@@ -242,6 +242,7 @@ export function createSupplyPlan(data: SupplyPlanningData, order: BuyerOrder, pr
   const plan: SupplyPlan = {
     id: nextId('PLAN-DEMO', data.plans.map((item) => item.id)),
     orderId: order.id,
+    buyerSpecificationVersion: order.specificationVersion,
     programmeId: preview.programmeId,
     status,
     orderQuantityKg: preview.orderQuantityKg,
@@ -336,6 +337,17 @@ export function cancelSupplyPlan(data: SupplyPlanningData, planId: string, reaso
 
 export function getReservedQuantity(data: SupplyPlanningData, cropCycleId: string, excludingPlanId?: string) {
   return data.reservations.filter((item) => item.status === 'active' && item.cropCycleId === cropCycleId && item.planId !== excludingPlanId).reduce((total, item) => total + item.quantityKg, 0)
+}
+
+export function reconcileReservationReceipt(data: SupplyPlanningData, planId: string, farmerId: string, plotId: string, cropCycleId: string, receivedKg: number, actor: string) {
+  const reservation = data.reservations.find((item) => item.planId === planId && item.farmerId === farmerId && item.plotId === plotId && item.cropCycleId === cropCycleId && item.status === 'active')
+  if (!reservation) throw new Error('No active matching reservation remains to reconcile.')
+  const applied = Math.min(receivedKg, reservation.quantityKg)
+  const remaining = reservation.quantityKg - applied
+  const occurredAt = now()
+  const entry = { status: remaining <= 0 ? 'released' as const : 'active' as const, changedAt: occurredAt, changedBy: actor, reason: `Explicit receipt reconciliation: ${applied} kg applied.` }
+  const next = { ...reservation, quantityKg: remaining, ...(remaining <= 0 ? { status: 'released' as const, releasedAt: occurredAt, releaseReason: `Receipt reconciled by ${actor}.` } : {}), history: [...reservation.history, entry] }
+  return { data: { ...data, reservations: data.reservations.map((item) => item.id === reservation.id ? next : item) }, applied }
 }
 
 export function getGlobalEligibleEstimate(farmers: FarmerStore, planning: SupplyPlanningData): number {

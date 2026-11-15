@@ -4,7 +4,7 @@ import { useBuyerOrders } from './BuyerOrdersContext'
 import { useFarmers } from './FarmersContext'
 import {
   applyManualAllocations, cancelSupplyPlan, confirmSupplyPlan, createSupplyPlan,
-  loadSupplyPlanningData, persistSupplyPlanningData,
+  loadSupplyPlanningData, persistSupplyPlanningData, reconcileReservationReceipt,
 } from '../services/SupplyPlanningService'
 import type { CandidateAdjustment, SupplyPlanningData, SupplyPreview } from '../services/SupplyPlanningService'
 import type { SupplyPlan } from '../types'
@@ -15,6 +15,7 @@ type SupplyPlanningContextValue = {
   confirmNewPlan: (orderId: string, preview: SupplyPreview, adjustments: Record<string, CandidateAdjustment>) => SupplyPlan
   confirmPlan: (planId: string) => void
   cancelPlan: (planId: string, reason: string) => void
+  reconcileReceipt: (planId: string, farmerId: string, plotId: string, cropCycleId: string, quantityKg: number, actor: string) => void
 }
 
 const SupplyPlanningContext = createContext<SupplyPlanningContextValue | null>(null)
@@ -45,6 +46,7 @@ export function SupplyPlanningProvider({ children }: { children: ReactNode }) {
       setData(confirmed)
       return confirmed.plans.find((item) => item.id === created.plan.id) ?? created.plan
     },
+    reconcileReceipt(planId, farmerId, plotId, cropCycleId, quantityKg, actor) { setData((current) => reconcileReservationReceipt(current, planId, farmerId, plotId, cropCycleId, quantityKg, actor).data) },
     confirmPlan(planId) {
       const plan = data.plans.find((item) => item.id === planId)
       const order = orders.find((item) => item.id === plan?.orderId)

@@ -19,6 +19,9 @@ import CropCycleDetails from '../pages/CropCycleDetails'
 import SupplyPlanCreate from '../pages/SupplyPlanCreate'
 import SupplyPlanPreview from '../pages/SupplyPlanPreview'
 import SupplyPlanDetails from '../pages/SupplyPlanDetails'
+import LotReceive from '../pages/LotReceive'
+import LotDetails from '../pages/LotDetails'
+import LabReviewDetails from '../pages/LabReviewDetails'
 
 export default function AppRoutes() {
   return <Routes>
@@ -42,7 +45,10 @@ export default function AppRoutes() {
     <Route path="/supply-planning/preview" element={<SupplyPlanPreview />} />
     <Route path="/supply-planning/:planId" element={<SupplyPlanDetails />} />
     <Route path="/lots-inspection" element={<LotsInspection />} />
+    <Route path="/lots-inspection/receive" element={<LotReceive />} />
+    <Route path="/lots-inspection/:lotId" element={<LotDetails />} />
     <Route path="/lab-release-review" element={<LabReleaseReview />} />
+    <Route path="/lab-release-review/:lotId" element={<LabReviewDetails />} />
     <Route path="/crates-shipments" element={<CratesShipments />} />
     <Route path="/arrival-claims" element={<ArrivalClaims />} />
     <Route path="/farmer-settlements" element={<FarmerSettlements />} />
