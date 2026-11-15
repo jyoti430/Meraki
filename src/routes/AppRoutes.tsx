@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import Overview from '../pages/Overview'
 import BuyerOrders from '../pages/BuyerOrders'
 import FarmersPlots from '../pages/FarmersPlots'
@@ -22,6 +23,7 @@ import SupplyPlanning from '../pages/SupplyPlanning'
 import SupplyPlanCreate from '../pages/SupplyPlanCreate'
 import SupplyPlanPreview from '../pages/SupplyPlanPreview'
 import SupplyPlanDetails from '../pages/SupplyPlanDetails'
+const TradeRoutes = lazy(() => import('./TradeRoutes'))
 
 export default function AppRoutes() {
   return <Routes>
@@ -31,6 +33,7 @@ export default function AppRoutes() {
     <Route path="/farmers" element={<FarmersPlots />} />
     <Route path="/messages" element={<Messages />} />
     <Route path="/later" element={<LaterModules />} />
+    <Route path="/trade/*" element={<Suspense fallback={<p className="m-page" role="status">Loading trade workspace…</p>}><TradeRoutes /></Suspense>} />
     {/* Previous URLs keep working */}
     <Route path="/buyer-orders" element={<Navigate to="/demand" replace />} />
     <Route path="/farmers-plots" element={<Navigate to="/farmers" replace />} />

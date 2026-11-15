@@ -52,7 +52,7 @@ This Markdown does not schedule jobs, restart Codex, survive process termination
 
 ## Tests and completion evidence
 
-Use `npm ci`, `npm test`, `npm run build` for the current frontend baseline. CI is `.github/workflows/ci.yml`. There is no lint/E2E/backend command until implemented. Update commands when adding those tools. For documentation-only edits, check links and diff; do not invent tests for prose.
+Use `npm ci`, `npm test`, `npm run build` for the frontend and the virtual-environment Python with `-m pytest server/tests tests/part3_acceptance -q` for Part 3. Set `TRADE_TEST_DATABASE_URL` only to a disposable PostgreSQL database to include PostgreSQL acceptance cases. CI is `.github/workflows/ci.yml`. There is no configured lint or automated browser-test command. For documentation-only edits, check links and diff; do not invent tests for prose.
 
 Backend ledger/auction tasks require real database concurrency, retry and recovery tests. Frontend mocks alone cannot satisfy them. Model tasks require independent held-out evaluation and documented provenance/permissions. Pilot outcomes require real consented observations, not fixtures or automated code tests.
 

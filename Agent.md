@@ -4,6 +4,8 @@ Last audited: 15 November 2026. Implementation baseline: `dddaa7cc4aab040802e879
 
 ## Status vocabulary
 
+Part 3 update: `server/` and `src/trade/` now implement the T06/T07/T09/T10 development journey. Production acceptance remains **IN_PROGRESS / externally gated**, not TODO from scratch or fully DONE. The authoritative integration contract is `server/CONTRACT.md`; setup and limitations are in `docs/PART3_OPERATIONS.md`. See the latest work-log entry for actual test/review evidence and next steps. The original prototype baseline below remains historical evidence.
+
 - `DONE`: stated acceptance passed with code and validation evidence.
 - `PROTOTYPE`: implemented browser/demo behaviour; production acceptance remains unfinished.
 - `TODO`: no accepted implementation established.
@@ -27,6 +29,10 @@ Baseline counts below concern source inspection and the commands recorded in `do
 | D08 | DONE at baseline test scope | `planning/engine.test.ts`: 15 tests passed; build passed; existing CI runs both | Service, browser, database and field checks not established |
 
 Five post-harvest pages contain `ModulePlaceholder`; their existence is not finished implementation. Current dependencies and commands are listed in README. Re-audit before changing statuses.
+
+That placeholder statement describes the original baseline. On the Part 3 branch the five legacy URLs redirect to API-backed trade screens. New implementation paths: `server/service.py`, `server/db.py`, `server/app.py`, `server/worker.py`, `src/trade/`, `src/routes/TradeRoutes.tsx`; regression evidence: `server/tests/`, `tests/part3_acceptance/`, `src/trade/*.test.ts`. Existing synthetic farmer planning is not automatically joined to the new trade ledger.
+
+Remaining gates for those four tasks: verified Part 2 identity, linked-entity verification and authoritative capacity adapter; production schema/restore/deployment checks; private document storage integration; agreed participant QC/contract/finance responsibility; actual field/commercial validation. Same-organisation self-bids are prevented, but no external legal-entity linkage service is installed. Evidence references are records, not document uploads. Settlement entries reconcile money but do not transfer it.
 
 ## Ordered unfinished work and acceptance gates
 
@@ -70,7 +76,7 @@ Deliver: exporter order intake, budget/handover basis, public-to-members supply/
 
 Acceptance: unrelated crops/windows never match; forecasts are distinct from confirmed obligations; reserved stock is unavailable; a duplicated overseas enquiry does not silently inflate committed demand; exact plot/contact/bank/customer details are permissioned. No assumed active exporters.
 
-### T06 Harvested lot auction — TODO
+### T06 Harvested lot auction — IN_PROGRESS production integration gated
 
 Dependencies: T04–T05 and inspection record contract from T02/T09.
 
@@ -78,7 +84,7 @@ Deliver: whole-lot ascending price auction, eligibility/reserve/increment, publi
 
 Acceptance: highest eligible price meeting reserve wins; equal bids use server-accepted order; late/retried bids and extension cap are deterministic; restart closes once; two auctions cannot sell the same stock; linked/self-bids are prevented/flagged. Browser countdown is display only. Reconnect retrieves authoritative state. No real purchases in tests.
 
-### T07 Future production procurement — TODO
+### T07 Future production procurement — IN_PROGRESS production integration gated
 
 Dependencies: T03–T05; can share T06 infrastructure but has different ranking.
 
@@ -94,7 +100,7 @@ Deliver: seed/establishment/input/irrigation/scouting events, adviser review, mi
 
 Acceptance: planned versus actual events remain separate; missing event is not zero application; new observations affect only appropriate forecast dates; affected orders and agreed backup/replan are visible. No automatic chemical prescriptions or unauthorised farmer messages.
 
-### T09 Lots QC and logistics — TODO
+### T09 Lots QC and logistics — IN_PROGRESS production integration gated
 
 Dependencies: T02, T04; contracted or spot order from T06/T07/T05.
 
@@ -102,7 +108,7 @@ Deliver: replace lots/lab/shipment placeholders with traceable lots, protocol/ve
 
 Acceptance: raw results retained; sample result not exact whole-lot truth; report scope/lot/date gaps visible; safety-held stock excluded; dispatch/arrival reconcile; photos/sensors never certify residues; extra inspections have a named payer. Logistics capacity limits supply promises.
 
-### T10 Claims fees and member settlement — TODO
+### T10 Claims fees and member settlement — IN_PROGRESS production integration gated
 
 Dependencies: T04, T09.
 

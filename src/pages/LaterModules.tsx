@@ -11,10 +11,10 @@ const modules = [
 
 export default function LaterModules() {
   return <div className="m-page">
-    <header><div className="m-eyebrow">Beyond planning</div><h1 className="m-h1">Later modules</h1><p className="m-lead">Meraki currently focuses on pre-sowing collective crop planning. These post-harvest modules are kept for future development and are not part of the current workflow.</p></header>
+    <header><div className="m-eyebrow">Beyond planning</div><h1 className="m-h1">Trade and fulfilment</h1><p className="m-lead">Continue from an award through quality review, dispatch, receiving and settlement. These workflows use the separate trade API; start it locally to explore synthetic transactions.</p></header>
     <div className="m-later-grid">
       {modules.map(({ to, title, icon: Icon, text }) => <Link key={to} to={to} className="m-card" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <span className="m-action-ico info"><Icon size={17} /></span><strong>{title}</strong><span className="m-small">{text}</span><span className="m-tag m-tag-neutral" style={{ alignSelf: 'flex-start' }}>Not in current scope</span><span className="m-action-cta">Open placeholder <ArrowRight size={13} /></span>
+        <span className="m-action-ico info"><Icon size={17} /></span><strong>{title}</strong><span className="m-small">{text}</span><span className="m-tag m-tag-neutral" style={{ alignSelf: 'flex-start' }}>Trade API</span><span className="m-action-cta">Open workflow <ArrowRight size={13} /></span>
       </Link>)}
     </div>
   </div>

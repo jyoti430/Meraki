@@ -266,6 +266,8 @@ def test_qc_roles_safety_hold_and_dispatch_recheck(trade):
             "expected_version": lot["version"], "decision": "release", "reason": "Unauthorised"}), 403, 404)
     assert_rejected(trade.request("POST", f"/lots/{lot['id']}/reviews", "qc-a", {
         "expected_version": lot["version"], "decision": "release", "reason": "Unresolved safety evidence"}), 409, 422)
+    # A safe observation must be genuinely later than the unsafe observation.
+    trade.clock.now += timedelta(seconds=1)
     lot = trade.release(lot)
     auction = trade.close(trade.bid(trade.spot(lot)))
     contract = trade.confirm(trade.get("/contracts/" + auction["contract_id"]))
@@ -736,3 +738,17 @@ def test_late_worker_recovery_expires_original_award_without_reselling(trade):
     assert datetime.fromisoformat(contract["expires_at"].replace("Z", "+00:00")) == datetime.fromisoformat(auction["closes_at"].replace("Z", "+00:00")) + timedelta(hours=24)
     assert trade.current("lots", lot)["reserved_g"] == 0
     assert len([c for c in trade.get("/workspace")["contracts"] if c["auction_id"] == auction["id"]]) == 1
+
+
+def test_payment_deadline_is_anchored_to_latest_receipt_not_statement_issue(trade):
+    lot, contract = trade.sold(quantity=10000)
+    first = trade.shipment(contract, lot, 5000)
+    second = trade.shipment(contract, lot, 5000)
+    trade.receive(first, accepted=5000)
+    trade.clock.now += timedelta(days=1)
+    latest = trade.receive(second, accepted=5000)
+    expected_due = datetime.fromisoformat(latest["received_at"].replace("Z", "+00:00")) + timedelta(days=contract["terms"]["payment_due_days"])
+    trade.clock.now += timedelta(days=3)
+    statement = trade.post("/settlements", {"contract_id": contract["id"]})
+    actual_due = datetime.fromisoformat(statement["payment_due_at"].replace("Z", "+00:00"))
+    assert actual_due == expected_due

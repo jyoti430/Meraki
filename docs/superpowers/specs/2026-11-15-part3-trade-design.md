@@ -1,6 +1,6 @@
 # Part 3 auctions and fulfilment design
 
-Status: proposed implementation design awaiting user approval. This makes the previously agreed Final 3.0 scope concrete for T06, T07, T09 and T10. No product code has been changed by preparing it.
+Status: approved by the user on 15 November 2026 with instruction to proceed without further questions. This makes the previously agreed Final 3.0 scope concrete for T06, T07, T09 and T10. Implementation and verification are tracked in the plan and work log.
 
 ## Outcome
 
@@ -16,7 +16,7 @@ The local feature branch starts at documentation commit `02a17e5`, based on main
 2. Isolated API-backed Part 3 module: recommended. A Python package owns only trade aggregates and provides React with a stable API. Part 2 can mount it and supply identity/capacity adapters. PostgreSQL is the authoritative target; a separate local demonstration setup is explicitly non-production.
 3. Wait for the complete Part 2 backend: minimises integration adaptation but blocks independent Part 3 execution. Not recommended while no interface is available.
 
-These are implementation recommendations, not choices the user has already made. Approval of this design selects approach 2 unless explicitly changed.
+The user approved approach 2 with this design. Live operation remains gated on the external integrations and acceptance below.
 
 ## Ownership and boundaries
 

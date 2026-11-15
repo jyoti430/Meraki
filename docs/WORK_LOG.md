@@ -46,3 +46,39 @@ Pause requested or work stopped for another reason:
 Append evidence; preserve historical failures and explain later fixes. An interrupted run remains unfinished until validated on resume. Do not replace an actual result with an expectation.
 
 Documentation checks: all relative Markdown links resolved; staged whitespace check passed after trimming the execution plan EOF; no absolute local user paths or token markers found in the delivered documents.
+
+## 15 November 2026 Part 3 trade implementation
+
+Authorised scope: build Part 3 at full development-workflow depth, covering T06/T07/T09/T10. The user approved the design and later requested direct delivery on a new `Kireeti` branch without a PR. No production deployment, real contracts, real purchases or fund movement were performed. The earlier Part 3 draft PR #5 was closed. The documentation handoff PR #4 was merged independently into main; its history will be incorporated into `Kireeti` without changing main.
+
+### Implemented portion
+
+- `server/`: isolated FastAPI/SQLAlchemy API, persisted hashed development sessions, organisation/role projections, atomic idempotent commands and optimistic versions. PostgreSQL target with SQLite local development; global transaction lock favours correctness over throughput. The separate worker closes auctions and expires provisional awards without a browser.
+- T06/T07: whole-lot ascending spot auctions, whole-request reverse procurement, qualification, same-database capacity reservations, deterministic ties, capped extensions, one provisional award, bilateral versioned confirmation, cancellation/default/expiry and exclusive forward harvest conversion.
+- T09: member-linked lots, scoped protocol/sample inspection evidence, safety holds and separate reviewer release, partial shipment reservation/dispatch, immutable arrival partitions and transit shortfall.
+- T10: attributed bilateral deduction/credit claims, consistently rounded receipt component lines, bounded recovery, immutable settlement, largest-remainder member allocations, separate finance receipt and member-disbursal reconciliation. Evidence references do not upload/verify documents or move funds.
+- `src/trade/` and `src/routes/TradeRoutes.tsx`: API-backed React workflows, explicit synthetic actor switching, validation, stale-version/error/retry handling, route/navigation integration and lazy loading. Five legacy placeholder routes redirect to trade pages. Existing crop-planning data remains a separate browser prototype.
+- `scripts/dev-trade.mjs`, Vite proxy, pinned Python requirements, PostgreSQL CI service, `docs/PART3_OPERATIONS.md` and `server/CONTRACT.md`: setup and integration handoff.
+
+### Checks actually run
+
+| Check | Actual outcome | Limits |
+|---|---|---|
+| `npm test` | Passed: 25 tests in 4 files | 15 existing planning tests plus 10 trade client/calculation/qualification tests; no automated browser runner |
+| `npm run build` | Passed TypeScript and Vite production build | Static output needs an API proxy and server deployment; no deployed routing verification |
+| `.venv/Scripts/python.exe -m pytest server/tests tests/part3_acceptance -q` | Passed: 69 tests on SQLite | PostgreSQL run is separate CI evidence; one upstream TestClient/httpx deprecation warning |
+| Independent whole-branch review and scoped re-review | Confirmed fixes for old/equal-date safe evidence clearing a hold, all-rejected seller-credit recovery, and partial-delivery rounding ceilings; 10 focused regression cases passed | This is software review, not legal, agronomic or commercial approval |
+| Browser, local API and worker | Created a lot and inspection, separate QC release; observed automatic spot award; both parties confirmed; shipment reserved/dispatched; invalid receiving partition rejected; 95 kg accepted plus 5 kg downgraded; settlement and synthetic finance reconciliation persisted after reload | Spot auction/bid were seeded through the HTTP API, not the browser creation form. Forward and claim failure journeys are automated/API coverage. All records synthetic |
+| Responsive/console check | Settlement screen checked at 390 × 844; no whole-page horizontal overflow; desktop restored; no captured browser console errors | Representative screen, not exhaustive device/accessibility certification |
+
+The browser example reconciled a 100 kg lot at ₹21/kg: ₹2,047.50 recognised invoice after a 5 kg half-rate downgrade, ₹1 disclosed fee, ₹2,046.50 member allocation and matching synthetic receipt/disbursal records. These are fabricated test records, not business results.
+
+Earlier checkpoint CI run `43730506858` passed frontend checks and exposed two SQLite/PostgreSQL partial-offer validation failures. Those were diagnosed and fixed; the final branch CI outcome must be recorded below after pushing. Tests also drove timestamp validation, malformed input handling, money precision bounds, protocol matching, dispatch snapshots, recovery and concurrency fixes. Failed evidence has not been relabelled as success.
+
+### Remaining gates and resume point
+
+T06/T07/T09/T10 are implemented for the isolated development journey; parent tasks remain **IN_PROGRESS, production integration gated**. Live operation requires verified Part 2 identities/linked-entity checks and farmer-consented capacity, private evidence storage, operating/legal/QC responsibilities, target-environment migration/backup/restore and performance acceptance. Production mode fails closed while these are absent. Whole awards only; no split-award allocation or draft-shipment cancellation command. Government data, crop models, cultivation ingestion and a real pilot remain outside this implementation.
+
+Local launch was verified with `npm run dev:trade` (Vite 5173, API 8000 and worker). The validation processes will be stopped after checks; use the documented launcher to restart. Runtime databases, sessions and virtual environments are ignored and are not delivered. Resume by inspecting current branch/HEAD and this ledger, then connect the Part 2 identity/capacity adapters according to the API contract; do not remove production guards.
+
+Delivery checkpoint: local work integrated on `Kireeti`; final commit/push and fresh PostgreSQL CI outcome pending at this entry. The next delivery entry records those results.

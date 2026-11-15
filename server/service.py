@@ -242,12 +242,19 @@ class TradeService:
         decision = body.get('decision')
         require(decision in ('release', 'hold'), 'decision must be release or hold', 422)
         reason = string(body.get('reason'), 'reason')
+        superseded_holds = []
         if decision == 'release':
             require(lot['inspections'], 'Inspection evidence required before release')
             require(not lot['inspections'][-1]['safety_hold'], 'Unresolved safety hold prevents release')
             require(lot['inspections'][-1]['observed_grade'] == lot['grade'], 'Observed grade differs from declared lot grade')
+            candidate_time = timestamp(lot['inspections'][-1]['inspected_at'])
+            prior_holds = [inspection for inspection in lot['inspections'][:-1] if inspection['safety_hold']]
+            require(all(candidate_time > timestamp(hold['inspected_at']) for hold in prior_holds),
+                    'A safe inspection must strictly postdate every prior safety hold')
+            superseded_holds = [hold['id'] for hold in prior_holds]
         lot['reviews'].append(dict(id='review-' + uuid4().hex, decision=decision, reason=reason,
-                                   actor_id=principal['id'], reviewed_at=iso(self.now()), inspection_id=lot['inspections'][-1]['id'] if lot['inspections'] else None))
+                                   actor_id=principal['id'], reviewed_at=iso(self.now()), inspection_id=lot['inspections'][-1]['id'] if lot['inspections'] else None,
+                                   superseded_safety_hold_ids=superseded_holds))
         lot.update(qc_status='released' if decision == 'release' else 'held', status='available' if decision == 'release' else 'held')
         self.save(session, lot)
         self.audit(session, principal, 'lot.' + decision, lot)
@@ -329,6 +336,8 @@ class TradeService:
         self.version(auction, body)
         require(principal['organisation_id'] != auction['owner_org'], 'Self or linked organisation bids prohibited', 403)
         require(auction['status'] in ('scheduled', 'open') and timestamp(auction['opens_at']) <= self.now() < timestamp(auction['closes_at']), 'Auction is not accepting bids')
+        if 'quantity_g' in body:
+            require(type(body['quantity_g']) is int and body['quantity_g'] == auction['quantity_g'], 'Partial bids are unsupported; offer the entire published quantity', 422)
         price = integer(body.get('price_paise_per_kg'), 'price_paise_per_kg', 1)
         money(auction['quantity_g'], price)  # Reject totals unsafe for JSON/JS consumers.
         bid = dict(id='bid-' + uuid4().hex, organisation_id=principal['organisation_id'], price_paise_per_kg=price,
@@ -558,6 +567,55 @@ class TradeService:
             amount += money(receipt['transit_shortfall_g'], contract['price_paise_per_kg'])
         return amount
 
+    def receipt_full_price_obligation(self, receipt, contract):
+        """Use the same declared component-line rounding as recognised money.
+
+        Each accepted/downgraded/rejected/shortfall category is one money line.
+        Rounding an aggregate contract weight instead would reject legitimate
+        partial invoices, or deny the final paise of a component's recovery.
+        """
+        components = ('accepted_g', 'downgraded_g', 'rejected_g', 'transit_shortfall_g')
+        require(sum(receipt[field] for field in components) == receipt['quantity_g'], 'Receipt component quantities do not reconcile')
+        return integer(sum(money(receipt[field], contract['price_paise_per_kg']) for field in components),
+                       'Original receipt line obligation', 0, 2**53 - 1)
+
+    def credit_attribution(self, receipt, contract, previous, weight):
+        """Reserve disjoint, unpaid receiving components for a credit request.
+
+        Rejection/shortfall precede partially paid downgraded weight. Accepted
+        weight and buyer-liable shortfall are already recognised and ineligible.
+        The immutable attribution prevents later requests reusing those grams.
+        """
+        components = [
+            ('rejected_g', receipt['rejected_g'], 0),
+            ('transit_shortfall_g', receipt['transit_shortfall_g'] if contract['terms']['shortfall_liability'] == 'seller' else 0, 0),
+            ('downgraded_g', receipt['downgraded_g'] if contract['terms']['downgrade_bps'] < 10000 else 0, contract['terms']['downgrade_bps']),
+        ]
+        used = {}
+        reserved_money = {}
+        for claim in previous:
+            if claim.get('direction', 'seller_deduction') == 'seller_credit':
+                remaining_request = claim['amount_paise']
+                for segment in claim.get('credit_attribution', []):
+                    used[segment['component']] = used.get(segment['component'], 0) + segment['quantity_g']
+                    requested = segment.get('requested_credit_paise', min(remaining_request, segment['maximum_credit_paise']))
+                    reserved_money[segment['component']] = reserved_money.get(segment['component'], 0) + requested
+                    remaining_request -= requested
+        attribution = []
+        remaining = weight
+        for component, available, recognised_bps in components:
+            component_cap = max(0, money(available, contract['price_paise_per_kg']) - money(available, contract['price_paise_per_kg'], recognised_bps))
+            monetary_remaining = max(0, component_cap - reserved_money.get(component, 0))
+            if not monetary_remaining:
+                continue
+            quantity = min(remaining, max(0, available - used.get(component, 0)))
+            if quantity:
+                cap = min(monetary_remaining, max(0, money(quantity, contract['price_paise_per_kg']) - money(quantity, contract['price_paise_per_kg'], recognised_bps)))
+                attribution.append(dict(component=component, quantity_g=quantity, maximum_credit_paise=cap))
+                remaining -= quantity
+        require(remaining == 0, 'Credit affected weight exceeds unrecognised, unclaimed receipt weight')
+        return attribution
+
     def create_claim(self, session, principal, body):
         receipt = self.get(session, 'receipts', body.get('receipt_id'))
         self.party(receipt, principal)
@@ -565,11 +623,27 @@ class TradeService:
         require(not any(s['contract_id'] == contract['id'] for s in self.all(session, 'settlements')), 'Final statement already issued; claim amendment requires external review')
         amount = integer(body.get('amount_paise'), 'amount_paise', 1)
         weight = integer(body.get('affected_g'), 'affected_g', 1, receipt['quantity_g'])
+        direction = body.get('direction', 'seller_deduction')
+        require(direction in ('seller_deduction', 'seller_credit'), 'direction must be seller_deduction or seller_credit', 422)
         previous = [c for c in self.all(session, 'claims') if c['receipt_id'] == receipt['id']]
-        require(sum(c['amount_paise'] for c in previous) + amount <= self.receipt_gross(receipt, contract), 'Claims exceed attributable receipt obligation')
         require(sum(c['affected_g'] for c in previous) + weight <= receipt['quantity_g'], 'Claims overlap or exceed attributable receipt weight')
+        attribution = []
+        if direction == 'seller_deduction':
+            deductions = [c for c in previous if c.get('direction', 'seller_deduction') == 'seller_deduction']
+            require(sum(c['amount_paise'] for c in deductions) + amount <= self.receipt_gross(receipt, contract), 'Claims exceed attributable receipt obligation')
+        else:
+            attribution = self.credit_attribution(receipt, contract, previous, weight)
+            require(amount <= sum(segment['maximum_credit_paise'] for segment in attribution), 'Credit exceeds original full-price amount not already recognised for affected weight')
+            original = self.receipt_full_price_obligation(receipt, contract)
+            reserved_credits = sum(c['amount_paise'] for c in previous if c.get('direction', 'seller_deduction') == 'seller_credit')
+            require(reserved_credits + amount <= original - self.receipt_gross(receipt, contract), 'Credits exceed unrecognised original receipt obligation')
+            remaining_amount = amount
+            for segment in attribution:
+                segment['requested_credit_paise'] = min(remaining_amount, segment['maximum_credit_paise'])
+                remaining_amount -= segment['requested_credit_paise']
         claim = self.create(session, 'claims', dict(receipt_id=receipt['id'], contract_id=contract['id'], seller_org=contract['seller_org'],
             buyer_org=contract['buyer_org'], amount_paise=amount, affected_g=weight, reason=string(body.get('reason'), 'reason'),
+            direction=direction, credit_attribution=attribution,
             evidence_reference=string(body.get('evidence_reference'), 'evidence_reference'), status='open', proposal=None,
             approvals=[], resolution_history=[], requested_by=principal['id']))
         self.audit(session, principal, 'claim.opened', claim)
@@ -580,6 +654,7 @@ class TradeService:
         self.party(claim, principal)
         self.version(claim, body)
         require(claim['status'] == 'open', 'Claim already resolved')
+        require('direction' not in body or body['direction'] == claim.get('direction', 'seller_deduction'), 'Claim direction is immutable', 422)
         if action == 'propose':
             if claim['proposal']:
                 claim['resolution_history'].append(dict(proposal=claim['proposal'], approvals=claim['approvals']))
@@ -607,21 +682,31 @@ class TradeService:
         shipments = [s for s in self.all(session, 'shipments') if s['contract_id'] == contract['id']]
         require(shipments and all(s['status'] == 'received' for s in shipments) and sum(s['quantity_g'] for s in shipments) == contract['quantity_g'], 'All contracted quantity must be received before final settlement')
         receipts = [r for r in self.all(session, 'receipts') if r['contract_id'] == contract['id']]
+        require(sum(r['quantity_g'] for r in receipts) == contract['quantity_g'], 'Receipt quantities do not equal contracted quantity')
         claims = [c for c in self.all(session, 'claims') if c['contract_id'] == contract['id']]
         require(all(c['status'] == 'resolved' for c in claims), 'Open claim holds final settlement')
         gross = sum(self.receipt_gross(r, contract) for r in receipts)
         integer(gross, 'Settlement gross', 0, 2**53 - 1)
-        adjustments = sum(c['proposal']['adjustment_paise'] for c in claims)
+        deductions = sum(c['proposal']['adjustment_paise'] for c in claims if c.get('direction', 'seller_deduction') == 'seller_deduction')
+        credits = sum(c['proposal']['adjustment_paise'] for c in claims if c.get('direction', 'seller_deduction') == 'seller_credit')
+        integer(deductions, 'Settlement deductions', 0, 2**53 - 1)
+        integer(credits, 'Settlement credits', 0, 2**53 - 1)
+        adjustments = deductions - credits
+        invoice = integer(gross - deductions + credits, 'Settlement invoice', 0, 2**53 - 1)
+        original_obligation = integer(sum(self.receipt_full_price_obligation(r, contract) for r in receipts),
+                                      'Original full-price receipt line obligation', 0, 2**53 - 1)
+        require(invoice <= original_obligation, 'Settlement exceeds original full-price contract obligation')
         fee = contract['terms']['fee_paise']
         net = gross - adjustments - fee
         require(net >= 0, 'Agreed adjustments and fee exceed proceeds')
         lot = self.get(session, 'lots', contract['lot_id'])
         weights = {member['member_id']: member['quantity_g'] for member in lot['member_contributions']}
         settlement = self.create(session, 'settlements', dict(contract_id=contract['id'], seller_org=contract['seller_org'], buyer_org=contract['buyer_org'],
-            currency='INR', gross_paise=gross, adjustments_paise=adjustments, fee_paise=fee, net_paise=net,
-            invoice_paise=gross - adjustments, allocations=allocate(net, weights), payment_status='unverified',
+            currency='INR', gross_paise=gross, adjustments_paise=adjustments, deductions_paise=deductions, credits_paise=credits,
+            original_obligation_paise=original_obligation, fee_paise=fee, net_paise=net,
+            invoice_paise=invoice, allocations=allocate(net, weights), payment_status='unverified',
             verified_receipt_paise=0, disbursed_paise=0, payments=[], disbursals=[], receipt_ids=[r['id'] for r in receipts], claim_ids=[c['id'] for c in claims],
-            payment_due_at=iso(self.now() + timedelta(days=contract['terms']['payment_due_days']))))
+            payment_due_at=iso(max(timestamp(r['received_at']) for r in receipts) + timedelta(days=contract['terms']['payment_due_days']))))
         self.audit(session, principal, 'settlement.issued', settlement)
         return settlement
 

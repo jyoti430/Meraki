@@ -1,2 +1,2 @@
-import ModulePlaceholder from './ModulePlaceholder'
-export default function FarmerSettlements() { return <ModulePlaceholder title="Farmer Settlements" description="Review delivery records and coordinate settlement calculations and reconciliation for farmers." /> }
+import { Navigate } from 'react-router-dom'
+export default function FarmerSettlements() { return <Navigate to="/trade/settlements" replace /> }

@@ -2,13 +2,15 @@
 
 Meraki helps FPOs propose feasible crops, coordinate farmer-approved production against buyer requirements, and manage procurement through delivery and farmer settlement.
 
-**Current status:** a React/Vite browser prototype with synthetic fixtures and local storage. The full supply-chain product below is the execution target, not a claim that every module is implemented. Baseline inspected on 15 November 2026 at `dddaa7cc4aab040802e8795b03565ad1d14d48c0`.
+**Current status:** the crop-planning application remains a React/Vite browser prototype. Part 3 adds a separate API-backed trade development workspace for auctions through settlement, with explicit synthetic identities and production gates. Parts 1 and 2 integrations and field/commercial validation are not complete. Original frontend baseline: `dddaa7cc4aab040802e8795b03565ad1d14d48c0`.
 
 - [Demo](https://meraki-tau-opal.vercel.app/) — deployed content may differ from this checkout.
 - [Full Final 3.0 execution plan](docs/EXECUTION_PLAN.md)
 - [Implementation status and acceptance backlog](Agent.md)
 - [Agent working instructions](AGENTS.md)
 - [Validation and resume checkpoint](docs/WORK_LOG.md)
+- [Part 3 setup and operating guide](docs/PART3_OPERATIONS.md)
+- [Part 3 API contract](server/CONTRACT.md)
 
 ## Product journey
 
@@ -51,7 +53,9 @@ npm run preview
 
 `npm test` runs Vitest; `npm run build` runs TypeScript project checks and Vite. There is no configured lint or browser-test command. `npm ci` requires registry access. No API keys or backend are needed for the current synthetic demo.
 
-Data persists in this browser's local storage with an in-memory fallback. It is not a shared database, an authentication boundary or a safe multi-user reservation ledger. The demo reset clears Meraki records in that browser; do not use it on records you need to retain. The planner uses a fixed synthetic scenario date of **16 November 2026**, not live time.
+For the trade workspace, first create a Python 3.12+ `.venv` and install `server/requirements.txt`, then run **`npm run dev:trade`**. It starts Vite, the localhost API and the unattended auction worker. Open `/trade` and choose a clearly labelled development identity. See [setup commands and gates](docs/PART3_OPERATIONS.md). Trade actions never fall back to browser-local success if the API is unavailable.
+
+Planning data persists in this browser's local storage with an in-memory fallback. It is not a shared database, an authentication boundary or a safe multi-user reservation ledger. Trade records persist separately in the API database. The demo reset clears planning records in that browser; it does not reset trade records. The planner uses a fixed synthetic scenario date of **16 November 2026**, not live time.
 
 ## Implemented versus unfinished
 
@@ -65,10 +69,10 @@ Data persists in this browser's local storage with an in-memory fallback. It is 
 | Weekly charts | `src/planning/series.ts` | Uniform distribution over windows; not observed picking curves |
 | Existing-crop supply plans | `SupplyPlanningService.ts`, supply pages | Preview, adjustments, confirmation/cancellation and local reservations; no cross-client atomicity |
 | Soil record fields | `src/types/index.ts`, plot forms | Basic report/pH/moisture representation; no full SHC analyte/provenance pipeline |
-| Planning regression tests and CI | `src/planning/engine.test.ts`, `.github/workflows/ci.yml` | 15 tests and build passed at baseline; no service/concurrency/E2E coverage established |
-| Lots, lab review, shipments, claims, settlements | Five pages wrapping `ModulePlaceholder` | Placeholders only |
-| Auth, backend, shared storage and worker | No implementation in inspected tree | Planned |
-| Open marketplace and two auction engines | No implementation in inspected tree | Planned |
+| Planning and trade regression tests | `src/planning/engine.test.ts`, `src/trade/*.test.ts`, `server/tests/`, `tests/part3_acceptance/` | 25 frontend and 69 SQLite API/acceptance tests pass locally; PostgreSQL results are recorded separately in the work log |
+| Lots, lab review, shipments, claims, settlements | `src/trade/`, `server/`; legacy URLs redirect to trade routes | API-backed development workflows; partner/production gates remain |
+| Trade API, persistence and close/expiry worker | `server/`, `scripts/dev-trade.mjs` | Isolated Part 3 implementation; not the complete Part 2 identity/market backend |
+| Spot and forward procurement | `src/trade/`, `server/CONTRACT.md` | Whole-lot/request modes; live identity/capacity integration remains gated |
 | Government APIs, OCR and validated ML | No implementation in inspected tree | Planned; access/data gates apply |
 
 Source inspection establishes implementation presence, not operational or agronomic validation. See [the ledger](Agent.md) for task-level evidence and acceptance criteria.
@@ -77,7 +81,9 @@ Source inspection establishes implementation presence, not operational or agrono
 
 **Installed today:** React 18, TypeScript 5.6, Vite 5, React Router 6, Tailwind 3, Lucide icons and Vitest 2. Exact resolutions live in `package-lock.json`; do not describe recommended packages as installed.
 
-**Proposed target:** retain the React/Vite frontend; add a Python FastAPI modular backend, PostgreSQL/PostGIS, private object storage, organisation-scoped authentication and a background worker. A worker is a separate Python process for imports, OCR, projections, notifications and auction deadlines. Celery/Redis is a candidate, not present infrastructure. Database transactions decide reservations and winners.
+**Part 3 stack:** React trade screens plus FastAPI/Pydantic/SQLAlchemy, PostgreSQL target and file-backed SQLite for local development, and a separate close/expiry worker. Trade writes are transaction-protected; development identities are explicit and production operation fails closed until Part 2 adapters exist. See `server/requirements.txt` for exact Python pins.
+
+**Remaining target infrastructure:** shared Part 2 identity/capacity, PostGIS where required, private object storage, broader ingestion/notification jobs and production deployment. Celery/Redis remains a candidate, not installed infrastructure. A local trade module does not complete those shared services.
 
 Python rules/scenarios come first. Later candidates include scikit-learn for properly labelled prediction and OR-Tools for constrained allocation. OCR, mapping, improved API state/forms, telemetry and managed auth/storage providers should be introduced only for an accepted task with pinned dependencies and measured need.
 
