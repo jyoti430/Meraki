@@ -206,7 +206,7 @@ export default function Messages() {
       <StatCard icon={<AlertTriangle size={24} />} tone="warn" label="Pending responses" tip="Messaged farmers who haven't replied yet" value={waitingN} sub={<>≈ {pct(waitingN, contacted.length)}% of contacted farmers</>} />
     </section>
 
-    <div className="m-cols-even" style={{ gridTemplateColumns: 'minmax(0, .95fr) minmax(0, 1.3fr)' }}>
+    <div className="m-cols-even m-cols-msg">
       <section className="m-panel" aria-labelledby="camp-title">
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="camp-title">Message campaigns</h2><p className="m-panel-sub">All planting communications for this season.</p></div>
@@ -230,7 +230,7 @@ export default function Messages() {
             <span className="m-select-pill"><select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label="Language">{languages.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></span>
           </div>
         </div>
-        <div className="m-cols-even" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16 }}>
+        <div className="m-cols-even m-cols-preview">
           <div className={`m-wa ${channel === 'SMS' ? 'sms' : ''}`}>
             <span className="m-wa-date">{lastSent(camp) ? fmtDay(lastSent(camp)!.at.slice(0, 10)) : 'Draft'}</span>
             <div className="m-wa-bubble">{sampleText}<time>{lastSent(camp) ? new Date(lastSent(camp)!.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : 'not sent'}{channel === 'WhatsApp' && lastSent(camp) ? ' ✓✓' : ''}</time></div>

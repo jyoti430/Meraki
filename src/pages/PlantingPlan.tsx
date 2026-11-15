@@ -25,7 +25,7 @@ function Calendar({ plans }: { plans: CropPlan[] }) {
   const months = Array.from({ length: CAL_MONTHS }, (_, i) => { const d = toDate(CAL_START); d.setUTCMonth(d.getUTCMonth() + i); return new Intl.DateTimeFormat('en-IN', { month: 'short', timeZone: 'UTC' }).format(d) })
   return <div className="m-cal" style={{ ['--months' as string]: CAL_MONTHS }}>
     <span />
-    <div className="m-cal-months" style={{ gridTemplateColumns: `repeat(${CAL_MONTHS}, 1fr)` }}>{months.map((m) => <span key={m}>{m}</span>)}</div>
+    <div className="m-cal-months" style={{ gridTemplateColumns: `repeat(${CAL_MONTHS}, minmax(0, 1fr))` }}>{months.map((m) => <span key={m}>{m}</span>)}</div>
     {plans.filter((p) => p.harvestStart).map((p) => <div key={p.crop.id} style={{ display: 'contents' }}>
       <span className="m-cal-label">{p.crop.emoji} {p.crop.name}</span>
       <div className="m-cal-track" role="img" aria-label={`${p.crop.name}: ${p.sowBy ? `sow ${fmtDay(p.sowFrom)} to ${fmtDay(p.sowBy)}, ` : ''}harvest ${fmtDay(p.harvestStart)} to ${fmtDay(p.harvestEnd)}, delivery ${fmtDay(p.deliveryStart)} to ${fmtDay(p.deliveryEnd)}`}>
@@ -165,7 +165,7 @@ export default function PlantingPlan() {
       </div>
       <div className="m-row" style={{ marginBottom: 14 }}>
         <label className="m-row" style={{ gap: 12, fontWeight: 600 }}>Crop
-          <span className="m-select-pill" style={{ minWidth: 200 }}><span aria-hidden="true">{plan.crop.emoji}</span><select value={plan.crop.id} onChange={(e) => setCropId(e.target.value)} aria-label="Crop">{plans.map((p) => <option key={p.crop.id} value={p.crop.id}>{p.crop.name}</option>)}</select></span>
+          <span className="m-select-pill m-crop-pick"><span aria-hidden="true">{plan.crop.emoji}</span><select value={plan.crop.id} onChange={(e) => setCropId(e.target.value)} aria-label="Crop">{plans.map((p) => <option key={p.crop.id} value={p.crop.id}>{p.crop.name}</option>)}</select></span>
         </label>
         <span className="m-chip-target">Plan target:<strong>{fmtT(plan.targetKg)}</strong></span>
         <label className="m-row" style={{ gap: 8, fontWeight: 600, marginLeft: 'auto' }}>Scenario

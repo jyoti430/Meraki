@@ -90,7 +90,7 @@ export default function BuyerOrders() {
       </div>
     </section>
 
-    <div className="m-cols" style={{ gridTemplateColumns: 'minmax(0, 1fr) 340px' }}>
+    <div className="m-cols m-cols-demand">
       <section className="m-panel" aria-labelledby="req-title">
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="req-title">Buyer requests</h2><p className="m-panel-sub">Current and upcoming buyer demand for pre-sowing planning.</p></div>

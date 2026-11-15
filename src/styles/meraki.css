@@ -633,3 +633,21 @@ body { background: linear-gradient(180deg, #f7f9f4 0%, #f3f6ef 100%); }
   .m-dt-scroll { overflow-x: auto; }
 }
 .m-dt-scroll { overflow-x: auto; }
+.m-feas-select { border: 0; background: transparent; font: inherit; color: var(--ink); cursor: pointer; padding: 0 2px; }
+.m-feas-select:focus-visible { outline: 2px solid #7cc35b; border-radius: 4px; }
+/* Let wide tables scroll inside their panel instead of widening the page. */
+.m-shell > div, .m-main, .m-page { min-width: 0; }
+@media (max-width: 900px) { .m-shell { grid-template-columns: minmax(0, 1fr); } }
+.m-dt-scroll, .m-table-wrap { position: relative; }
+.m-cols-demand { grid-template-columns: minmax(0, 1fr) 340px; }
+.m-cols-msg { grid-template-columns: minmax(0, .95fr) minmax(0, 1.3fr); }
+.m-cols-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.m-crop-pick { min-width: 200px; }
+.m-resp { min-width: 0; }
+@media (max-width: 1180px) { .m-cols-demand, .m-cols-msg { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .m-cols-preview { grid-template-columns: minmax(0, 1fr); }
+  .m-crop-pick { min-width: 0; }
+  .m-resp em { width: auto; }
+}
+.m-cal-months span { overflow: hidden; white-space: nowrap; } .m-cal > * { min-width: 0; }
