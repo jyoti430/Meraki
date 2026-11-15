@@ -238,7 +238,7 @@ export default function PlantingPlan() {
       </details>}
     </section>
 
-    <div className="m-cols-even">
+    <div className="m-stack" style={{ gap: 24 }}>
       <section className="m-panel" aria-labelledby="crop-sd-title">
         <h2 className="m-panel-title sm" id="crop-sd-title"><BarChart3 size={24} color="var(--forest)" />Supply vs. demand <small>({plan.crop.name})</small></h2>
         <p className="m-panel-sub" style={{ marginBottom: 12 }}>{plan.expectedKg >= demandTotal ? 'Planned production meets or exceeds buyer demand.' : 'Planned production is below total buyer demand.'}</p>
@@ -255,7 +255,7 @@ export default function PlantingPlan() {
       <section className="m-panel" aria-labelledby="why-title">
         <h2 className="m-panel-title sm" id="why-title"><Zap size={24} color="var(--forest)" />Why this plan is recommended</h2>
         <p className="m-panel-sub" style={{ marginBottom: 8 }}>How Meraki matched {plan.crop.name.toLowerCase()} demand to your farmers.</p>
-        <ul className="m-why2">{why.map((w) => <li key={w.title}><span className={`m-roundico ${w.ok ? '' : 'warn'}`} style={{ width: 34, height: 34 }}>{w.ok ? <Check size={18} /> : <AlertTriangle size={17} />}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
+        <ul className="m-why2 m-why-grid">{why.map((w) => <li key={w.title}><span className={`m-roundico ${w.ok ? '' : 'warn'}`} style={{ width: 34, height: 34 }}>{w.ok ? <Check size={18} /> : <AlertTriangle size={17} />}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
       </section>
     </div>
 

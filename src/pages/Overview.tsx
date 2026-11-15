@@ -23,7 +23,7 @@ export function feasibilityOf(o: Opportunity): 'high' | 'medium' | 'low' {
 function actionFor(o: Opportunity): { label: string; to: string; tone: '' | 'warn' | 'bad' } {
   const p = o.plan
   if (o.verdict === 'too-late') return { label: 'Agree a later window', to: '/demand', tone: 'bad' }
-  if (o.crop.perennial) return p && p.gapKg > 0 ? { label: `Short by ~${fmtT(p.gapKg)}`, to: '/demand', tone: 'warn' } : { label: 'Coordinate harvest', to: '/plan', tone: '' }
+  if (o.crop.perennial) return p && p.shortfallKg > 0 ? { label: `Short by ~${fmtT(p.shortfallKg)}`, to: '/demand', tone: 'warn' } : { label: 'Coordinate harvest', to: '/plan', tone: '' }
   if (!p) return o.verdict === 'caution' ? { label: 'Avoid adding area', to: '/demand', tone: 'bad' } : { label: 'Find a buyer first', to: '/demand', tone: 'warn' }
   if (p.status === 'not-in-scenario') return { label: 'Confirm buyer first', to: '/demand', tone: 'warn' }
   if (p.status === 'gap' || p.status === 'partial') return { label: 'Expand planting', to: `/plan#${o.crop.id}`, tone: 'warn' }
@@ -79,7 +79,7 @@ export default function Overview() {
       <StatCard icon={<UsersRound size={24} />} label="Participating farms" value={eligible.length} sub={<>across {villages} villages</>} />
     </section>
 
-    <div className="m-cols">
+    <>
       <section className="m-panel" id="opportunities" aria-labelledby="opp-title">
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="opp-title">Top crop opportunities</h2><p className="m-panel-sub">Buyer demand, projected supply and recommended actions for this season.</p></div>
@@ -112,7 +112,7 @@ export default function Overview() {
         </table></div>
       </section>
 
-      <div className="m-stack" style={{ gap: 20 }}>
+      <div className="m-cols-even m-stretch">
         <section className="m-panel" aria-labelledby="next-title">
           <h2 className="m-panel-title sm" id="next-title"><Zap size={24} />Next actions</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Keep your seasonal plan on track.</p>
@@ -130,7 +130,7 @@ export default function Overview() {
           <ul className="m-why2">{watchouts.map((w) => <li key={w.title}><span className={`m-roundico ${w.tone}`}>{w.icon}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
         </section>
       </div>
-    </div>
+    </>
 
     {weeks.length > 0 && <section className="m-panel" aria-labelledby="sd-title">
       <div className="m-panel-head">

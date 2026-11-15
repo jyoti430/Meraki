@@ -210,8 +210,8 @@ export default function Messages() {
 
     {planState !== 'finalized' && <div className="m-alert m-alert-warn"><AlertTriangle size={18} style={{ flex: 'none', marginTop: 2 }} /><span>{planState === 'changed' ? 'The plan changed after it was finalized.' : 'The planting plan is still a draft.'} You can send instructions now, but farmers may get updates later. <Link to="/plan" className="m-link">Review and finalize the plan</Link></span></div>}
     {Object.keys(flaggedPlots).length > 0 && <div className="m-alert m-alert-info"><AlertTriangle size={18} style={{ flex: 'none', marginTop: 2 }} /><span>{Object.keys(flaggedPlots).length} plot{Object.keys(flaggedPlots).length > 1 ? 's are' : ' is'} held out of the plan until a coordinator verifies a farmer’s report. <Link to="/farmers" className="m-link">Verify in Farmers &amp; Farms</Link></span></div>}
-    <div className="m-cols-even m-cols-msg">
-      <section className="m-panel" aria-labelledby="camp-title">
+    <div className="m-cols-even m-cols-msg m-stretch">
+      <section className="m-panel m-flexcol" aria-labelledby="camp-title">
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="camp-title">Message campaigns</h2><p className="m-panel-sub">All planting communications for this season.</p></div>
           <button type="button" className="m-btn m-btn-secondary m-btn-sm" style={{ borderRadius: 10, background: '#e5f1de' }} onClick={sendCampaign}><Plus size={17} />New message</button>
@@ -226,28 +226,46 @@ export default function Messages() {
         })}</div>
       </section>
 
-      <section className="m-panel" aria-labelledby="prev-title">
+      <section className="m-panel m-flexcol" aria-labelledby="prev-title">
         <div className="m-panel-head">
-          <div><h2 className="m-panel-title" id="prev-title">Message preview &amp; responses</h2><p className="m-panel-sub">The {camp.crop.name.toLowerCase()} message and farmers’ latest responses.</p></div>
+          <div><h2 className="m-panel-title" id="prev-title">Message preview</h2><p className="m-panel-sub">What {camp.crop.name.toLowerCase()} farmers receive. Each gets their own plot, area and language.</p></div>
           <div className="m-row">
             <span className="m-select-pill">{channel === 'WhatsApp' ? <MessageSquareText size={18} color="#25a244" /> : <Smartphone size={18} />}<select value={channel} onChange={(e) => setChannel(e.target.value as Channel)} aria-label="Channel"><option>WhatsApp</option><option>SMS</option></select></span>
             <span className="m-select-pill"><select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label="Language">{languages.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></span>
           </div>
         </div>
-        <div className="m-cols-even m-cols-preview">
-          <div className={`m-wa ${channel === 'SMS' ? 'sms' : ''}`}>
-            <span className="m-wa-date">{lastSent(camp) ? fmtDay(lastSent(camp)!.at.slice(0, 10)) : 'Draft'}</span>
-            <div className="m-wa-bubble">{sampleText}<time>{lastSent(camp) ? new Date(lastSent(camp)!.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : 'not sent'}{channel === 'WhatsApp' && lastSent(camp) ? ' ✓✓' : ''}</time></div>
-            <span className="m-small" style={{ fontSize: 12 }}>Example for {sample.name}; each farmer gets their own plot, area and language.</span>
-          </div>
-          <div>
-            <h3 className="m-h3" style={{ marginBottom: 6 }}>Farmer responses ({campFarmers.length})</h3>
-            {rows.map((r) => <button type="button" key={r.id} className="m-resp" aria-pressed={showFarmers && bucket === r.id} onClick={() => openWorkspace(r.id)}>
-              <span className={`m-roundico ${r.cls}`} style={{ width: 34, height: 34 }}>{r.icon}</span>{r.label}<b>{counts[r.id]}</b><em>{pct(counts[r.id], campFarmers.length)}%</em><ArrowRight size={16} />
-            </button>)}
-            <button type="button" className="m-btn m-btn-secondary" style={{ width: '100%', marginTop: 14, borderRadius: 12, background: '#e5f1de', justifyContent: 'space-between' }} onClick={() => openWorkspace(null)}><span className="m-row" style={{ gap: 10, flexWrap: 'nowrap' }}><MessageSquareText size={18} />View farmer-wise responses</span><ArrowRight size={18} /></button>
-          </div>
+        <div className={`m-wa ${channel === 'SMS' ? 'sms' : ''}`} style={{ flex: 1 }}>
+          <span className="m-wa-date">{lastSent(camp) ? fmtDay(lastSent(camp)!.at.slice(0, 10)) : 'Draft – not sent'}</span>
+          <div className="m-wa-bubble">{sampleText}<time>{lastSent(camp) ? new Date(lastSent(camp)!.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : 'not sent'}{channel === 'WhatsApp' && lastSent(camp) ? ' ✓✓' : ''}</time></div>
+          <span className="m-small" style={{ fontSize: 12 }}>Example for {sample.name}.</span>
         </div>
+      </section>
+    </div>
+
+    <div className="m-cols-even m-cols-msg m-stretch">
+      <section className="m-panel m-flexcol" aria-labelledby="resp-title">
+        <h2 className="m-panel-title sm" id="resp-title">Farmer responses <small>({campFarmers.length})</small></h2>
+        <p className="m-panel-sub" style={{ marginBottom: 8 }}>Latest replies from {camp.crop.name.toLowerCase()} farmers. Click a group to act on it.</p>
+        {rows.map((r) => <button type="button" key={r.id} className="m-resp" aria-pressed={showFarmers && bucket === r.id} onClick={() => openWorkspace(r.id)}>
+          <span className={`m-roundico ${r.cls}`} style={{ width: 34, height: 34 }}>{r.icon}</span><span className="m-resp-label">{r.label}</span><b>{counts[r.id]}</b><em>{pct(counts[r.id], campFarmers.length)}%</em><ArrowRight size={16} />
+        </button>)}
+        <button type="button" className="m-btn m-btn-secondary m-btn-block" onClick={() => openWorkspace(null)}><MessageSquareText size={18} /><span>View farmer-wise responses</span><ArrowRight size={18} /></button>
+      </section>
+
+      <section className="m-panel m-flexcol" aria-labelledby="flow-title">
+        <h2 className="m-panel-title sm" id="flow-title">How responses update the plan</h2>
+        <p className="m-panel-sub" style={{ marginBottom: 12 }}>Confirmations and reported problems re-run the {camp.crop.name.toLowerCase()} plan automatically.</p>
+        <div className="m-flow-v">
+          <div className="m-flowcard"><span className="m-roundico"><CalendarDays size={20} /></span><div><strong>Before responses</strong><strong className="big">{fmtT(bPlan?.expectedKg ?? 0)}</strong><span className="m-small">{bFarmers.size} farmer{bFarmers.size === 1 ? '' : 's'} · {(bPlan?.plannedAcres ?? 0).toFixed(1)} ac</span></div></div>
+          <span className="m-flow-arrow" aria-hidden="true"><ArrowRight size={22} /></span>
+          <div className="m-flowcard"><span className="m-roundico"><Sprout size={20} /></span><div><strong>After responses</strong><strong className="big">{fmtT(camp.expectedKg)}</strong><span className="m-small">{campFarmers.length} farmer{campFarmers.length === 1 ? '' : 's'} · {camp.plannedAcres.toFixed(1)} ac</span></div></div>
+        </div>
+        <ul className="m-changed" style={{ marginTop: 16 }}>
+          <li><CheckCircle2 size={17} color="var(--good)" />+{counts.confirmed} farmer-confirmed ({fmtT(confirmedKg)})</li>
+          <li><AlertTriangle size={17} color="var(--bad)" />{counts.constraint} reported problems{declined ? `, ${declined} declined` : ''} ({camp.expectedKg - (bPlan?.expectedKg ?? 0) >= 0 ? '+' : '−'}{fmtT(Math.abs(camp.expectedKg - (bPlan?.expectedKg ?? 0)))})</li>
+          <li><Clock3 size={17} color="var(--warn)" />{counts['follow-up'] + counts.waiting} still to confirm</li>
+          <li><Sprout size={17} color="var(--forest)" />{bFarmers.size !== campFarmers.length || Math.abs(camp.expectedKg - (bPlan?.expectedKg ?? 0)) > 0 ? 'Plan updated automatically' : 'No changes from responses yet'}</li>
+        </ul>
       </section>
     </div>
 
@@ -256,22 +274,5 @@ export default function Messages() {
         <div className="m-row">{bucket && <button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => setBucket(null)}>Show all farmers</button>}<button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => setShowFarmers(false)}>Close</button></div></div>
       <FarmerWorkspace key={`${bucket ?? 'all'}`} only={bucket ? campFarmers.filter((id) => bucketOf(id) === bucket) : undefined} />
     </section>}
-
-    <section className="m-panel" aria-labelledby="flow-title">
-      <div className="m-row" style={{ gap: 14, marginBottom: 16, flexWrap: 'nowrap' }}><span className="m-roundico" style={{ width: 48, height: 48 }}><Sprout size={24} /></span><div><h2 className="m-panel-title sm" id="flow-title">How responses update the planting plan</h2><p className="m-panel-sub">Farmer confirmations and constraints automatically adjust the season plan.</p></div></div>
-      <div className="m-flow">
-        <div className="m-flowcard"><span className="m-roundico"><CalendarDays size={20} /></span><div><strong>Plan (before responses)</strong><strong className="big">{camp.crop.name}: {fmtT(bPlan?.expectedKg ?? 0)}</strong><span className="m-small">({bFarmers.size} farmer{bFarmers.size === 1 ? '' : 's'}, {(bPlan?.plannedAcres ?? 0).toFixed(1)} acres)</span></div></div>
-        <span className="arrow" style={{ textAlign: 'center' }}><ArrowRight size={26} /></span>
-        <div className="m-flowcard"><span className="m-roundico"><Sprout size={20} /></span><div><strong>Updated plan (after responses)</strong><strong className="big">{camp.crop.name}: {fmtT(camp.expectedKg)}</strong><span className="m-small">({campFarmers.length} farmer{campFarmers.length === 1 ? '' : 's'}, {camp.plannedAcres.toFixed(1)} acres)</span></div></div>
-        <div><strong style={{ display: 'block', marginBottom: 8 }}>What changed</strong>
-          <ul className="m-changed">
-            <li><CheckCircle2 size={17} color="var(--good)" />+{counts.confirmed} farmer-confirmed ({fmtT(confirmedKg)})</li>
-            <li><AlertTriangle size={17} color="var(--bad)" />{counts.constraint} reported constraints{declined ? `, ${declined} declined` : ''} ({camp.expectedKg - (bPlan?.expectedKg ?? 0) >= 0 ? '+' : '−'}{fmtT(Math.abs(camp.expectedKg - (bPlan?.expectedKg ?? 0)))})</li>
-            <li><Clock3 size={17} color="var(--warn)" />{counts['follow-up'] + counts.waiting} need follow-up (to confirm)</li>
-            <li><Sprout size={17} color="var(--forest)" />{bFarmers.size !== campFarmers.length || Math.abs(camp.expectedKg - (bPlan?.expectedKg ?? 0)) > 0 ? 'Plan updated automatically' : 'No changes from responses yet'}</li>
-          </ul>
-        </div>
-      </div>
-    </section>
   </div>
 }

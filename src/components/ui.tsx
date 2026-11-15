@@ -18,12 +18,12 @@ export function InfoTip({ text }: { text: string }) {
 }
 
 export function StatCard({ icon, label, value, sub, tone, tip }: { icon: ReactNode; label: string; value: ReactNode; sub?: ReactNode; tone?: 'warn' | 'amber'; tip?: string }) {
-  return <article className="m-stat">
+  return <article className="m-stat" title={tip}>
     <span className={`m-stat-ico ${tone ?? ''}`}>{icon}</span>
     <div style={{ minWidth: 0 }}>
       <small>{label}{tip && <InfoTip text={tip} />}</small>
       {typeof value === 'string' || typeof value === 'number' ? <strong>{value}</strong> : value}
-      {sub && <span className="m-stat-sub">{sub}</span>}
+      {sub && <span className="m-stat-sub" title={typeof tip === 'string' ? tip : undefined}>{sub}</span>}
     </div>
   </article>
 }

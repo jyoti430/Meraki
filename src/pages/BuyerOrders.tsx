@@ -49,18 +49,21 @@ function PlantingImpact({ order }: { order: BuyerOrder }) {
       <div style={{ flex: 1, minWidth: 0 }}><strong>{crop.name} demand</strong> <span className="m-small">(Selected)</span><div className="m-small">{order.buyer.name} · {marketOf(order)}</div></div>
       <span className={`m-dotstatus ${order.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{orderTypeLabel(order.product.orderType)}</span>
     </div>
-    {line && <div className="m-impact-row"><span><Sprout size={20} />Planned for this order</span><strong>{fmtT(line.expectedKg)} <span className={`m-feas ${lineStatusLabel[line.status].cls}`} style={{ marginLeft: 6 }}><span>{lineStatusLabel[line.status].label}</span></span></strong></div>}
+    {line && <div className="m-impact-row"><span><Sprout size={20} />Planned for this order</span><span className="m-impact-val"><strong>{fmtT(line.expectedKg)}</strong><span className={`m-feas ${lineStatusLabel[line.status].cls}`}><span>{lineStatusLabel[line.status].label}</span></span></span></div>}
+    <div className="m-impact-grid"><div>
     <div className="m-impact-row"><span><Wheat size={20} />Recommended area <InfoTip text="Quantity ÷ expected yield per acre (indicative)" /></span><strong>{crop.perennial ? 'Orchard' : `~${acres.toFixed(1)} ac`}</strong></div>
     <div className="m-impact-row"><span><Sprout size={20} />Seed requirement <InfoTip text="Indicative seed rate × area. Nursery seed for transplanted crops." /></span><strong>{crop.perennial ? '—' : `~${(acres * crop.seedKgPerAcre).toFixed(acres * crop.seedKgPerAcre < 1 ? 2 : 1)} kg`}</strong></div>
     <div className="m-impact-row"><span><CalendarDays size={20} />Sowing window</span><strong style={{ color: missed ? 'var(--bad)' : undefined }}>{crop.perennial ? 'No new planting' : missed ? `Passed (${fmtDay(sowBy)})` : sowBy ? `${fmtDay(sowFrom)} – ${fmtDay(sowBy)}` : 'Add delivery dates'}</strong></div>
     <div className="m-impact-row"><span><Sprout size={20} />Harvest window</span><strong>{harvestStart ? `${fmtDay(harvestStart)} – ${fmtDay(harvestEnd)}` : '—'}</strong></div>
     {sowBy && !missed && <p className="m-small" style={{ margin: '8px 0 0' }}>{daysBetween(PLANNING_DATE, sowBy)} days left to sow · {crop.daysToFirstHarvest} days to first harvest</p>}
+    </div><div>
     <div className="m-reco"><Info size={20} color="var(--forest)" style={{ flex: 'none', marginTop: 2 }} /><div><strong>Planting recommendation</strong><p>{reco}</p></div></div>
     <div className="m-row" style={{ marginTop: 14 }}>
       {plan && <Link to={`/plan#${plan.crop.id}`} className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}>Open in plan <ArrowRight size={15} /></Link>}
       {order.product.orderType === 'Indicative' && <button type="button" className="m-btn m-btn-secondary m-btn-sm" style={{ borderRadius: 10 }} onClick={confirmOrder}><BadgeCheck size={15} />Mark committed</button>}
       <Link to={`/buyer-orders/${order.id}/edit`} className="m-btn m-btn-ghost m-btn-sm"><FileEdit size={15} />Edit</Link>
     </div>
+    </div></div>
   </>
 }
 

@@ -822,3 +822,84 @@ body { background: linear-gradient(180deg, #f7f9f4 0%, #f3f6ef 100%); }
 .m-fold[open] { padding-bottom: 20px; }
 .m-fold[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 4px; }
 .m-panel-title .m-status { font-size: var(--fs-xs); font-weight: 600; padding: 3px 10px; }
+
+/* =========================================================================
+   Layout balance + overflow guards
+   ========================================================================= */
+.m-stretch { align-items: stretch; }
+.m-flexcol { display: flex; flex-direction: column; }
+.m-cols-msg { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
+
+/* Reason / checklist tiles in a responsive grid (no lopsided columns) */
+.m-why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.m-why-grid.four { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.m-why-grid li, .m-why-grid li:first-child { border-top: 0; padding: 14px; background: #f7faf4; border-radius: 12px; min-width: 0; }
+.m-why-grid li > div { min-width: 0; }
+
+/* Messages */
+.m-resp-label { flex: 1; min-width: 0; }
+.m-resp b { margin-left: 0; }
+.m-btn-block { width: 100%; margin-top: auto; justify-content: space-between; white-space: normal; text-align: left; min-height: 44px; height: auto; padding: 10px 14px; border-radius: 12px; background: #e5f1de; gap: 10px; }
+.m-flexcol > .m-btn-block { margin-top: 16px; }
+.m-btn-block > span { flex: 1; min-width: 0; }
+.m-btn-block > svg { flex: none; }
+.m-flow-v { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: stretch; }
+.m-flow-arrow { display: grid; place-items: center; color: var(--mute); }
+.m-flowcard { min-width: 0; }
+.m-flowcard > div { min-width: 0; }
+.m-flowcard strong.big { font-size: 24px; }
+.m-changed { border-left: 0; padding-left: 0; }
+.m-wa { min-height: 0; }
+
+/* Buyer demand impact */
+.m-impact-val { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.m-impact-row { flex-wrap: wrap; row-gap: 6px; }
+.m-impact-row > span:first-child { min-width: 0; white-space: normal; }
+@media (max-width: 1399px) {
+  .m-cols-demand { grid-template-columns: minmax(0, 1fr); }
+  .m-impact-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 32px; align-items: start; }
+  .m-impact-grid .m-reco { margin-top: 12px; }
+}
+
+/* General guards: content never spills out of chips, cells, cards and buttons */
+.m-stat > div, .m-panel-head > div, .m-camp > span, .m-impact-head > div { min-width: 0; }
+.m-stat small, .m-panel-title { flex-wrap: wrap; }
+.m-status, .m-feas, .m-chipdate, .m-dotstatus, .m-action-btn, .m-mkt { max-width: 100%; }
+.m-status svg, .m-feas svg, .m-chipdate svg, .m-action-btn svg, .m-roundico svg, .m-stat-ico svg { flex: none; }
+.m-dt td { overflow-wrap: anywhere; }
+.m-dt td.num, .m-dt td.nowrap { overflow-wrap: normal; }
+.m-select-pill select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+.m-btn { max-width: 100%; }
+
+@media (max-width: 640px) {
+  .m-flow-v { grid-template-columns: minmax(0, 1fr); }
+  .m-flow-arrow { transform: rotate(90deg); }
+  .m-impact-grid { grid-template-columns: minmax(0, 1fr); }
+  .m-why-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* Stat cards: label + info icon stay on one visual line; sub-text never runs long */
+.m-stat small { display: block; }
+.m-stat small .m-info { display: inline-flex; vertical-align: -3px; margin-left: 4px; }
+.m-stat span.m-stat-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 1360px) {
+  .m-stat { padding: 16px; gap: 12px; }
+  .m-stat-ico { width: 38px; height: 38px; }
+  .m-stat-ico svg { width: 19px; height: 19px; }
+  .m-stat strong { font-size: 28px; }
+}
+@media (max-width: 1360px) { .m-stat small .m-info { display: none; } }
+/* Icon holders must stay centred even inside lists whose text spans are display:block */
+.m-why2 li > .m-roundico, .m-checklist li > .m-roundico, .m-roundico { display: grid !important; place-items: center; margin-top: 0 !important; flex: none; }
+.m-stat-ico, .m-action-ico, .m-avatar, .m-me, .m-bell { display: grid; place-items: center; flex: none; }
+.m-roundico svg, .m-stat-ico svg, .m-action-ico svg { display: block; }
+/* Chart legends: keep each item together */
+.m-legend2 span { white-space: nowrap; }
+.m-legend2 { row-gap: 6px; }
+.m-flowcard strong:not(.big) { white-space: nowrap; }
+@media (max-width: 1180px) { .m-cols-msg, .m-cols-demand, .m-cols { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .m-camp { padding: 10px 6px; gap: 10px; }
+  .m-camp > svg { display: none; }
+  .m-resp em { display: none; }
+  .m-resp { gap: 8px; }
+}

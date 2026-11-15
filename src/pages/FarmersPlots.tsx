@@ -34,7 +34,7 @@ function PlotsTable({ farmer, inPlan }: { farmer: Farmer; inPlan: (plotId: strin
   }
   if (!plots.length) return <div className="m-row" style={{ justifyContent: 'space-between' }}><span className="m-small">No plots recorded for {farmer.name}.</span><Link className="m-link" to={`/plots/new?farmerId=${farmer.id}`}><Plus size={15} />Add plot</Link></div>
   return <div className="m-dt-scroll"><table className="m-dt" style={{ fontSize: 14.5 }}>
-    <thead><tr><th>Plot</th><th>Area</th><th>Water <InfoTip text="No water rules a plot out; limited water rules out thirsty crops" /></th><th>Soil type <InfoTip text="Guides suitability but never excludes a plot on its own" /></th><th>Measured soil</th><th>Availability</th><th>In plan</th></tr></thead>
+    <thead><tr><th>Plot</th><th>Area</th><th>Water <InfoTip text="No water rules a plot out; limited water rules out thirsty crops" /></th><th>Soil <InfoTip text="Type guides suitability but never excludes a plot on its own. Measurements are optional." /></th><th>Availability</th><th>In plan</th></tr></thead>
     <tbody>{plots.map((plot) => {
       const busy = plotBusyUntil(data, plot.id)
       const m = plot.soilMeasurement
@@ -49,8 +49,8 @@ function PlotsTable({ farmer, inPlan }: { farmer: Farmer; inPlan: (plotId: strin
           <select className="m-feas-select" value={soilTypes.includes(plot.soilType) ? plot.soilType : plot.soilType ? '__other' : ''} onChange={(e) => e.target.value !== '__other' && update(plot, { soilType: e.target.value })} aria-label={`Soil type for ${plot.name}`}>
             <option value="">Not sure</option>{soilTypes.map((s) => <option key={s}>{s}</option>)}{plot.soilType && !soilTypes.includes(plot.soilType) && <option value="__other">{plot.soilType}</option>}
           </select>
-        </span></td>
-        <td>{m ? <span className="m-status wait" title={`Measured ${fmtDay(m.measuredAt)}`}><Cpu size={15} />{m.ph != null ? `pH ${m.ph}` : ''}{m.moisturePct != null ? ` · ${m.moisturePct}%` : ''}<span className="m-small" style={{ fontSize: 12 }}>({m.source.toLowerCase()})</span></span> : <span className="m-small">Optional</span>}</td>
+        </span>{m ? <small title={`Measured ${fmtDay(m.measuredAt)}`} style={{ marginTop: 4 }}><Cpu size={12} style={{ verticalAlign: '-2px' }} /> {m.ph != null ? `pH ${m.ph}` : ''}{m.moisturePct != null ? ` · ${m.moisturePct}% moisture` : ''} ({m.source.toLowerCase()})</small> : <small style={{ marginTop: 4 }}>No measurement (optional)</small>}</td>
+
         <td>{busy ? <span className="m-chipdate plain"><CalendarClock size={16} />{busy.cycle.crop} until {fmtDay(busy.until)}<small style={{ display: 'inline', marginLeft: 4 }}>· free {fmtDay(addDays(busy.until, 7))}</small></span> : <span className="m-chipdate"><CalendarDays size={16} />Free now</span>}</td>
         <td>{tags.length ? tags.map((t) => <span key={t} className="m-status" style={{ marginRight: 4 }}><Sprout size={15} />{t}</span>) : <span className="m-small">—</span>}</td>
       </tr>
@@ -151,11 +151,11 @@ export default function FarmersPlots() {
         <p className="m-footnote" style={{ marginTop: 12 }}>All people, phone numbers, locations and soil readings are synthetic demo records.</p>
     </section>
 
-    <div className="m-cols-even">
+    <div className="m-stack" style={{ gap: 24 }}>
         <section className="m-panel" aria-labelledby="attn-title">
           <h2 className="m-panel-title sm" id="attn-title"><AlertTriangle size={24} />Needs attention</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Details that would let more land into the plan.</p>
-          <ul className="m-why2">
+          <ul className="m-why2 m-why-grid">
             {Object.entries(flaggedPlots).map(([plotId, flag]) => { const p = data.plots.find((x) => x.id === plotId); const f = data.farmers.find((x) => x.id === flag.farmerId); return p && <li key={plotId}><span className="m-roundico bad"><Droplets size={19} /></span><div><strong>Verify {f?.name} – {p.name}</strong><span>{flag.reason} via {flag.channel}. Held out of the plan until checked; farm record unchanged.</span><VerifyControls plot={p} /></div></li> })}
             {notRecorded.map((f) => <li key={f.id}><span className="m-roundico warn"><UsersRound size={19} /></span><div><strong>Ask {f.name} about joining</strong><span>Participation not recorded, so their land isn’t used.</span><div style={{ marginTop: 8 }}><ParticipationCell farmer={f} reason={null} /></div></div></li>)}
             {detailPlots.map((p) => { const f = data.farmers.find((x) => x.id === p.farmerId); return <li key={p.id}><span className="m-roundico warn"><Droplets size={19} /></span><div><strong>{f?.name} – {p.name}</strong><span>{[p.waterAvailability === 'Unknown' ? 'water' : '', !p.soilType.trim() ? 'soil type' : ''].filter(Boolean).join(' and ')} not recorded.</span><div style={{ marginTop: 6 }}><button type="button" className="m-link" style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', font: 'inherit', fontSize: 14 }} onClick={() => { setFilter('all'); setOpen(p.farmerId) }}>Update details</button></div></div></li> })}
@@ -164,7 +164,7 @@ export default function FarmersPlots() {
         </section>
         <section className="m-panel" aria-labelledby="how-title">
           <h2 className="m-panel-title sm" id="how-title"><Layers size={24} />How conditions shape the plan</h2>
-          <ul className="m-why2" style={{ marginTop: 8 }}>
+          <ul className="m-why2 m-why-grid four" style={{ marginTop: 8 }}>
             <li><span className="m-roundico"><CalendarClock size={19} /></span><div><strong>Timing</strong><span>A plot still growing another crop past the sow-by date is skipped. 7 days are allowed to prepare land.</span></div></li>
             <li><span className="m-roundico"><Droplets size={19} /></span><div><strong>Water</strong><span>No water rules a plot out. Limited water rules out thirsty crops; drip makes medium-water crops workable.</span></div></li>
             <li><span className="m-roundico"><Layers size={19} /></span><div><strong>Soil</strong><span>Less-suited or unknown soil adds caution but never excludes a plot on its own.</span></div></li>
