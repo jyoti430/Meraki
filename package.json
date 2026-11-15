@@ -10,6 +10,8 @@
     "test": "vitest run",
     "data:build": "python3 scripts/build_agricultural_data.py",
     "data:check": "python3 scripts/build_agricultural_data.py --check",
+    "data:refresh-weather": "python3 scripts/refresh_nasa_power_weather.py",
+    "data:refresh-market": "python3 scripts/refresh_msamb_market_snapshot.py",
     "test:agricultural": "python3 -m unittest discover -s tests -v"
   },
   "dependencies": {

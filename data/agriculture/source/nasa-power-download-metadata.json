@@ -1,0 +1,90 @@
+{
+  "datasetId": "nasa-power-daily-maharashtra-2020-2025",
+  "downloadedOn": "2026-11-15",
+  "startYear": 2020,
+  "endYear": 2025,
+  "parameters": [
+    "T2M_MAX",
+    "T2M_MIN",
+    "PRECTOTCORR"
+  ],
+  "sources": [
+    "MERRA2",
+    "POWER"
+  ],
+  "timeStandard": "LST",
+  "locations": [
+    {
+      "locationId": "nashik",
+      "name": "Nashik",
+      "district": "Nashik",
+      "latitude": 19.9975,
+      "longitude": 73.7898,
+      "api": {
+        "version": "v2.10.3",
+        "name": "POWER Daily API"
+      },
+      "sources": [
+        "MERRA2",
+        "POWER"
+      ],
+      "fillValue": -999.0,
+      "timeStandard": "LST",
+      "units": {
+        "T2M_MAX": "C",
+        "T2M_MIN": "C",
+        "PRECTOTCORR": "mm/day"
+      },
+      "start": "20200101",
+      "end": "20251231"
+    },
+    {
+      "locationId": "pune",
+      "name": "Pune",
+      "district": "Pune",
+      "latitude": 18.5204,
+      "longitude": 73.8567,
+      "api": {
+        "version": "v2.10.3",
+        "name": "POWER Daily API"
+      },
+      "sources": [
+        "MERRA2",
+        "POWER"
+      ],
+      "fillValue": -999.0,
+      "timeStandard": "LST",
+      "units": {
+        "T2M_MAX": "C",
+        "T2M_MIN": "C",
+        "PRECTOTCORR": "mm/day"
+      },
+      "start": "20200101",
+      "end": "20251231"
+    },
+    {
+      "locationId": "satara",
+      "name": "Satara",
+      "district": "Satara",
+      "latitude": 17.6805,
+      "longitude": 74.0183,
+      "api": {
+        "version": "v2.10.3",
+        "name": "POWER Daily API"
+      },
+      "sources": [
+        "MERRA2",
+        "POWER"
+      ],
+      "fillValue": -999.0,
+      "timeStandard": "LST",
+      "units": {
+        "T2M_MAX": "C",
+        "T2M_MIN": "C",
+        "PRECTOTCORR": "mm/day"
+      },
+      "start": "20200101",
+      "end": "20251231"
+    }
+  ]
+}

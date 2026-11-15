@@ -71,6 +71,310 @@
     "No district, season, variety, farm, irrigation, soil, weather, grade, loss, or buyer-demand observations are included.",
     "Missing source observations remain null and are excluded from the baseline sample."
   ],
+  "additionalDatasets": [
+    {
+      "datasetId": "des-agricultural-statistics-2024-horticulture",
+      "title": "Agricultural Statistics at a Glance 2024, Tables 2.47, 2.48 and 2.51(b)",
+      "publisher": "Directorate of Economics and Statistics, Department of Agriculture and Farmers Welfare, Government of India",
+      "sourceUrl": "https://desagri.gov.in/wp-content/uploads/2025/11/Agricultural-Statistics-at-a-Glance-2024_%E0%A4%95%E0%A5%83%E0%A4%B7%E0%A4%BF-%E0%A4%B8%E0%A4%BE%E0%A4%82%E0%A4%96%E0%A5%8D%E0%A4%AF%E0%A4%BF%E0%A4%95%E0%A5%80-%E0%A4%8F%E0%A4%95-%E0%A4%9D%E0%A4%B2%E0%A4%95-2024.pdf",
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevels": [
+          "India",
+          "Maharashtra state"
+        ],
+        "years": [
+          "2018-19",
+          "2019-20",
+          "2020-21",
+          "2021-22",
+          "2022-23",
+          "2023-24",
+          "2024-25"
+        ],
+        "crops": [
+          "green-chilli",
+          "okra",
+          "tomato",
+          "vegetables-total"
+        ],
+        "table2_47": "India crop-wise area and production for target vegetables; the table explicitly marks 2024-25 as first advance estimates, while earlier annual estimate rounds are not individually labelled.",
+        "table2_48": "State-wise horticulture category totals for 2024-25 first advance estimates; Maharashtra vegetable total only, no target-crop split.",
+        "table2_51b": "Maharashtra tomato area, production and yield for 2023-24 and 2024-25; 2024-25 is explicitly first advance and 2023-24 is final."
+      },
+      "reportedUnits": {
+        "area": "thousand hectares",
+        "production": "thousand metric tonnes",
+        "yield": "metric tonnes per hectare in Table 2.51(b)"
+      },
+      "licenseAndReuse": "Official Government of India publication. No dataset-specific reuse license was identified. This repository includes attributed numeric extracts only; confirm source terms before commercial redistribution.",
+      "transformations": [
+        "Transcribed the 2018-19 to 2024-25 all-India target-crop area and production series from Table 2.47. Estimate round is left not specified for periods the table does not label; 2024-25 is first advance.",
+        "Transcribed Maharashtra total-vegetable area and production from Table 2.48 for 2024-25 first advance estimates.",
+        "Transcribed Maharashtra tomato area and production from Table 2.51(b) for 2023-24 final and 2024-25 first advance estimates.",
+        "Converted thousand hectares to hectares and thousand metric tonnes to tonnes/kilograms. Derived yield only from area and production for the same crop, geography and estimate round.",
+        "National crop estimates remain separate context and are never substituted for Maharashtra yields."
+      ],
+      "limitations": [
+        "Table 2.47 is all-India, not Maharashtra; previous years do not have estimate round labels in the table.",
+        "Maharashtra 2024-25 vegetable category is not split by crop.",
+        "Crop-specific Maharashtra area and production are available in this extract for tomato only and for two years; the 2024-25 value is first advance, not final.",
+        "No district, season, farm, variety, irrigation, soil, or market breakdown is provided."
+      ]
+    },
+    {
+      "datasetId": "maharashtra-economic-survey-horticulture-2025-26",
+      "title": "Economic Survey of Maharashtra 2025-26, section 7.8 and Table 7.5",
+      "publisher": "Finance Department, Government of Maharashtra; horticulture estimates sourced to HAPIS, Government of India",
+      "sourceUrl": "https://finance.maharashtra.gov.in/en/publication/economic-survey-of-maharashtra-2025-26/",
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevel": "Maharashtra state",
+        "years": [
+          "2023-24",
+          "2024-25"
+        ],
+        "crops": [
+          "tomato",
+          "green-chilli",
+          "vegetables-total"
+        ],
+        "table": "7.5; crop-specific tomato and green chilli area is also reported in section 7.8 prose"
+      },
+      "reportedUnits": {
+        "area": "thousand hectares in Table 7.5; lakh hectares in section 7.8 prose",
+        "production": "thousand metric tonnes"
+      },
+      "estimateStatus": "Table 7.5 marks 2023-24 final and 2024-25 third advance estimates. Section 7.8 describes crop-specific 2024-25 area using the phrase 'final advance estimates'; this status wording and the rounded crop-area figures are preserved separately and not reconciled to Table 7.5.",
+      "licenseAndReuse": "Official Maharashtra Government publication. No dataset-specific open reuse license was identified. This repository includes attributed numeric extracts only; confirm source terms before commercial redistribution.",
+      "transformations": [
+        "Transcribed state vegetables-total area and production for 2023-24 and 2024-25 from Table 7.5.",
+        "Transcribed tomato and green chilli area from section 7.8; converted 0.55 and 0.43 lakh hectares to 55,000 and 43,000 hectares while retaining the rounded reported values and wording.",
+        "Derived vegetables-category yield for years with both area and production, keeping each source estimate status attached. This is not a target-crop yield."
+      ],
+      "limitations": [
+        "The crop-specific 2024-25 figures provide area only; no tomato or green chilli production/yield is reported in this section.",
+        "Okra area and production are not separately reported in section 7.8.",
+        "The report uses different estimate-status wording for section 7.8 prose and Table 7.5; the records are kept separate rather than harmonised.",
+        "State totals and crop-area figures do not describe any district or farm."
+      ]
+    },
+    {
+      "datasetId": "pib-horticulture-national-2025-26",
+      "title": "PIB horticulture estimate releases for 2024-25 and 2025-26",
+      "publisher": "Department of Agriculture and Farmers Welfare, Government of India, via Press Information Bureau",
+      "sourceUrls": [
+        "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2241379&lang=1&reg=3",
+        "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2271770&lang=1&reg=3"
+      ],
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevel": "India",
+        "years": [
+          "2024-25",
+          "2025-26"
+        ],
+        "crops": [
+          "tomato"
+        ]
+      },
+      "reportedUnits": {
+        "production": "lakh tonnes"
+      },
+      "licenseAndReuse": "Official Government of India press releases. No separate dataset license was identified; attribution and source links are retained.",
+      "transformations": [
+        "Retained 2024-25 final tomato production and separate 2025-26 first- and second-advance tomato production estimates.",
+        "Converted lakh tonnes to metric tonnes. The production-only estimates have no matching area in these releases, so no yield is derived.",
+        "The national estimates are not merged into Maharashtra yield baselines or buyer demand."
+      ],
+      "limitations": [
+        "No state or district disaggregation is provided for these tomato production values.",
+        "The 2024-25 final estimate and 2025-26 advance estimates are estimate vintages, not independent observations or forecasts of buyer demand."
+      ]
+    },
+    {
+      "datasetId": "nasa-power-daily-maharashtra-2020-2025",
+      "title": "NASA POWER Daily API, Agroclimatology community",
+      "publisher": "NASA Langley Research Center POWER Project",
+      "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+      "documentationUrl": "https://power.larc.nasa.gov/docs/services/api/temporal/daily/",
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevel": "Three project-selected city reference points in Maharashtra; not district or farm averages",
+        "years": [
+          "2020",
+          "2021",
+          "2022",
+          "2023",
+          "2024",
+          "2025"
+        ],
+        "locations": [
+          "Pune",
+          "Nashik",
+          "Satara"
+        ],
+        "variables": [
+          "T2M_MAX",
+          "T2M_MIN",
+          "PRECTOTCORR"
+        ]
+      },
+      "reportedUnits": {
+        "T2M_MAX": "degrees Celsius",
+        "T2M_MIN": "degrees Celsius",
+        "PRECTOTCORR": "millimetres per day"
+      },
+      "timeStandard": "Local Solar Time (LST)",
+      "licenseAndReuse": "NASA Earth science data are publicly accessible; retain NASA POWER attribution and review the NASA data use guidance before redistribution.",
+      "transformations": [
+        "Downloaded daily point series through the documented API for three named reference coordinates and stored an offline CSV snapshot.",
+        "Preserved source units and -999 fill markers in the input CSV; the build maps -999 to null without imputation.",
+        "Calculated June-September calendar-season precipitation, maximum-temperature summaries, days at or above 35 C, and longest observed run of days below 1 mm precipitation.",
+        "The 35 C heat threshold and 1 mm dry-day threshold are descriptive analyst choices, not crop-specific agronomic thresholds."
+      ],
+      "limitations": [
+        "POWER provides gridded meteorological analysis/reanalysis data, not a farmer's station observation or sensor reading.",
+        "Three selected coordinate points do not represent full districts; elevation, local terrain and microclimate may differ.",
+        "Weather summaries are historical only. A distinct future-forecast source is not configured, and no future planting date can access post-decision observations."
+      ]
+    },
+    {
+      "datasetId": "agmarknet-offline-market-import",
+      "title": "AGMARKNET daily wholesale prices and arrivals, offline import schema",
+      "publisher": "Directorate of Marketing and Inspection, Department of Agriculture and Farmers Welfare, Government of India",
+      "sourceUrl": "https://www.data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi",
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevel": "Market-level when an authorised source export is supplied",
+        "crops": [
+          "green-chilli",
+          "okra",
+          "tomato"
+        ],
+        "timePeriod": "Not available until a source export is imported"
+      },
+      "reportedUnits": {
+        "prices": "rupees per quintal in source; derived rupees per kilogram",
+        "arrivals": "source unit preserved; normalized to tonnes only for recognised tonne, kilogram, or quintal units"
+      },
+      "licenseAndReuse": "The data.gov.in catalog identifies the source as AGMARKNET and the dataset as open data. API download requires an API key; the AGMARKNET date-wise endpoint requested CAPTCHA credentials during access checks. No market observations are bundled.",
+      "transformations": [
+        "Offline import accepts dated market observations in the checked-in CSV schema.",
+        "Converts Rs/quintal to Rs/kg by dividing by 100, retaining original price columns and arrival units.",
+        "Calculates price range and coefficient of variation only from imported modal prices; any arrivals deviation remains a market observation, not regional production or confirmed oversupply."
+      ],
+      "limitations": [
+        "No actual market prices or arrivals are integrated because authorised machine-readable rows were not accessible without API-key/CAPTCHA access.",
+        "Wholesale mandi prices are not farmgate prices; arrivals are not complete regional supply or confirmed buyer demand."
+      ]
+    },
+    {
+      "datasetId": "msamb-market-latest-eight-reporting-days",
+      "title": "APMC arrival and price information, latest eight reporting days",
+      "publisher": "Maharashtra State Agricultural Marketing Board, Government of Maharashtra",
+      "sourceUrls": [
+        "https://www.msamb.com/ApmcDetail/APMCPriceInformation",
+        "https://www.msamb.com/ApmcDetail/DataGridBind?commodityCode=08071&apmcCode=null",
+        "https://www.msamb.com/ApmcDetail/DataGridBind?commodityCode=10013&apmcCode=null"
+      ],
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevel": "Maharashtra state and reporting APMC market; district is not supplied in the queried response",
+        "years": [
+          "2026-11-08",
+          "2026-11-09",
+          "2026-11-10",
+          "2026-11-11",
+          "2026-11-12",
+          "2026-11-13",
+          "2026-11-14",
+          "2026-11-15"
+        ],
+        "crops": [
+          "tomato",
+          "green-chilli"
+        ],
+        "commodityCodes": {
+          "tomato": "08071",
+          "green-chilli": "10013"
+        },
+        "window": "The official market page endpoint returned the latest eight dated reporting groups when accessed on 2026-11-15. The controlled refresh script records whatever dates and rows the endpoint returns.",
+        "markets": "APMC names and stable MSAMB market codes from the official APMC list endpoint; source labels are preserved in Marathi as returned."
+      },
+      "reportedUnits": {
+        "prices": "INR per displayed unit; source unit is preserved",
+        "arrivals": "source unit as returned; current snapshot has 437 quintal rows and 2 item-count rows"
+      },
+      "licenseAndReuse": "The official MSAMB portal serves this data without a credential gate, but no dataset-specific open license or reuse terms were located. A small attributed snapshot is included; confirm terms before broader or commercial redistribution.",
+      "transformations": [
+        "The refresh script calls the public MSAMB page endpoints and captures each dated row for Tomato and Green chilli; no records are fabricated or imputed.",
+        "MSAMB market codes are retained as stable identifiers. Market names are retained in the source language; district and grade are left unknown when not supplied.",
+        "Converts prices and arrivals to per-kilogram/per-tonne values only for recognized mass units. The current snapshot has two item-count rows; their raw INR per item and arrival counts are preserved without mass conversion.",
+        "Calculates descriptive price coefficient of variation and endpoint arrival change by market/crop only across available reporting dates in this short window."
+      ],
+      "limitations": [
+        "The live endpoint currently exposes only the latest eight reporting days, not a long historical archive; its current window is insufficient for seasonal price patterns or long-run volatility.",
+        "The commodity selector contains tomato and green chilli among these target crops; Okra was not present in the exposed commodity list during access checks.",
+        "Markets report their own arrivals. The reports are not a complete measure of district or state production/supply, and prices are wholesale market prices rather than farmgate prices.",
+        "No future price, buyer demand, market grade, or district mapping is inferred from these observations."
+      ],
+      "refreshScript": "scripts/refresh_msamb_market_snapshot.py",
+      "offlineFiles": [
+        "data/agriculture/source/msamb-market-prices-arrivals.csv",
+        "data/agriculture/source/msamb-market-download-metadata.json"
+      ]
+    },
+    {
+      "datasetId": "des-agricultural-statistics-2023-state-context",
+      "title": "Agricultural Statistics at a Glance 2023, Table 2.48 Maharashtra row",
+      "publisher": "Directorate of Economics and Statistics, Department of Agriculture and Farmers Welfare, Government of India",
+      "sourceUrl": "https://desagri.gov.in/wp-content/uploads/2025/01/%E0%A4%95%E0%A5%83%E0%A4%B7%E0%A4%BF-%E0%A4%B8%E0%A4%BE%E0%A4%82%E0%A4%96%E0%A5%8D%E0%A4%AF%E0%A4%BF%E0%A4%95%E0%A5%80-%E0%A4%8F%E0%A4%95-%E0%A4%9D%E0%A4%B2%E0%A4%95-2023_Agricultural-Statistics-at-a-Glance-2023-1.pdf",
+      "accessedOn": "2026-11-15",
+      "coverage": {
+        "geographicLevel": "Maharashtra state",
+        "years": [
+          "2022-23"
+        ],
+        "crops": [
+          "vegetables-total"
+        ],
+        "table": "2.48; Maharashtra aggregate vegetables only; second advance estimate"
+      },
+      "reportedUnits": {
+        "area": "thousand hectares",
+        "production": "thousand metric tonnes"
+      },
+      "licenseAndReuse": "Official Government of India publication. No dataset-specific reuse license was identified. This repository includes an attributed numeric extract only; confirm source terms before commercial redistribution.",
+      "transformations": [
+        "Transcribed Maharashtra aggregate vegetables area and production for 2022-23 from Table 2.48.",
+        "Converted source units to hectares and metric tonnes."
+      ],
+      "limitations": [
+        "This is an aggregate state vegetables category, not any target crop.",
+        "No district, season, farm, or variety breakdown is provided."
+      ]
+    }
+  ],
+  "weatherSeasonDefinition": {
+    "id": "monsoon-june-september",
+    "months": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "heatThresholdC": 35,
+    "dryDayThresholdMm": 1,
+    "interpretation": "Calendar-season summary for historical context only; thresholds are analyst-selected descriptors, not crop requirements."
+  },
+  "farmConditionSchema": {
+    "soilType": "Required status: measured or unknown; measured values require provenance and date.",
+    "soilPh": "0-14 pH units; require source and measurement date; unknown is explicit.",
+    "irrigationAvailability": "reliable, seasonal, limited, none, or unknown.",
+    "irrigationReliability": "Optional farmer or organization assessment with a measurement date/source when available.",
+    "soilMoisture": "Optional 0-100 percent sensor observation with timestamp and device/source provenance; never a regional estimate."
+  },
   "dataProvider": "Horticulture Statistics Division, Department of Agriculture, Cooperation and Farmers Welfare, Government of India (as credited in the source tables)",
   "agronomicReference": {
     "datasetId": "fao-ecocrop",

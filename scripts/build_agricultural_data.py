@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Normalize an attributed NHB source extract into a planning-ready JSON baseline.
+"""Normalize attributed agricultural sources into an offline planning evidence artifact.
 
 No network access or third-party Python packages are required. The source CSV is
 an offline import path so builds are reproducible and do not depend on a live API.
@@ -21,6 +21,16 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = ROOT / "data/agriculture/source/nhb-maharashtra-2018.csv"
 DEFAULT_MANIFEST = ROOT / "data/agriculture/source-manifest.json"
 DEFAULT_OUTPUT = ROOT / "src/data/agriculturalBaselines.json"
+DEFAULT_WEATHER_SOURCE = ROOT / "data/agriculture/source/nasa-power-daily-2020-2025.csv"
+DEFAULT_WEATHER_LOCATIONS = ROOT / "data/agriculture/source/nasa-power-locations.csv"
+DEFAULT_WEATHER_METADATA = ROOT / "data/agriculture/source/nasa-power-download-metadata.json"
+
+from evidence_sources import (  # noqa: E402
+    normalize_horticulture_rows,
+    normalize_market_rows,
+    normalize_national_rows,
+    normalize_weather_rows,
+)
 
 ACRES_PER_HECTARE = 2.4710538147
 THOUSAND_HECTARES = 1_000
@@ -298,6 +308,8 @@ def normalize_rows(
                     "estimateStatus": "not_specified_in_source_table",
                     "season": "not_reported",
                     "geographicLevel": "state",
+                    "latestYieldYear": observed_years[-1] if observed_years else None,
+                    "freshness": "stale_historical_reference" if observed_years else "unavailable",
                     "farmLevelPrediction": False,
                 },
             }
@@ -419,12 +431,129 @@ def build_artifact(
     rows: Iterable[dict[str, str]],
     manifest: dict[str, Any],
     agronomy_rows: Iterable[dict[str, str]] = (),
+    horticulture_rows: Iterable[dict[str, str]] = (),
+    national_rows: Iterable[dict[str, str]] = (),
+    weather_rows: Iterable[dict[str, str]] = (),
+    weather_location_rows: Iterable[dict[str, str]] = (),
+    weather_download_metadata: dict[str, Any] | None = None,
+    market_rows: Iterable[dict[str, str]] = (),
+    market_download_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     observations, baselines, warnings = normalize_rows(rows, manifest)
+    yield_warnings = list(warnings)
     suitability_references = normalize_agronomy_rows(agronomy_rows, manifest)
+    state_horticulture, state_warnings = normalize_horticulture_rows(
+        horticulture_rows, manifest
+    )
+    national_context, national_warnings = normalize_national_rows(
+        national_rows, manifest
+    )
+    weather_source = next(
+        source
+        for source in manifest["additionalDatasets"]
+        if source["datasetId"] == "nasa-power-daily-maharashtra-2020-2025"
+    )
+    weather_manifest = {
+        **weather_source,
+        "weatherSeasonDefinition": manifest["weatherSeasonDefinition"],
+    }
+    weather_daily, weather_summaries = normalize_weather_rows(
+        weather_rows,
+        weather_location_rows,
+        weather_manifest,
+        weather_download_metadata or {},
+    )
+    market_observations, market_indicators, market_warnings = normalize_market_rows(
+        market_rows, manifest, market_download_metadata
+    )
+    warnings.extend(state_warnings)
+    warnings.extend(national_warnings)
+    warnings.extend(market_warnings)
     coverage = manifest["coverage"]
+    target_crop_ids = [crop["cropId"] for crop in coverage["crops"]]
+    state_yields_by_source: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for record in state_horticulture:
+        if record["cropId"] in target_crop_ids and record["yieldKgPerHectare"] is not None:
+            state_yields_by_source[(record["cropId"], record["source"]["datasetId"])].append(record)
+    regional_yield_series = []
+    for (crop_id, source_dataset_id), records in sorted(state_yields_by_source.items()):
+        values = [item["yieldKgPerHectare"] for item in records]
+        mean_yield = statistics.fmean(values)
+        regional_yield_series.append(
+            {
+                "cropId": crop_id,
+                "datasetId": source_dataset_id,
+                "geography": records[0]["geography"],
+                "sampleCount": len(records),
+                "observedYears": [item["year"] for item in records],
+                "estimateStatuses": [item["estimateStatus"] for item in records],
+                "summaryKgPerHectare": {
+                    "minimum": _round(min(values)),
+                    "median": _round(statistics.median(values)),
+                    "maximum": _round(max(values)),
+                    "mean": _round(mean_yield),
+                    "coefficientOfVariationPct": _round(statistics.pstdev(values) / mean_yield * 100)
+                    if mean_yield and len(values) >= 3
+                    else None,
+                },
+                "observations": [
+                    {
+                        "year": item["year"],
+                        "estimateStatus": item["estimateStatus"],
+                        "yieldKgPerHectare": item["yieldKgPerHectare"],
+                        "source": item["source"],
+                    }
+                    for item in records
+                ],
+                "interpretation": (
+                    "Source-specific Maharashtra statistical yields; kept separate from other source series. "
+                    "This short series does not support a forecast or farm-level accuracy claim."
+                ),
+            }
+        )
+    market_coverage = []
+    for crop_id in target_crop_ids:
+        crop_market_records = [item for item in market_observations if item["cropId"] == crop_id]
+        market_coverage.append(
+            {
+                "cropId": crop_id,
+                "status": "available" if crop_market_records else "unavailable",
+                "observationCount": len(crop_market_records),
+                "marketCount": len({item["marketId"] for item in crop_market_records}),
+                "earliestDate": min((item["date"] for item in crop_market_records), default=None),
+                "latestDate": max((item["date"] for item in crop_market_records), default=None),
+                "reason": None
+                if crop_market_records
+                else f"No MSAMB or AGMARKNET market observations are loaded for {crop_id}.",
+            }
+        )
+    regional_coverage = []
+    for crop_id in target_crop_ids:
+        crop_records = [item for item in state_horticulture if item["cropId"] == crop_id]
+        regional_coverage.append(
+            {
+                "cropId": crop_id,
+                "stateAreaYears": sorted(
+                    {item["year"] for item in crop_records if item["areaHectares"] is not None}
+                ),
+                "stateProductionYears": sorted(
+                    {item["year"] for item in crop_records if item["productionTonnes"] is not None}
+                ),
+                "stateYieldYears": sorted(
+                    {item["year"] for item in crop_records if item["yieldKgPerHectare"] is not None}
+                ),
+                "latestStateYearWithArea": max(
+                    (item["year"] for item in crop_records if item["areaHectares"] is not None),
+                    default=None,
+                ),
+                "latestStateYearWithProduction": max(
+                    (item["year"] for item in crop_records if item["productionTonnes"] is not None),
+                    default=None,
+                ),
+            }
+        )
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 3,
         "datasetId": manifest["datasetId"],
         "title": manifest["title"],
         "region": {
@@ -470,14 +599,62 @@ def build_artifact(
             "completeYieldRecords": sum(
                 item["yieldKgPerAcre"] is not None for item in observations
             ),
-            "incompleteYieldRecords": len(warnings),
+            "incompleteYieldRecords": len(yield_warnings),
             "suitabilityReferenceRecords": len(suitability_references),
+            "recentStateHorticultureRecords": len(state_horticulture),
+            "nationalContextRecords": len(national_context),
+            "weatherDailyObservations": len(weather_daily),
+            "weatherSeasonalIndicators": len(weather_summaries),
+            "marketObservations": len(market_observations),
+            "marketIndicators": len(market_indicators),
             "warnings": warnings,
         },
+        "additionalSources": manifest["additionalDatasets"],
+        "regionalCropCoverage": regional_coverage,
         "agronomicReferenceSource": manifest["agronomicReference"],
         "cropSuitabilityReferences": suitability_references,
         "observations": observations,
         "baselines": baselines,
+        "regionalYieldSeriesBySource": regional_yield_series,
+        "regionalHorticultureObservations": state_horticulture,
+        "nationalProductionContext": national_context,
+        "weather": {
+            "status": "available" if weather_daily else "unavailable",
+            "source": {
+                "datasetId": weather_source["datasetId"],
+                "publisher": weather_source["publisher"],
+                "title": weather_source["title"],
+                "sourceUrl": weather_source["sourceUrl"],
+                "documentationUrl": weather_source["documentationUrl"],
+                "accessedOn": weather_source["accessedOn"],
+                "timeStandard": weather_download_metadata.get("timeStandard")
+                if weather_download_metadata
+                else weather_source["timeStandard"],
+                "sources": weather_download_metadata.get("sources", [])
+                if weather_download_metadata
+                else [],
+                "licenseAndReuse": weather_source["licenseAndReuse"],
+                "limitations": weather_source["limitations"],
+            },
+            "dailyObservations": weather_daily,
+            "seasonalIndicators": weather_summaries,
+            "forecast": {
+                "status": "unavailable",
+                "reason": "No forecast provider is configured; historical weather must not be used as future weather.",
+            },
+        },
+        "historicalMarket": {
+            "status": "available" if market_observations else "unavailable",
+            "reason": None
+            if market_observations
+            else "No authorised dated market observations are loaded in the offline import files.",
+            "coverageByCrop": market_coverage,
+            "snapshot": market_download_metadata or None,
+            "observations": market_observations,
+            "indicators": market_indicators,
+            "buyerDemand": "not_provided_by_market_data",
+        },
+        "farmConditionSchema": manifest["farmConditionSchema"],
     }
 
 
@@ -499,6 +676,40 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=ROOT / "data/agriculture/source/fao-ecocrop-requirements.csv",
     )
+    parser.add_argument(
+        "--horticulture-input",
+        type=Path,
+        default=ROOT / "data/agriculture/source/maharashtra-horticulture.csv",
+    )
+    parser.add_argument(
+        "--national-input",
+        type=Path,
+        default=ROOT / "data/agriculture/source/national-horticulture.csv",
+    )
+    parser.add_argument(
+        "--weather-input", type=Path, default=DEFAULT_WEATHER_SOURCE
+    )
+    parser.add_argument(
+        "--weather-locations", type=Path, default=DEFAULT_WEATHER_LOCATIONS
+    )
+    parser.add_argument(
+        "--weather-metadata", type=Path, default=DEFAULT_WEATHER_METADATA
+    )
+    parser.add_argument(
+        "--market-input",
+        type=Path,
+        default=ROOT / "data/agriculture/source/agmarknet-prices-arrivals.csv",
+    )
+    parser.add_argument(
+        "--msamb-market-input",
+        type=Path,
+        default=ROOT / "data/agriculture/source/msamb-market-prices-arrivals.csv",
+    )
+    parser.add_argument(
+        "--market-metadata",
+        type=Path,
+        default=ROOT / "data/agriculture/source/msamb-market-download-metadata.json",
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument(
         "--check",
@@ -509,8 +720,21 @@ def main(argv: list[str] | None = None) -> int:
 
     with args.manifest.open("r", encoding="utf-8") as manifest_file:
         manifest = json.load(manifest_file)
+    with args.weather_metadata.open("r", encoding="utf-8") as metadata_file:
+        weather_metadata = json.load(metadata_file)
+    with args.market_metadata.open("r", encoding="utf-8") as metadata_file:
+        market_metadata = json.load(metadata_file)
     artifact = build_artifact(
-        read_csv(args.input), manifest, read_csv(args.agronomy_input)
+        read_csv(args.input),
+        manifest,
+        read_csv(args.agronomy_input),
+        read_csv(args.horticulture_input),
+        read_csv(args.national_input),
+        read_csv(args.weather_input),
+        read_csv(args.weather_locations),
+        weather_metadata,
+        read_csv(args.market_input) + read_csv(args.msamb_market_input),
+        market_metadata,
     )
     rendered = render_json(artifact)
 
