@@ -175,6 +175,13 @@ export default function PlantingPlan() {
 
     {result.plans.map((p) => <CropPlanCard key={p.crop.id} plan={p} />)}
 
+    <section className="m-card m-card-tight" aria-labelledby="reserve-title">
+      <div className="m-row" style={{ justifyContent: 'space-between' }}>
+        <div><h2 className="m-h3" id="reserve-title">Reserve crops already growing for an order</h2><p className="m-sub">Once crops are in the ground, reserve their estimated harvest against a specific buyer order, with manual adjustments and confirmation.</p></div>
+        <Link to="/supply-planning" className="m-btn m-btn-secondary m-btn-sm">Order reservations <ChevronRight size={15} /></Link>
+      </div>
+    </section>
+
     {result.ineligible.length > 0 && <section className="m-card m-card-sage" aria-labelledby="out-title">
       <h2 className="m-h3" id="out-title"><UserX size={17} style={{ verticalAlign: '-3px', marginRight: 6 }} />Farmers not in this season’s plan</h2>
       <div className="m-stack" style={{ gap: 8, marginTop: 10 }}>

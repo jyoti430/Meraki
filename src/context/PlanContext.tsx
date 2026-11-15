@@ -152,7 +152,7 @@ export function usePlan() {
 }
 
 export function resetDemoData() {
-  for (const key of ['meraki-plan-v1', 'meraki-buyer-orders-v1', 'meraki-farmers-v1']) {
+  for (const key of ['meraki-plan-v1', 'meraki-buyer-orders-v1', 'meraki-farmers-v1', 'meraki-supply-plans-v1']) {
     try { localStorage.removeItem(key) } catch { /* ignore */ }
   }
   window.location.assign('/')

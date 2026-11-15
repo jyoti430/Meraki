@@ -21,6 +21,7 @@ export function useMessageBadge() {
 export function isNavActive(to: string, pathname: string) {
   if (to === '/') return pathname === '/'
   if (to === '/demand') return pathname.startsWith('/demand') || pathname.startsWith('/buyer-orders')
+  if (to === '/plan') return pathname.startsWith('/plan') || pathname.startsWith('/supply-planning')
   if (to === '/farmers') return pathname.startsWith('/farmers') || pathname.startsWith('/plots') || pathname.startsWith('/crop-cycles')
   return pathname.startsWith(to)
 }

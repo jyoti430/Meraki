@@ -18,6 +18,10 @@ import PlotForm from '../pages/PlotForm'
 import PlotDetails from '../pages/PlotDetails'
 import CropCycleForm from '../pages/CropCycleForm'
 import CropCycleDetails from '../pages/CropCycleDetails'
+import SupplyPlanning from '../pages/SupplyPlanning'
+import SupplyPlanCreate from '../pages/SupplyPlanCreate'
+import SupplyPlanPreview from '../pages/SupplyPlanPreview'
+import SupplyPlanDetails from '../pages/SupplyPlanDetails'
 
 export default function AppRoutes() {
   return <Routes>
@@ -29,7 +33,6 @@ export default function AppRoutes() {
     <Route path="/later" element={<LaterModules />} />
     {/* Previous URLs keep working */}
     <Route path="/buyer-orders" element={<Navigate to="/demand" replace />} />
-    <Route path="/supply-planning" element={<Navigate to="/plan" replace />} />
     <Route path="/farmers-plots" element={<Navigate to="/farmers" replace />} />
     <Route path="/buyer-orders/new" element={<BuyerOrderForm />} />
     <Route path="/buyer-orders/:orderId/edit" element={<BuyerOrderForm />} />
@@ -43,6 +46,11 @@ export default function AppRoutes() {
     <Route path="/crop-cycles/new" element={<CropCycleForm />} />
     <Route path="/crop-cycles/:cycleId/edit" element={<CropCycleForm />} />
     <Route path="/crop-cycles/:cycleId" element={<CropCycleDetails />} />
+    {/* Order reservations: reserve estimates from crops already growing against one buyer order */}
+    <Route path="/supply-planning" element={<SupplyPlanning />} />
+    <Route path="/supply-planning/new" element={<SupplyPlanCreate />} />
+    <Route path="/supply-planning/preview" element={<SupplyPlanPreview />} />
+    <Route path="/supply-planning/:planId" element={<SupplyPlanDetails />} />
     {/* Post-harvest modules: retained, not in primary navigation */}
     <Route path="/lots-inspection" element={<LotsInspection />} />
     <Route path="/lab-release-review" element={<LabReleaseReview />} />
