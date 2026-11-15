@@ -8,6 +8,8 @@ Part 3 update: `server/` and `src/trade/` now implement the T06/T07/T09/T10 deve
 
 Part 1 update (16 November 2026): `src/farmdata/` and `/farm-intelligence` implement a browser-local development slice of T01/T02/T03/T08 — reviewed soil imports, weather/water evidence, planned versus actual cultivation, an explainable pre-sowing screen and immutable versioned weekly projections. Details and gaps are in `docs/PART1_FARM_DATA.md`. Parent tasks remain unfinished: there is no backend, organisation scoping, shared persistence or real consented observation set, and agronomic rules are unreviewed synthetic assumptions.
 
+Live-data/model update (16 November 2026): `/live-data` and `server/live_data.py` retrieve public regional forecasts, gridded history and market observations with explicit source freshness/failure/attribution. `data/agriculture/` preserves the existing evidence foundation. `model_validation/` audits sources and conditionally evaluates declared baselines only with eligible real outcomes; current reports have 7,062 public context/reference rows, zero eligible farm outcomes, no error scores and promotion disabled. This is not completion of a farm model or field pilot. See `docs/LIVE_DATA.md`, `docs/MODEL_VALIDATION.md` and the latest work log.
+
 - `DONE`: stated acceptance passed with code and validation evidence.
 - `PROTOTYPE`: implemented browser/demo behaviour; production acceptance remains unfinished.
 - `TODO`: no accepted implementation established.
@@ -56,7 +58,7 @@ Deliver: plot-linked soil sample/analyte/method/units/depth/date records; review
 
 Acceptance: reject wrong-plot and incompatible-unit imports; preserve raw evidence; old/missing data stays flagged; map estimates never overwrite lab results; actual water access is distinct from regional level. Adapter failures are visible. No API is labelled live before a permitted retrieval/schema test. OCR is optional until needed.
 
-Part 1 slice (`src/farmdata/soil.ts`, `weather.ts`, `water.ts`, `cultivation.ts`): plot-linked CSV import with row-level rejection and raw-value preservation; measured-versus-mapped resolution; forecast issue/horizon metadata and visible adapter failure; farm water capacity separate from regional observations; planned/actual cultivation events with missing-input reporting. Still missing: PDF/OCR extraction and review, a permitted live provider adapter, and a persisted multi-user store. Development fixtures are synthetic.
+Part 1 slice (`src/farmdata/soil.ts`, `weather.ts`, `water.ts`, `cultivation.ts`): plot-linked CSV import with row-level rejection and raw-value preservation; measured-versus-mapped resolution; forecast issue/horizon metadata and visible adapter failure; farm water capacity separate from regional observations; planned/actual cultivation events with missing-input reporting. A separate public regional gateway now verifies live retrieval, schema, attribution and conservative knowledge time. Still missing: PDF/OCR extraction/review, farm-specific authorised feed linkage and a persisted multi-user store. Development farm fixtures remain synthetic.
 
 ### T03 Crop alternatives and weekly marketable planning — PROTOTYPE (development slice)
 
@@ -134,13 +136,15 @@ Deliver: retry-safe background imports/OCR/projections, auction-close scheduler,
 
 Acceptance: crashes/retries cannot duplicate awards/payments; dead jobs and stale feeds are visible; authoritative close occurs even with no connected browser; notifications accurately distinguish queued/sent/delivered/failed. Low-connectivity drafts survive but cannot create accepted offline bids. Inspect access logs and restore evidence.
 
-### T12 Model research and supervised pilot — TODO with external prerequisites
+### T12 Model research and supervised pilot — IN_PROGRESS validation tooling; field evidence gated
 
 Dependencies: consented linked outcomes from T02/T08–T10 and sufficient independent data. Do not block deterministic workflow delivery on model training.
 
 Deliver: dataset permission/provenance manifest, simple baselines, crop/season-specific holdouts, forecast-date feature snapshots, metrics/calibration, shadow evaluation and rollback. Optional optimisation is not a trained prediction model.
 
 Acceptance: no district-to-farm fabricated labels; no future weather or same-farm leakage; beat appropriate baseline or retain it; report sample counts, bias/error and uncertainty by crop/region; keep uncalibrated scenarios labelled. Pilot must track failed orders, variable service cost, farmer net returns/payment delay, weekly accepted-on-time supply and coordinator time. A software demo cannot satisfy yield/income or customer-willingness-to-pay gates.
+
+Implemented tooling: `model_validation/`, `tests/test_model_validation.py`, `reports/model_validation.json` and `.md`. Source/grain/permission audit, strict measured farm-outcome CSV, temporal/new-farm holdout, training-only conditional baselines, reproducibility and fail-closed registry are software-tested. With zero real farm outcomes, no performance scores or fitted artifact are produced. Training rights, linked farm labels, independent protocol/uncertainty review, agronomic review and prospective pilot remain unfinished. Do not mark T12 DONE for a successful report check.
 
 ## Completion and resumption rules
 

@@ -1,0 +1,25 @@
+crop_label,year,area_value,area_unit,production_value,production_unit,estimate_status,dataset_id,source_reference
+Chillies (Green),2018-19,377,thousand hectares,3783,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Chillies (Green),2019-20,387,thousand hectares,4119,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Chillies (Green),2020-21,411,thousand hectares,4363,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Chillies (Green),2021-22,427,thousand hectares,4700,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Chillies (Green),2022-23,413,thousand hectares,4496,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Chillies (Green),2023-24,439,thousand hectares,4671,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Chillies (Green),2024-25,444,thousand hectares,4816,thousand metric tonnes,first_advance,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2018-19,513,thousand hectares,6176,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2019-20,521,thousand hectares,6355,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2020-21,531,thousand hectares,6466,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2021-22,550,thousand hectares,6873,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2022-23,549,thousand hectares,7158,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2023-24,557,thousand hectares,7305,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Okra/Ladyfinger,2024-25,555,thousand hectares,7309,thousand metric tonnes,first_advance,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2018-19,781,thousand hectares,19007,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2019-20,818,thousand hectares,20550,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2020-21,845,thousand hectares,21181,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2021-22,843,thousand hectares,20694,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2022-23,849,thousand hectares,20425,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2023-24,854,thousand hectares,21323,thousand metric tonnes,not_specified_in_table,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2024-25,853,thousand hectares,21549,thousand metric tonnes,first_advance,des-agricultural-statistics-2024-horticulture,Table 2.47
+Tomato,2024-25,,,205.99,lakh tonnes,final,pib-horticulture-national-2025-26,https://www.pib.gov.in/PressReleasePage.aspx?PRID=2241379&lang=1&reg=3
+Tomato,2025-26,,,227.02,lakh tonnes,first_advance,pib-horticulture-national-2025-26,https://www.pib.gov.in/PressReleasePage.aspx?PRID=2241379&lang=1&reg=3
+Tomato,2025-26,,,214.61,lakh tonnes,second_advance,pib-horticulture-national-2025-26,https://www.pib.gov.in/PressReleasePage.aspx?PRID=2271770&lang=1&reg=3

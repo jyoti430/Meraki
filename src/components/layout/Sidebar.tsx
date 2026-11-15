@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Activity, Archive, Gavel, Home, Layers, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
+import { Activity, Archive, Database, Gavel, Home, Layers, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
@@ -10,6 +10,7 @@ export const navigation = [
   { label: 'Buyer Demand', short: 'Demand', to: '/demand', icon: ShoppingBag },
   { label: 'Farmers & Farms', short: 'Farmers', to: '/farmers', icon: UsersRound },
   { label: 'Farm intelligence', short: 'Farm data', to: '/farm-intelligence', icon: Layers },
+  { label: 'Public data & models', short: 'Public data', to: '/live-data', icon: Database },
   { label: 'Messages', short: 'Messages', to: '/messages', icon: MessageSquareText },
   { label: 'Trade & fulfilment', short: 'Trade', to: '/trade', icon: Gavel },
   { label: 'Live sensor data', short: 'Sensors', to: '/sensors', icon: Activity },
@@ -38,7 +39,7 @@ export default function Sidebar({ pathname }: { pathname: string }) {
       </NavLink>)}
     </nav>
     <div className="m-sidebar-foot">
-      <div className="m-synthetic-note">Demo workspace. Orders, farms, forecasts and replies are <strong>synthetic</strong>; no messages are really sent.</div>
+      <div className="m-synthetic-note">Planning demo uses <strong>synthetic</strong> farm and order records. Public data and sensor uploads have separate source labels. No messages are sent.</div>
       <NavLink to="/later"><Archive size={15} /> Later modules</NavLink>
       <button type="button" onClick={() => { if (window.confirm('Reset all demo data? Your edits, messages and replies in this browser will be cleared.')) resetDemoData() }}><RotateCcw size={15} /> Reset demo data</button>
     </div>

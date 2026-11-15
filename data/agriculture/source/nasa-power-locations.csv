@@ -1,0 +1,4 @@
+location_id,location_name,district,state,latitude,longitude,geographic_role
+nashik,Nashik,Nashik,Maharashtra,19.9975,73.7898,project-selected city reference point
+pune,Pune,Pune,Maharashtra,18.5204,73.8567,project-selected city reference point
+satara,Satara,Satara,Maharashtra,17.6805,74.0183,project-selected city reference point

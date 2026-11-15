@@ -26,6 +26,7 @@ import SupplyPlanCreate from '../pages/SupplyPlanCreate'
 import SupplyPlanPreview from '../pages/SupplyPlanPreview'
 import SupplyPlanDetails from '../pages/SupplyPlanDetails'
 const TradeRoutes = lazy(() => import('./TradeRoutes'))
+const LiveData = lazy(() => import('../pages/LiveData'))
 
 export default function AppRoutes() {
   return <Routes>
@@ -35,6 +36,7 @@ export default function AppRoutes() {
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
     <Route path="/farm-intelligence" element={<FarmIntelligence />} />
+    <Route path="/live-data" element={<Suspense fallback={<p className="m-page" role="status">Loading public data workspace…</p>}><LiveData /></Suspense>} />
     <Route path="/messages" element={<Messages />} />
     <Route path="/later" element={<LaterModules />} />
     <Route path="/trade/*" element={<Suspense fallback={<p className="m-page" role="status">Loading trade workspace…</p>}><TradeRoutes /></Suspense>} />

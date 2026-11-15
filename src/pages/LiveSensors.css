@@ -15,6 +15,4 @@
 @media (max-width: 640px) {
   .sensor-metrics { grid-template-columns: 1fr; }
   .sensor-status { flex-wrap: wrap; }
-  .m-tabbar { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  .m-tabbar a { font-size: 10px; }
 }

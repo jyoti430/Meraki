@@ -1,0 +1,52 @@
+{
+  "datasetId": "msamb-market-latest-eight-reporting-days",
+  "retrievedOn": "2026-11-15",
+  "windowStart": "2026-11-08",
+  "windowEnd": "2026-11-15",
+  "distinctReportingDates": 8,
+  "rowCount": 439,
+  "marketCatalogRowCount": 293,
+  "marketSource": "Maharashtra State Agricultural Marketing Board public APMC arrival and price page",
+  "commodities": [
+    {
+      "cropId": "tomato",
+      "commodityCode": "08071",
+      "rowCount": 235,
+      "windowStart": "2026-11-08",
+      "windowEnd": "2026-11-15",
+      "dates": [
+        "2026-11-08",
+        "2026-11-09",
+        "2026-11-10",
+        "2026-11-11",
+        "2026-11-12",
+        "2026-11-13",
+        "2026-11-14",
+        "2026-11-15"
+      ],
+      "sourceUrl": "https://www.msamb.com/ApmcDetail/DataGridBind?commodityCode=08071&apmcCode=null"
+    },
+    {
+      "cropId": "green-chilli",
+      "commodityCode": "10013",
+      "rowCount": 204,
+      "windowStart": "2026-11-08",
+      "windowEnd": "2026-11-15",
+      "dates": [
+        "2026-11-08",
+        "2026-11-09",
+        "2026-11-10",
+        "2026-11-11",
+        "2026-11-12",
+        "2026-11-13",
+        "2026-11-14",
+        "2026-11-15"
+      ],
+      "sourceUrl": "https://www.msamb.com/ApmcDetail/DataGridBind?commodityCode=10013&apmcCode=null"
+    }
+  ],
+  "priceAndArrivalUnitCounts": {
+    "क्विंटल": 437,
+    "नग": 2
+  }
+}

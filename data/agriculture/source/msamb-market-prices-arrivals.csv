@@ -1,0 +1,440 @@
+arrival_date,state,district,market,market_id,commodity,source_commodity_label,variety,grade,min_price_rs_per_unit,max_price_rs_per_unit,modal_price_rs_per_unit,prices_unit,arrivals_value,arrivals_unit,source_id
+2026-11-08,Maharashtra,,अकलुज,001,Green chilli,मिरची (हिरवी),लोकल,,2500,4000,3500,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Green chilli,मिरची (हिरवी),,,3000,3500,3250,क्विंटल,105,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे,022,Green chilli,मिरची (हिरवी),लोकल,,3000,5000,4000,क्विंटल,938,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे- खडकी,02201,Green chilli,मिरची (हिरवी),लोकल,,2200,2200,2200,क्विंटल,1,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,6000,5000,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,2000,4000,3000,क्विंटल,63,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,3000,5500,4250,क्विंटल,72,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,खेड,067,Green chilli,मिरची (हिरवी),,,2000,6000,4000,क्विंटल,11,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,मंचर,068,Green chilli,मिरची (हिरवी),,,2800,7000,4950,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,कल्याण,102,Green chilli,मिरची (हिरवी),हायब्रीड,,3800,4200,4000,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2300,2300,2300,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,4000,5000,4500,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,विटा,165,Green chilli,मिरची (हिरवी),,,4000,5000,4500,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,सातारा,168,Green chilli,मिरची (हिरवी),,,3000,5000,4000,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,वडूज,169,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,4500,6000,5000,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,3500,5500,5000,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,कळमेश्वर,263,Green chilli,मिरची (हिरवी),हायब्रीड,,2010,2500,2320,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,राहता,290,Green chilli,मिरची (हिरवी),,,2000,4000,3000,क्विंटल,19,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,कामठी,294,Green chilli,मिरची (हिरवी),लोकल,,5000,5500,5350,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,अकलुज,001,Green chilli,मिरची (हिरवी),लवंगी,,2500,4000,3200,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,कोल्हापूर,002,Green chilli,मिरची (हिरवी),,,4000,6000,5000,क्विंटल,54,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,सोलापूर,003,Green chilli,मिरची (हिरवी),लोकल,,2000,4500,3000,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे,022,Green chilli,मिरची (हिरवी),लोकल,,2800,4000,3400,क्विंटल,531,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे- खडकी,02201,Green chilli,मिरची (हिरवी),लोकल,,2000,2200,2100,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,3000,6000,5000,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,84,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,जुन्नर -ओतूर,03301,Green chilli,मिरची (हिरवी),लोकल,,3000,9000,7000,क्विंटल,54,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,नागपूर,034,Green chilli,मिरची (हिरवी),लोकल,,2000,3000,2750,क्विंटल,250,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,2000,2800,2400,क्विंटल,85,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,मुंबई,050,Green chilli,मिरची (हिरवी),ज्वाला,,6000,8000,7000,क्विंटल,637,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,रत्नागिरी,052,Green chilli,मिरची (हिरवी),लोकल,,4500,5500,5000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पाटन,055,Green chilli,मिरची (हिरवी),,,2500,3000,2750,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,खेड,067,Green chilli,मिरची (हिरवी),,,2000,5000,3500,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,मंचर,068,Green chilli,मिरची (हिरवी),,,4000,9000,6550,क्विंटल,6,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,कल्याण,102,Green chilli,मिरची (हिरवी),हायब्रीड,,3800,4200,4000,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2500,2500,2500,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,विटा,165,Green chilli,मिरची (हिरवी),,,5000,6000,5200,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,वडूज,169,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,4000,5000,4500,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,5000,9000,5500,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,कामठी,294,Green chilli,मिरची (हिरवी),लोकल,,3500,4000,3750,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,हिंगणा,295,Green chilli,मिरची (हिरवी),लोकल,,2000,6000,3928,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,कोल्हापूर,002,Green chilli,मिरची (हिरवी),,,4000,6000,5000,क्विंटल,48,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,धाराशिव,018,Green chilli,मिरची (हिरवी),लोकल,,4000,6000,5000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे,022,Green chilli,मिरची (हिरवी),लोकल,,3000,6500,4750,क्विंटल,441,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे- खडकी,02201,Green chilli,मिरची (हिरवी),लोकल,,1800,2200,2000,क्विंटल,2,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,6000,5000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,63,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पंढरपूर,029,Green chilli,मिरची (हिरवी),,,3500,6000,4000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,जुन्नर -ओतूर,03301,Green chilli,मिरची (हिरवी),लोकल,,4000,10000,7000,क्विंटल,146,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,2500,3500,3000,क्विंटल,80,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,राहूरी,042,Green chilli,मिरची (हिरवी),लोकल,,1000,5000,3000,क्विंटल,34,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,मुंबई,050,Green chilli,मिरची (हिरवी),ज्वाला,,6000,8000,7000,क्विंटल,1775,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,रत्नागिरी,052,Green chilli,मिरची (हिरवी),लोकल,,4500,5000,4800,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पाटन,055,Green chilli,मिरची (हिरवी),,,2500,3000,2750,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,खेड,067,Green chilli,मिरची (हिरवी),,,4000,7000,5500,क्विंटल,6,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,खेड-चाकण,06701,Green chilli,मिरची (हिरवी),,,3500,5000,4000,क्विंटल,225,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,3000,3000,3000,क्विंटल,90,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,4500,5500,5000,क्विंटल,6,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,विटा,165,Green chilli,मिरची (हिरवी),,,5000,6000,5200,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,सातारा,168,Green chilli,मिरची (हिरवी),,,5000,8000,6500,क्विंटल,7,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,वडूज,169,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,5000,8000,6500,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,कळमेश्वर,263,Green chilli,मिरची (हिरवी),हायब्रीड,,2560,3000,2840,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,रामटेक,267,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पलूस,278,Green chilli,मिरची (हिरवी),,,2500,3500,3000,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,राहता,290,Green chilli,मिरची (हिरवी),,,3000,5000,4000,क्विंटल,24,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,अकलुज,001,Green chilli,मिरची (हिरवी),हायब्रीड,,4500,6500,6000,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,कोल्हापूर,002,Green chilli,मिरची (हिरवी),,,4000,6000,5000,क्विंटल,54,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,नाशिक,011,Green chilli,मिरची (हिरवी),लवंगी,,4000,6000,5000,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Green chilli,मिरची (हिरवी),,,4000,4500,4250,क्विंटल,105,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,धाराशिव,018,Green chilli,मिरची (हिरवी),लोकल,,4800,6000,5400,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,7000,6000,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पंढरपूर,029,Green chilli,मिरची (हिरवी),,,3000,6000,4500,क्विंटल,19,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,2300,3600,2950,क्विंटल,85,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,राहूरी,042,Green chilli,मिरची (हिरवी),लोकल,,4000,5000,4500,क्विंटल,21,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,मुंबई,050,Green chilli,मिरची (हिरवी),ज्वाला,,5000,7000,6000,क्विंटल,1954,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,रत्नागिरी,052,Green chilli,मिरची (हिरवी),लोकल,,4500,5500,5000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पाटन,055,Green chilli,मिरची (हिरवी),,,2000,3500,2750,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,खेड,067,Green chilli,मिरची (हिरवी),,,3500,7000,5000,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,खेड-चाकण,06701,Green chilli,मिरची (हिरवी),,,5000,7000,6000,नग,260,नग,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,श्रीरामपूर,095,Green chilli,मिरची (हिरवी),,,3000,4000,3500,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2500,2500,2500,क्विंटल,183,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,4500,5500,5000,क्विंटल,5,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,वडूज,169,Green chilli,मिरची (हिरवी),लोकल,,6000,7000,6500,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,6000,7000,6500,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,4500,8000,6500,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,कळमेश्वर,263,Green chilli,मिरची (हिरवी),हायब्रीड,,2530,3000,2850,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,रामटेक,267,Green chilli,मिरची (हिरवी),लोकल,,4000,5000,4500,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,अकलुज,001,Green chilli,मिरची (हिरवी),लवंगी,,3000,4500,4000,क्विंटल,11,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कोल्हापूर,002,Green chilli,मिरची (हिरवी),,,4000,5000,4500,क्विंटल,44,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,सोलापूर,003,Green chilli,मिरची (हिरवी),लोकल,,1000,4000,2500,क्विंटल,97,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नाशिक,011,Green chilli,मिरची (हिरवी),लवंगी,,3000,4300,3650,क्विंटल,25,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,जळगाव,016,Green chilli,मिरची (हिरवी),लवंगी,,2500,3000,2700,क्विंटल,70,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,जळगाव,016,Green chilli,मिरची (हिरवी),लोकल,,2500,3000,2700,क्विंटल,90,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,धाराशिव,018,Green chilli,मिरची (हिरवी),लोकल,,4000,6000,5000,क्विंटल,17,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे,022,Green chilli,मिरची (हिरवी),लोकल,,2800,6000,4400,क्विंटल,572,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे- खडकी,02201,Green chilli,मिरची (हिरवी),लोकल,,1800,2200,2000,क्विंटल,1,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,7000,6000,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,3000,3000,3000,क्विंटल,141,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नागपूर,034,Green chilli,मिरची (हिरवी),लोकल,,2000,2500,2375,क्विंटल,370,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,2000,2500,2250,क्विंटल,83,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,चंद्रपूर - गंजवड,03901,Green chilli,मिरची (हिरवी),,,2000,3000,2500,क्विंटल,32,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,मुंबई,050,Green chilli,मिरची (हिरवी),लोकल,,2400,6000,4200,क्विंटल,1798,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,रत्नागिरी,052,Green chilli,मिरची (हिरवी),लोकल,,500,1000,900,क्विंटल,17,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पाटन,055,Green chilli,मिरची (हिरवी),,,2500,3500,3000,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,खेड,067,Green chilli,मिरची (हिरवी),,,2500,5000,3500,क्विंटल,5,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,खेड-चाकण,06701,Green chilli,मिरची (हिरवी),,,3500,5500,4500,क्विंटल,390,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,मंचर,068,Green chilli,मिरची (हिरवी),,,2110,7000,4560,क्विंटल,48,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,श्रीरामपूर,095,Green chilli,मिरची (हिरवी),,,3500,4000,3750,क्विंटल,26,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कराड,105,Green chilli,मिरची (हिरवी),लोकल,,4000,6000,6000,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,फलटण,106,Green chilli,मिरची (हिरवी),ज्वाला,,2000,4000,2964,क्विंटल,19,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2300,2300,2300,क्विंटल,227,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नवापूर,144,Green chilli,मिरची (हिरवी),,,4000,4500,4125,क्विंटल,8,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,5000,6000,5500,क्विंटल,8,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,विटा,165,Green chilli,मिरची (हिरवी),,,4000,5000,4800,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,सातारा,168,Green chilli,मिरची (हिरवी),,,5000,6000,5500,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,वडूज,169,Green chilli,मिरची (हिरवी),लोकल,,6000,7000,6500,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,6000,7000,6500,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,2500,5800,4500,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कळमेश्वर,263,Green chilli,मिरची (हिरवी),हायब्रीड,,2545,3000,2865,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,रामटेक,267,Green chilli,मिरची (हिरवी),लोकल,,2400,2800,2600,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,राहता,290,Green chilli,मिरची (हिरवी),,,2000,3000,2500,क्विंटल,41,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कामठी,294,Green chilli,मिरची (हिरवी),लोकल,,3000,3500,3350,क्विंटल,13,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,हिंगणा,295,Green chilli,मिरची (हिरवी),लोकल,,3500,5000,4204,क्विंटल,11,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,अकलुज,001,Green chilli,मिरची (हिरवी),लवंगी,,4000,6000,5000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,सोलापूर,003,Green chilli,मिरची (हिरवी),लोकल,,2000,4500,3000,क्विंटल,62,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Green chilli,मिरची (हिरवी),,,3000,3500,3250,क्विंटल,126,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,जळगाव,016,Green chilli,मिरची (हिरवी),लवंगी,,2000,2500,2300,क्विंटल,80,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,जळगाव,016,Green chilli,मिरची (हिरवी),लोकल,,2000,2500,2300,क्विंटल,100,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,धाराशिव,018,Green chilli,मिरची (हिरवी),लोकल,,3500,6000,4750,क्विंटल,17,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे,022,Green chilli,मिरची (हिरवी),लोकल,,2000,7000,4500,क्विंटल,1115,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,7000,6000,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,126,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,जुन्नर -ओतूर,03301,Green chilli,मिरची (हिरवी),लोकल,,3000,9000,6000,क्विंटल,116,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,मुंबई,050,Green chilli,मिरची (हिरवी),लोकल,,2400,6000,4200,क्विंटल,1657,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,रत्नागिरी,052,Green chilli,मिरची (हिरवी),लोकल,,4000,6000,5000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पाटन,055,Green chilli,मिरची (हिरवी),,,2500,3000,2750,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,खेड,067,Green chilli,मिरची (हिरवी),,,2500,4000,3000,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,खेड-चाकण,06701,Green chilli,मिरची (हिरवी),,,3000,5000,4000,क्विंटल,265,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,मंचर,068,Green chilli,मिरची (हिरवी),,,1700,7500,4650,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,श्रीरामपूर,095,Green chilli,मिरची (हिरवी),,,1500,2500,2000,क्विंटल,34,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,वडगाव पेठ,097,Green chilli,मिरची (हिरवी),लोकल,,4000,5000,4300,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,फलटण,106,Green chilli,मिरची (हिरवी),ज्वाला,,2000,4500,2950,क्विंटल,25,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2000,2000,2000,क्विंटल,228,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,नवापूर,144,Green chilli,मिरची (हिरवी),,,4000,5000,4286,क्विंटल,7,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,5000,6000,6000,क्विंटल,5,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,विटा,165,Green chilli,मिरची (हिरवी),,,4500,5500,5200,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,5500,6500,6000,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,3500,4800,4000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,कळमेश्वर,263,Green chilli,मिरची (हिरवी),हायब्रीड,,2510,3000,2820,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पलूस,278,Green chilli,मिरची (हिरवी),,,5000,6000,5500,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,राहता,290,Green chilli,मिरची (हिरवी),,,2000,3000,2500,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,कामठी,294,Green chilli,मिरची (हिरवी),लोकल,,2500,3000,2750,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,हिंगणा,295,Green chilli,मिरची (हिरवी),लोकल,,2000,5000,3615,क्विंटल,5,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,अकलुज,001,Green chilli,मिरची (हिरवी),लोकल,,3500,5500,5000,क्विंटल,13,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कोल्हापूर,002,Green chilli,मिरची (हिरवी),,,3000,4000,3500,क्विंटल,93,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,सोलापूर,003,Green chilli,मिरची (हिरवी),लोकल,,2000,3600,2600,क्विंटल,78,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,अहिल्यानगर,007,Green chilli,मिरची (हिरवी),,,2000,4500,3250,क्विंटल,99,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जालना,009,Green chilli,मिरची (हिरवी),,,1500,6000,3000,क्विंटल,153,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Green chilli,मिरची (हिरवी),,,3000,3800,3400,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जळगाव,016,Green chilli,मिरची (हिरवी),,,2000,2500,2300,क्विंटल,70,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जळगाव,016,Green chilli,मिरची (हिरवी),लोकल,,2000,3000,2500,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,धाराशिव,018,Green chilli,मिरची (हिरवी),लोकल,,3000,5500,4250,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे- खडकी,02201,Green chilli,मिरची (हिरवी),लोकल,,1800,2200,2000,क्विंटल,2,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,7000,6000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,3000,5000,4000,क्विंटल,173,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जुन्नर -ओतूर,03301,Green chilli,मिरची (हिरवी),लोकल,,3000,9550,7000,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जुन्नर - नारायणगाव,03302,Green chilli,मिरची (हिरवी),,,500,8000,4300,क्विंटल,180,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,नागपूर,034,Green chilli,मिरची (हिरवी),लोकल,,1500,2200,2025,क्विंटल,500,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,2500,5000,3750,क्विंटल,57,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,मुंबई,050,Green chilli,मिरची (हिरवी),लोकल,,1800,5000,3400,क्विंटल,1928,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पाटन,055,Green chilli,मिरची (हिरवी),,,2500,3500,3000,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,खेड-चाकण,06701,Green chilli,मिरची (हिरवी),,,2000,4000,3000,क्विंटल,425,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,श्रीरामपूर,095,Green chilli,मिरची (हिरवी),,,2000,3000,2500,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,वडगाव पेठ,097,Green chilli,मिरची (हिरवी),लोकल,,4000,5000,4500,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कराड,105,Green chilli,मिरची (हिरवी),लोकल,,4000,5500,5500,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,फलटण,106,Green chilli,मिरची (हिरवी),ज्वाला,,3000,5000,4260,क्विंटल,29,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2000,2000,2000,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,5000,5500,5500,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,विटा,165,Green chilli,मिरची (हिरवी),,,5000,6000,5200,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,सातारा,168,Green chilli,मिरची (हिरवी),,,3000,5000,4000,क्विंटल,31,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,वडूज,169,Green chilli,मिरची (हिरवी),लोकल,,2000,6000,4000,क्विंटल,25,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,वाई,170,Green chilli,मिरची (हिरवी),नं. २,,3000,5000,4000,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,2500,4500,3500,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कळमेश्वर,263,Green chilli,मिरची (हिरवी),हायब्रीड,,2010,2500,2320,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,रामटेक,267,Green chilli,मिरची (हिरवी),लोकल,,3000,4000,3500,क्विंटल,6,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पलूस,278,Green chilli,मिरची (हिरवी),,,4500,5500,5000,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,राहता,290,Green chilli,मिरची (हिरवी),,,2000,3000,2500,क्विंटल,17,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कामठी,294,Green chilli,मिरची (हिरवी),लोकल,,2500,3000,2750,क्विंटल,11,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,हिंगणा,295,Green chilli,मिरची (हिरवी),लोकल,,2500,4000,3080,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,कोल्हापूर,002,Green chilli,मिरची (हिरवी),,,2500,4500,3500,क्विंटल,62,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे,022,Green chilli,मिरची (हिरवी),लोकल,,2000,5000,3500,क्विंटल,1082,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे- खडकी,02201,Green chilli,मिरची (हिरवी),लोकल,,2200,2200,2200,क्विंटल,1,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे -पिंपरी,02202,Green chilli,मिरची (हिरवी),लोकल,,3000,3000,3000,क्विंटल,8,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे-मांजरी,02204,Green chilli,मिरची (हिरवी),,,4000,7000,6000,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे-मोशी,02205,Green chilli,मिरची (हिरवी),लोकल,,3000,6000,4500,क्विंटल,174,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,छत्रपती संभाजीनगर,035,Green chilli,मिरची (हिरवी),,,3000,5000,4000,क्विंटल,77,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,वरूड-राजूरा बझार,12001,Green chilli,मिरची (हिरवी),,,2000,2000,2000,क्विंटल,152,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,भुसावळ,149,Green chilli,मिरची (हिरवी),,,5000,6000,5500,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,सातारा,168,Green chilli,मिरची (हिरवी),,,3000,4000,3500,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,मंगळवेढा,172,Green chilli,मिरची (हिरवी),लोकल,,2300,4500,4000,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,राहता,290,Green chilli,मिरची (हिरवी),,,1500,2500,2000,क्विंटल,37,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,अकलुज,001,Tomato,टोमॅटो,लोकल,,500,1200,1000,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,बारामती-जळोची,00402,Tomato,टोमॅटो,नं. १,,500,1000,800,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Tomato,टोमॅटो,लोकल,,1000,2000,1500,क्विंटल,257,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे,022,Tomato,टोमॅटो,लोकल,,500,1200,850,क्विंटल,1680,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे- खडकी,02201,Tomato,टोमॅटो,लोकल,,700,1200,950,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,1000,1500,1250,क्विंटल,11,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,1000,2000,1500,क्विंटल,180,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,600,1000,800,क्विंटल,273,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,जुन्नर - नारायणगाव,03302,Tomato,टोमॅटो,लोकल,,250,2000,1500,क्विंटल,1965,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,600,1200,900,क्विंटल,135,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,सिन्नर - पांढूरली,04104,Tomato,टोमॅटो,,,250,1500,750,क्विंटल,5000,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,250,1250,750,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,खेड,067,Tomato,टोमॅटो,लोकल,,500,1800,1000,क्विंटल,101,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,1555,755,क्विंटल,6929,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,कल्याण,102,Tomato,टोमॅटो,हायब्रीड,,100,300,200,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,1000,1500,1200,क्विंटल,61,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,विटा,165,Tomato,टोमॅटो,,,800,1000,1000,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,सातारा,168,Tomato,टोमॅटो,,,500,800,650,क्विंटल,71,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,300,1400,1000,क्विंटल,48,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,कळमेश्वर,263,Tomato,टोमॅटो,हायब्रीड,,1515,2000,1805,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,राहता,290,Tomato,टोमॅटो,,,500,1250,875,क्विंटल,51,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-08,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,2000,2500,2350,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,अकलुज,001,Tomato,टोमॅटो,लोकल,,500,1400,1000,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,कोल्हापूर,002,Tomato,टोमॅटो,,,600,1200,900,क्विंटल,226,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,सोलापूर,003,Tomato,टोमॅटो,वैशाली,,400,2100,1300,क्विंटल,419,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,बारामती-जळोची,00402,Tomato,टोमॅटो,नं. १,,700,1500,1200,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे,022,Tomato,टोमॅटो,लोकल,,600,1500,1050,क्विंटल,813,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे- खडकी,02201,Tomato,टोमॅटो,लोकल,,700,1300,1000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,1200,1300,1250,क्विंटल,8,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,350,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,1000,1500,1250,क्विंटल,248,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पंढरपूर,029,Tomato,टोमॅटो,हायब्रीड,,700,2000,1500,क्विंटल,21,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,नागपूर,034,Tomato,टोमॅटो,लोकल,,2000,2500,2375,क्विंटल,500,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,500,1100,800,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,सिन्नर - पांढूरली,04104,Tomato,टोमॅटो,,,250,2000,850,क्विंटल,5120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,3000,4000,3500,क्विंटल,645,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,मुंबई,050,Tomato,टोमॅटो,नं. १,,1200,1600,1400,क्विंटल,1050,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,रत्नागिरी,052,Tomato,टोमॅटो,नं. १,,900,1200,1000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पाटन,055,Tomato,टोमॅटो,,,1200,1400,1300,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,250,1250,750,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,खेड,067,Tomato,टोमॅटो,लोकल,,300,1500,1000,क्विंटल,62,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,2005,1055,क्विंटल,14149,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,कल्याण,102,Tomato,टोमॅटो,हायब्रीड,,200,400,300,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,विटा,165,Tomato,टोमॅटो,,,500,1000,800,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,सातारा,168,Tomato,टोमॅटो,,,1000,2000,1500,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,वाई,170,Tomato,टोमॅटो,लोकल,,500,1500,1000,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,500,2300,1500,क्विंटल,39,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,3500,4000,3750,क्विंटल,13,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-09,Maharashtra,,हिंगणा,295,Tomato,टोमॅटो,लोकल,,500,5000,2120,क्विंटल,105,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,कोल्हापूर,002,Tomato,टोमॅटो,,,800,1000,900,क्विंटल,336,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,बारामती-जळोची,00402,Tomato,टोमॅटो,नं. १,,700,1200,1000,क्विंटल,13,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,धाराशिव,018,Tomato,टोमॅटो,वैशाली,,750,2250,1500,क्विंटल,54,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे,022,Tomato,टोमॅटो,लोकल,,600,1200,900,क्विंटल,2273,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे- खडकी,02201,Tomato,टोमॅटो,लोकल,,700,1100,900,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,700,1200,950,क्विंटल,13,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,497,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,1000,2000,1500,क्विंटल,367,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पंढरपूर,029,Tomato,टोमॅटो,हायब्रीड,,700,1700,1200,क्विंटल,28,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,600,1300,950,क्विंटल,45,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,सिन्नर - पांढूरली,04104,Tomato,टोमॅटो,,,250,1500,650,क्विंटल,6213,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,राहूरी,042,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,2500,3000,2750,क्विंटल,630,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,मुंबई,050,Tomato,टोमॅटो,नं. १,,1000,2000,1500,क्विंटल,2192,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,रत्नागिरी,052,Tomato,टोमॅटो,नं. १,,900,1100,1000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पाटन,055,Tomato,टोमॅटो,,,1250,1450,1350,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,खेड,067,Tomato,टोमॅटो,लोकल,,500,1800,1000,क्विंटल,68,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,खेड-चाकण,06701,Tomato,टोमॅटो,,,700,1500,1000,क्विंटल,108,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,1955,1005,क्विंटल,13270,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,वडगाव पेठ,097,Tomato,टोमॅटो,लोकल,,1000,2000,1200,क्विंटल,105,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,1000,1500,1200,क्विंटल,43,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,दिंडोरी,156,Tomato,टोमॅटो,हायब्रीड,,50,150,100,क्विंटल,10400,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,विटा,165,Tomato,टोमॅटो,,,500,1200,800,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,सातारा,168,Tomato,टोमॅटो,,,1000,1500,1200,क्विंटल,85,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,वाई,170,Tomato,टोमॅटो,लोकल,,500,1300,1000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,कळमेश्वर,263,Tomato,टोमॅटो,हायब्रीड,,1525,2000,1815,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,रामटेक,267,Tomato,टोमॅटो,हायब्रीड,,1600,1800,1700,क्विंटल,28,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,पलूस,278,Tomato,टोमॅटो,,,700,1000,900,क्विंटल,19,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-10,Maharashtra,,राहता,290,Tomato,टोमॅटो,,,500,1300,900,क्विंटल,91,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,अकलुज,001,Tomato,टोमॅटो,लोकल,,800,1500,1000,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,कोल्हापूर,002,Tomato,टोमॅटो,,,600,1000,800,क्विंटल,241,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,नाशिक,011,Tomato,टोमॅटो,हायब्रीड,,250,925,500,क्विंटल,824,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Tomato,टोमॅटो,लोकल,,1200,2200,1700,क्विंटल,249,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,धाराशिव,018,Tomato,टोमॅटो,वैशाली,,850,2400,1625,क्विंटल,37,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,1000,1600,1300,क्विंटल,20,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,399,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पंढरपूर,029,Tomato,टोमॅटो,हायब्रीड,,500,1700,1000,क्विंटल,28,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,650,1200,925,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,सिन्नर - पांढूरली,04104,Tomato,टोमॅटो,,,250,1500,750,क्विंटल,5820,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,राहूरी,042,Tomato,टोमॅटो,,,300,1800,1050,क्विंटल,23,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,2000,2500,2250,क्विंटल,490,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,मुंबई,050,Tomato,टोमॅटो,नं. १,,1200,1800,1500,क्विंटल,3202,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,रत्नागिरी,052,Tomato,टोमॅटो,नं. १,,900,1100,1000,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पाटन,055,Tomato,टोमॅटो,,,1250,1450,1350,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,250,1250,750,क्विंटल,170,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,खेड,067,Tomato,टोमॅटो,लोकल,,700,2000,1000,क्विंटल,55,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,खेड-चाकण,06701,Tomato,टोमॅटो,,,1000,2000,1500,क्विंटल,249,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,श्रीरामपूर,095,Tomato,टोमॅटो,,,1000,1500,1250,क्विंटल,33,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,1905,855,क्विंटल,11131,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,कराड,105,Tomato,टोमॅटो,वैशाली,,1000,1200,1200,क्विंटल,48,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,800,1200,1000,क्विंटल,45,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,दिंडोरी,156,Tomato,टोमॅटो,हायब्रीड,,41,241,200,क्विंटल,12100,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,वाई,170,Tomato,टोमॅटो,लोकल,,500,1300,850,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,1000,3000,2500,क्विंटल,31,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,कळमेश्वर,263,Tomato,टोमॅटो,हायब्रीड,,1505,2000,1815,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,रामटेक,267,Tomato,टोमॅटो,हायब्रीड,,1600,1800,1700,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-11,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,2000,2500,2350,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,अकलुज,001,Tomato,टोमॅटो,लोकल,,800,1600,1300,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कोल्हापूर,002,Tomato,टोमॅटो,,,500,1000,800,क्विंटल,222,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,सोलापूर,003,Tomato,टोमॅटो,वैशाली,,300,2200,1200,क्विंटल,431,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,बारामती-जळोची,00402,Tomato,टोमॅटो,नं. १,,800,1200,1000,क्विंटल,5,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नाशिक,011,Tomato,टोमॅटो,हायब्रीड,,250,1325,875,क्विंटल,1258,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,जळगाव,016,Tomato,टोमॅटो,वैशाली,,500,1500,1000,क्विंटल,110,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,धाराशिव,018,Tomato,टोमॅटो,वैशाली,,600,3000,1800,क्विंटल,72,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे,022,Tomato,टोमॅटो,लोकल,,600,1600,1100,क्विंटल,2109,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे- खडकी,02201,Tomato,टोमॅटो,लोकल,,700,1200,950,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,1300,1500,1400,क्विंटल,3,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,1000,2000,1500,क्विंटल,485,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,800,1000,900,क्विंटल,539,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पंढरपूर,029,Tomato,टोमॅटो,हायब्रीड,,700,2000,1500,क्विंटल,24,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,जुन्नर - नारायणगाव,03302,Tomato,टोमॅटो,लोकल,,250,1500,1000,क्विंटल,1565,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नागपूर,034,Tomato,टोमॅटो,लोकल,,1500,2500,2250,क्विंटल,600,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नागपूर,034,Tomato,टोमॅटो,वैशाली,,1700,2200,2075,क्विंटल,400,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,600,1200,900,क्विंटल,59,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,चंद्रपूर - गंजवड,03901,Tomato,टोमॅटो,,,800,1600,1200,क्विंटल,380,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,सिन्नर - पांढूरली,04104,Tomato,टोमॅटो,,,250,2000,875,क्विंटल,19200,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,राहूरी,042,Tomato,टोमॅटो,,,1000,2000,1500,क्विंटल,11,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,2500,3000,2750,क्विंटल,450,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,मुंबई,050,Tomato,टोमॅटो,नं. १,,1000,1400,1200,क्विंटल,2420,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,रत्नागिरी,052,Tomato,टोमॅटो,नं. १,,500,1000,800,क्विंटल,16,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पाटन,055,Tomato,टोमॅटो,,,1250,1450,1350,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,230,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,खेड,067,Tomato,टोमॅटो,लोकल,,400,2200,1000,क्विंटल,72,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,खेड-चाकण,06701,Tomato,टोमॅटो,,,1000,1800,1400,क्विंटल,410,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,श्रीरामपूर,095,Tomato,टोमॅटो,,,1000,1400,1200,क्विंटल,24,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,2005,1105,क्विंटल,42243,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कराड,105,Tomato,टोमॅटो,वैशाली,,1000,1200,1200,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,फलटण,106,Tomato,टोमॅटो,वैशाली,,500,1250,750,क्विंटल,50,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,नवापूर,144,Tomato,टोमॅटो,,,800,1250,1000,क्विंटल,150,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,500,1000,800,क्विंटल,111,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,विटा,165,Tomato,टोमॅटो,,,800,1200,1000,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,सातारा,168,Tomato,टोमॅटो,,,1000,1500,1250,क्विंटल,87,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,वाई,170,Tomato,टोमॅटो,लोकल,,1000,1500,1250,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,500,2200,1800,क्विंटल,50,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कळमेश्वर,263,Tomato,टोमॅटो,हायब्रीड,,1570,2000,1830,क्विंटल,7,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,रामटेक,267,Tomato,टोमॅटो,हायब्रीड,,1200,1600,1400,क्विंटल,64,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,राहता,290,Tomato,टोमॅटो,,,500,2000,1250,क्विंटल,47,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,2000,2500,2350,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-12,Maharashtra,,हिंगणा,295,Tomato,टोमॅटो,लोकल,,700,2750,1926,क्विंटल,150,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,अकलुज,001,Tomato,टोमॅटो,लोकल,,900,1500,1200,क्विंटल,25,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,सोलापूर,003,Tomato,टोमॅटो,वैशाली,,300,1800,1000,क्विंटल,527,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Tomato,टोमॅटो,लोकल,,1000,2000,1500,क्विंटल,257,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,जळगाव,016,Tomato,टोमॅटो,वैशाली,,500,1700,1100,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,धाराशिव,018,Tomato,टोमॅटो,वैशाली,,600,2600,1600,क्विंटल,64,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे,022,Tomato,टोमॅटो,लोकल,,600,1200,900,क्विंटल,3014,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,1200,1500,1400,क्विंटल,4,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,423,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,1000,2000,1500,क्विंटल,555,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पंढरपूर,029,Tomato,टोमॅटो,हायब्रीड,,500,1800,1000,क्विंटल,21,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,जुन्नर - नारायणगाव,03302,Tomato,टोमॅटो,लोकल,,250,2000,1500,क्विंटल,1545,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,चंद्रपूर - गंजवड,03901,Tomato,टोमॅटो,,,800,1400,1000,क्विंटल,550,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,राहूरी,042,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,2000,2500,2250,क्विंटल,730,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,मुंबई,050,Tomato,टोमॅटो,नं. १,,1000,1200,1100,क्विंटल,1699,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,रत्नागिरी,052,Tomato,टोमॅटो,नं. १,,900,1100,1000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पाटन,055,Tomato,टोमॅटो,,,1250,1450,1350,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,250,1000,625,क्विंटल,180,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,खेड,067,Tomato,टोमॅटो,लोकल,,500,2000,1000,क्विंटल,77,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,खेड-चाकण,06701,Tomato,टोमॅटो,,,800,1600,1200,क्विंटल,330,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,श्रीरामपूर,095,Tomato,टोमॅटो,,,1000,1500,1250,क्विंटल,34,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,1755,1305,क्विंटल,43332,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,वडगाव पेठ,097,Tomato,टोमॅटो,लोकल,,800,1200,900,नग,90,नग,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,फलटण,106,Tomato,टोमॅटो,वैशाली,,500,1250,750,क्विंटल,65,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,नवापूर,144,Tomato,टोमॅटो,,,700,1500,1137,क्विंटल,130,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,500,1000,800,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,विटा,165,Tomato,टोमॅटो,,,800,1200,1000,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,वाई,170,Tomato,टोमॅटो,लोकल,,800,1200,950,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,500,1500,1300,क्विंटल,69,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,कळमेश्वर,263,Tomato,टोमॅटो,हायब्रीड,,1540,2000,1860,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,राहता,290,Tomato,टोमॅटो,,,1000,1750,1375,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,2000,2500,2350,क्विंटल,50,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-13,Maharashtra,,हिंगणा,295,Tomato,टोमॅटो,लोकल,,500,2500,1720,क्विंटल,57,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,अकलुज,001,Tomato,टोमॅटो,लोकल,,900,1500,1300,क्विंटल,31,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कोल्हापूर,002,Tomato,टोमॅटो,,,800,1200,1000,क्विंटल,273,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,सोलापूर,003,Tomato,टोमॅटो,वैशाली,,200,1600,1000,क्विंटल,765,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,बारामती-जळोची,00402,Tomato,टोमॅटो,नं. १,,1000,2000,1500,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,अहिल्यानगर,007,Tomato,टोमॅटो,,,500,2000,1250,क्विंटल,223,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,अमरावती- फळ आणि भाजीपाला,01201,Tomato,टोमॅटो,लोकल,,1200,2200,1700,क्विंटल,249,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जळगाव,016,Tomato,टोमॅटो,वैशाली,,700,1700,1200,क्विंटल,80,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,धाराशिव,018,Tomato,टोमॅटो,वैशाली,,600,2300,1450,क्विंटल,37,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे- खडकी,02201,Tomato,टोमॅटो,लोकल,,700,1300,1000,क्विंटल,15,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,12000,18000,15000,क्विंटल,10,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,1500,3000,2000,क्विंटल,461,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,700,1000,850,क्विंटल,642,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पंढरपूर,029,Tomato,टोमॅटो,हायब्रीड,,500,1700,1100,क्विंटल,22,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,जुन्नर - नारायणगाव,03302,Tomato,टोमॅटो,लोकल,,250,1750,1000,क्विंटल,2040,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,नागपूर,034,Tomato,टोमॅटो,लोकल,,1000,2200,1900,क्विंटल,1000,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,नागपूर,034,Tomato,टोमॅटो,वैशाली,,1500,2000,1875,क्विंटल,800,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,1500,2000,1750,क्विंटल,67,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,राहूरी,042,Tomato,टोमॅटो,,,1000,2000,1500,क्विंटल,7,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,1500,2000,1750,क्विंटल,720,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,मुंबई,050,Tomato,टोमॅटो,नं. १,,1000,1200,1100,क्विंटल,2258,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पाटन,055,Tomato,टोमॅटो,,,1350,1550,1450,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,210,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,खेड-चाकण,06701,Tomato,टोमॅटो,,,800,1600,1300,क्विंटल,410,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,श्रीरामपूर,095,Tomato,टोमॅटो,,,800,1200,1000,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पिंपळगाव बसवंत,096,Tomato,टोमॅटो,,,250,1605,1055,क्विंटल,19060,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,वडगाव पेठ,097,Tomato,टोमॅटो,लोकल,,700,1000,800,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कराड,105,Tomato,टोमॅटो,वैशाली,,800,1200,1200,क्विंटल,60,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,फलटण,106,Tomato,टोमॅटो,वैशाली,,500,1500,1090,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,1000,2000,1500,क्विंटल,17,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,विटा,165,Tomato,टोमॅटो,,,500,1000,800,क्विंटल,30,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,सातारा,168,Tomato,टोमॅटो,,,600,1000,800,क्विंटल,91,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,500,1500,1100,क्विंटल,50,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कळमेश्वर,263,Tomato,टोमॅटो,हायब्रीड,,1015,1500,1305,क्विंटल,9,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,रामटेक,267,Tomato,टोमॅटो,हायब्रीड,,1400,1600,1500,क्विंटल,18,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,पलूस,278,Tomato,टोमॅटो,,,800,1000,900,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,राहता,290,Tomato,टोमॅटो,,,500,2000,1250,क्विंटल,54,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,2000,2500,2350,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-14,Maharashtra,,हिंगणा,295,Tomato,टोमॅटो,लोकल,,500,2750,1597,क्विंटल,88,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,कोल्हापूर,002,Tomato,टोमॅटो,,,600,1000,800,क्विंटल,120,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,बारामती-जळोची,00402,Tomato,टोमॅटो,नं. १,,1000,1600,1400,क्विंटल,14,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे,022,Tomato,टोमॅटो,लोकल,,600,1500,1050,क्विंटल,3686,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे- खडकी,02201,Tomato,टोमॅटो,लोकल,,700,1300,1000,क्विंटल,13,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे -पिंपरी,02202,Tomato,टोमॅटो,लोकल,,1200,1800,1500,क्विंटल,28,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे-मांजरी,02204,Tomato,टोमॅटो,,,1000,2500,1500,क्विंटल,428,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पुणे-मोशी,02205,Tomato,टोमॅटो,लोकल,,700,1000,850,क्विंटल,725,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,छत्रपती संभाजीनगर,035,Tomato,टोमॅटो,,,1500,2000,1750,क्विंटल,130,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,राहूरी,042,Tomato,टोमॅटो,,,500,1000,750,क्विंटल,12,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,पनवेल,043,Tomato,टोमॅटो,नं. १,,2000,2500,2250,क्विंटल,305,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,संगमनेर,060,Tomato,टोमॅटो,,,500,2000,1250,क्विंटल,240,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,भुसावळ,149,Tomato,टोमॅटो,वैशाली,,1200,1800,1500,क्विंटल,73,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,सातारा,168,Tomato,टोमॅटो,,,800,1000,900,क्विंटल,92,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,मंगळवेढा,172,Tomato,टोमॅटो,लोकल,,500,2500,1800,क्विंटल,27,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,राहता,290,Tomato,टोमॅटो,,,500,1500,1000,क्विंटल,122,क्विंटल,msamb-market-latest-eight-reporting-days
+2026-11-15,Maharashtra,,कामठी,294,Tomato,टोमॅटो,लोकल,,2000,2500,2350,क्विंटल,40,क्विंटल,msamb-market-latest-eight-reporting-days

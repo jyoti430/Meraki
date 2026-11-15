@@ -43,4 +43,6 @@ jobs:
           cache: pip
           cache-dependency-path: server/requirements.txt
       - run: python -m pip install -r server/requirements.txt
-      - run: python -m pytest server/tests tests/part3_acceptance -q
+      - run: python scripts/build_agricultural_data.py --check
+      - run: python -m model_validation --check
+      - run: python -m pytest server/tests tests -q

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AlertTriangle, CloudSun, FlaskConical, Layers, RefreshCw, ShieldCheck, Sprout, ThermometerSun } from 'lucide-react'
 import { useFarmIntelligence } from '../context/FarmIntelligenceContext'
 import { useFarmers } from '../context/FarmersContext'
@@ -115,7 +116,7 @@ export default function FarmIntelligence() {
         <h1 className="m-h1">Farm intelligence</h1>
         <p className="m-lead">Soil evidence, weather and water context, cultivation records and versioned weekly supply projections. Every value keeps its source, date and evidence state; missing observations stay unknown.</p>
       </div>
-      <div className="fi-demo-note"><strong>Development workspace</strong><span>Synthetic fixtures only. No live weather, laboratory, groundwater or procurement feed is connected.</span></div>
+      <div className="fi-demo-note"><strong>Development workspace</strong><span>These farm scenarios use synthetic fixtures. Public feeds remain separate regional context.</span><Link to="/live-data">Check public data & model validation</Link></div>
     </header>
 
     <nav className="fi-tabs" aria-label="Farm intelligence sections">

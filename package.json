@@ -7,6 +7,13 @@
     "dev": "vite",
     "dev:sensors": "node scripts/dev-sensors.mjs",
     "dev:trade": "node scripts/dev-trade.mjs",
+    "dev:live": "node scripts/dev-live.mjs",
+    "data:build": "python scripts/build_agricultural_data.py",
+    "data:check": "python scripts/build_agricultural_data.py --check",
+    "data:refresh-weather": "python scripts/refresh_nasa_power_weather.py",
+    "data:refresh-market": "python scripts/refresh_msamb_market_snapshot.py",
+    "model:validate": "python -m model_validation",
+    "test:agricultural": "python -m pytest tests/test_agricultural_pipeline.py -q",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run"

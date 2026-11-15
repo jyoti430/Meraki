@@ -2,7 +2,7 @@
 
 This module is a browser-local development workspace at `/farm-intelligence`. It implements the data-contract and workflow slices of T01, T02, T03 and T08: reviewed soil imports, weather/water evidence, planned versus actual cultivation records, an explainable pre-sowing screen and immutable versioned weekly supply projections.
 
-It connects to **no live weather, laboratory, groundwater or procurement feed**. Every record shipped in the workspace is labelled synthetic. None of the parent tasks is complete at production or field acceptance; the gaps are listed below. Working rules are in [AGENTS.md](../AGENTS.md), task acceptance criteria in [Agent.md](../Agent.md) and product requirements in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
+This farm workspace connects to **no farm-specific weather, laboratory, groundwater or procurement feed**. Its shipped scenarios are labelled synthetic. The separate [`/live-data` public context page](LIVE_DATA.md) now retrieves real regional forecasts, historical weather and dated market observations; these are not silently assigned to farm plots or used to certify the synthetic crop scenarios. None of the parent tasks is complete at production or field acceptance; the gaps are listed below. Working rules are in [AGENTS.md](../AGENTS.md), task acceptance criteria in [Agent.md](../Agent.md) and product requirements in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
 
 ## Implemented behaviour
 
@@ -80,7 +80,7 @@ A passing suite is not agronomic validation. The crop, picking-curve, water-budg
 
 - **No backend.** There is no organisation-scoped API, shared database, concurrency control, idempotency or immutable server audit. T04 remains TODO and is required before multi-user use.
 - **No reviewed document pipeline.** Soil import is CSV only; PDF/OCR extraction and human review of extracted laboratory reports are not built.
-- **No live adapters.** Weather, groundwater and procurement integrations are synthetic. An adapter may only be described as live after a permitted retrieval and schema test.
+- **Farm linkage remains unfinished.** Regional weather/market adapters have verified retrieval and schema checks on `/live-data`; the farm workspace still uses its labelled fixtures. Authenticated laboratory/groundwater/procurement feeds and authorised farm-location mapping are absent.
 - **No source/access register UI** (T01), no order-specific shortfall alerts or adviser-review workflow (T08), and no notification or messaging integration.
 - **Consent history is preserved but not propagated automatically.** Withdrawing consent requires a new published version; existing versions stay as published evidence and are reviewed, not rewritten.
 - **No pilot evidence or model.** No real conserved farm outcomes, no trained yield model and no calibrated confidence. The earlier crop-classification work is not a farm-yield model and is not used here.

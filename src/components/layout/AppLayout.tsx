@@ -27,7 +27,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </header>
       <main className="m-main">{children}</main>
       <footer className="m-mobile-foot">
-        <div className="m-synthetic-note m-small">Demo workspace. Orders, farms, forecasts and replies are synthetic; no messages are really sent.</div>
+        <div className="m-synthetic-note m-small">Planning demo uses synthetic farm and order records. Public data and sensor uploads have separate source labels. No messages are sent.</div>
         <div className="m-row" style={{ gap: 18 }}>
           <NavLink to="/later"><Archive size={15} /> Later modules</NavLink>
           <button type="button" onClick={() => { if (window.confirm('Reset all demo data? Your edits, messages and replies in this browser will be cleared.')) resetDemoData() }}><RotateCcw size={15} /> Reset demo data</button>

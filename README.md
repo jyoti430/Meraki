@@ -11,6 +11,8 @@ Meraki helps FPOs propose feasible crops, coordinate farmer-approved production 
 - [Validation and resume checkpoint](docs/WORK_LOG.md)
 - [Part 3 setup and operating guide](docs/PART3_OPERATIONS.md)
 - [Part 3 API contract](server/CONTRACT.md)
+- [Public live data setup and source limits](docs/LIVE_DATA.md)
+- [Model validation report](reports/model_validation.md)
 
 ## Product journey
 
@@ -59,6 +61,8 @@ Planning data persists in this browser's local storage with an in-memory fallbac
 
 The farm-data workspace at `/farm-intelligence` is part of the same browser-local prototype. Its soil, weather, water, cultivation and projection records are synthetic and stay in this browser; see [Part 1 farm data notes](docs/PART1_FARM_DATA.md) for the contract, invariants and remaining gates.
 
+Run **`npm run dev:live`** after Python setup to open `/live-data` on localhost port 5175. It retrieves real Open-Meteo forecasts, recent NASA POWER history and dated MSAMB market reports through a read-only gateway on port 8002. These are public regional context, kept separate from synthetic farm scenarios. No SHC/private farm record, irrigation right or confirmed demand is inferred. The same page displays the reproducible model-readiness report; current eligible farm outcomes are zero, error scores are absent and production model promotion is blocked. See [source access, attribution and setup](docs/LIVE_DATA.md).
+
 ## Implemented versus unfinished
 
 | Capability | Verified evidence | Status and limit |
@@ -72,11 +76,14 @@ The farm-data workspace at `/farm-intelligence` is part of the same browser-loca
 | Existing-crop supply plans | `SupplyPlanningService.ts`, supply pages | Preview, adjustments, confirmation/cancellation and local reservations; no cross-client atomicity |
 | Soil record fields | `src/types/index.ts`, plot forms | Basic report/pH/moisture representation; no full SHC analyte/provenance pipeline |
 | Farm data workspace | `src/farmdata/`, `src/pages/FarmIntelligence.tsx`, `/farm-intelligence` | Browser-local development slice: reviewed soil CSV import, weather/water evidence, planned versus actual cultivation, pre-sowing screen and versioned weekly projections. Synthetic fixtures; no live feeds or backend. See [Part 1 notes](docs/PART1_FARM_DATA.md) |
-| Planning, farm-data and trade regression tests | `src/planning/engine.test.ts`, `src/farmdata/farmdata.test.ts`, `src/trade/*.test.ts`, `server/tests/`, `tests/part3_acceptance/` | 44 frontend and 69 SQLite API/acceptance tests pass locally; PostgreSQL results are recorded separately in the work log |
+| Planning, data, trade and validation regressions | `src/**/*.test.ts`, `server/tests/`, `tests/` | 54 frontend and 134 Python tests pass locally at the 16 November live-data checkpoint; PostgreSQL CI results are recorded separately in the work log |
 | Lots, lab review, shipments, claims, settlements | `src/trade/`, `server/`; legacy URLs redirect to trade routes | API-backed development workflows; partner/production gates remain |
 | Trade API, persistence and close/expiry worker | `server/`, `scripts/dev-trade.mjs` | Isolated Part 3 implementation; not the complete Part 2 identity/market backend |
 | Spot and forward procurement | `src/trade/`, `server/CONTRACT.md` | Whole-lot/request modes; live identity/capacity integration remains gated |
-| Government APIs, OCR and validated ML | No implementation in inspected tree | Planned; access/data gates apply |
+| Public weather and market gateway | `server/live_data.py`, `src/pages/LiveData.tsx` | Actual public retrieval verified; source-specific errors/staleness/attribution. Regional context only; hosted commercial access and deployment gates remain |
+| Agricultural evidence foundation | `data/agriculture/`, `scripts/build_agricultural_data.py`, `src/data/agriculturalEvidence.ts` | Source-separated historical snapshots, units and provenance; not farm labels or automatic crop recommendations |
+| Model evaluation/readiness | `model_validation/`, `reports/model_validation.md` | Reproducible inventory, strict outcome contract and conditional holdout baseline comparison. Zero real farm labels; no fitted yield model or accuracy claim |
+| Authenticated soil/groundwater APIs and OCR | No live integration established | Authorised soil CSV imports remain available; access/data gates apply |
 
 Source inspection establishes implementation presence, not operational or agronomic validation. See [the ledger](Agent.md) for task-level evidence and acceptance criteria.
 

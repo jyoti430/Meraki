@@ -1,0 +1,9 @@
+crop_label,year,area_value,area_unit,production_value,production_unit,estimate_status,dataset_id,source_section
+Vegetables,2022-23,1043.58,thousand hectares,15433.32,thousand metric tonnes,second_advance,des-agricultural-statistics-2023-state-context,"Table 2.48 Maharashtra, 2022-23 second advance estimate"
+Vegetables,2023-24,946.34,thousand hectares,15064.00,thousand metric tonnes,final,maharashtra-economic-survey-horticulture-2025-26,Table 7.5
+Vegetables,2024-25,1255.60,thousand hectares,14981.52,thousand metric tonnes,third_advance,maharashtra-economic-survey-horticulture-2025-26,Table 7.5
+Tomato,2024-25,0.55,lakh hectares,,,final_advance_as_reported_in_section_7_8,maharashtra-economic-survey-horticulture-2025-26,Section 7.8 crop-area prose
+Chillies (Green),2024-25,0.43,lakh hectares,,,final_advance_as_reported_in_section_7_8,maharashtra-economic-survey-horticulture-2025-26,Section 7.8 crop-area prose
+Tomato,2023-24,55.23,thousand hectares,1332.09,thousand metric tonnes,final,des-agricultural-statistics-2024-horticulture,"Table 2.51(b), Maharashtra, 2023-24"
+Tomato,2024-25,55.23,thousand hectares,1332.09,thousand metric tonnes,first_advance,des-agricultural-statistics-2024-horticulture,"Table 2.51(b), Maharashtra, 2024-25 (1st Advance Estimate)"
+Vegetables,2024-25,1073.72,thousand hectares,16062.07,thousand metric tonnes,first_advance,des-agricultural-statistics-2024-horticulture,"Table 2.48, Maharashtra, 2024-25 (1st Advance Estimate)"

@@ -1,0 +1,497 @@
+{
+  "schema_version": 1,
+  "status": "blocked",
+  "promotion_allowed": false,
+  "summary": "No eligible farm outcomes: 7,062 public context/reference rows do not establish farm-yield model validity. Model promotion is blocked; no model error scores were computed.",
+  "snapshot_as_of": "2026-11-15T18:20:00Z",
+  "data_inventory": {
+    "datasets": [
+      {
+        "path": "data/agriculture/source/agmarknet-prices-arrivals.csv",
+        "sha256": "e55dd37846ac3a833d5a68d344b71acf4f340e900769fb3e59f73aee418501bb",
+        "data_rows": 0,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "arrival_date",
+          "state",
+          "district",
+          "market",
+          "commodity",
+          "variety",
+          "grade",
+          "min_price_rs_per_quintal",
+          "max_price_rs_per_quintal",
+          "modal_price_rs_per_quintal",
+          "arrivals_value",
+          "arrivals_unit",
+          "source_id"
+        ],
+        "grain": "market/commodity/reporting day",
+        "purpose": "public-context-only",
+        "limitation": "header-only import template; no retrieved observations",
+        "estimate_statuses": [],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/fao-ecocrop-requirements.csv",
+        "sha256": "6e8a8f2d9008fd681c67b2b8b1fbb53775961d3d082dd8f8ff3b160a54643e78",
+        "data_rows": 3,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "source_crop_name",
+          "scientific_name",
+          "scientific_synonyms",
+          "ecocrop_code",
+          "optimal_temp_min_c",
+          "optimal_temp_max_c",
+          "absolute_temp_min_c",
+          "absolute_temp_max_c",
+          "optimal_rainfall_min_mm",
+          "optimal_rainfall_max_mm",
+          "absolute_rainfall_min_mm",
+          "absolute_rainfall_max_mm",
+          "optimal_ph_min",
+          "optimal_ph_max",
+          "absolute_ph_min",
+          "absolute_ph_max",
+          "optimal_soil_texture",
+          "absolute_soil_texture",
+          "soil_drainage",
+          "soil_depth",
+          "crop_cycle_min_days",
+          "crop_cycle_max_days",
+          "irrigation_requirement"
+        ],
+        "grain": "global species reference",
+        "purpose": "public-context-only",
+        "limitation": "broad screening ranges; not locally validated outcome labels",
+        "estimate_statuses": [],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/maharashtra-horticulture.csv",
+        "sha256": "dd36bba0518553af9aece584492d7840b194359b5a084dc4be0641abe08559d7",
+        "data_rows": 8,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "crop_label",
+          "year",
+          "area_value",
+          "area_unit",
+          "production_value",
+          "production_unit",
+          "estimate_status",
+          "dataset_id",
+          "source_section"
+        ],
+        "grain": "Maharashtra crop or vegetables-total/year/source/estimate round",
+        "purpose": "public-context-only",
+        "limitation": "mixed aggregate scope; area-only rows cannot produce yield",
+        "estimate_statuses": [
+          "final",
+          "final_advance_as_reported_in_section_7_8",
+          "first_advance",
+          "second_advance",
+          "third_advance"
+        ],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/msamb-market-prices-arrivals.csv",
+        "sha256": "aba7f2ee6ed9355ec7cc29a913d672c8812c01ba1ec5f7fe19717d7909e66f1c",
+        "data_rows": 439,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "arrival_date",
+          "state",
+          "district",
+          "market",
+          "market_id",
+          "commodity",
+          "source_commodity_label",
+          "variety",
+          "grade",
+          "min_price_rs_per_unit",
+          "max_price_rs_per_unit",
+          "modal_price_rs_per_unit",
+          "prices_unit",
+          "arrivals_value",
+          "arrivals_unit",
+          "source_id"
+        ],
+        "grain": "market/commodity/reporting day/variety/unit",
+        "purpose": "public-context-only",
+        "limitation": "wholesale price/arrival context; eight reporting days, no farm yield or buyer demand",
+        "estimate_statuses": [],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/nasa-power-daily-2020-2025.csv",
+        "sha256": "a998c559138d841afa99b4fbcb192405b89f2923676ec428fa142053e7abefc3",
+        "data_rows": 6576,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "date",
+          "location_id",
+          "t2m_max_c",
+          "t2m_min_c",
+          "precipitation_mm_day"
+        ],
+        "grain": "gridded city reference point/day",
+        "purpose": "public-context-only",
+        "limitation": "historical gridded weather; three points, not farm stations or forecasts",
+        "estimate_statuses": [],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/nasa-power-locations.csv",
+        "sha256": "42a76d4e793d5a023f591a5d9e5034199dd967e19bd20412739aa799ef306ada",
+        "data_rows": 3,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "location_id",
+          "location_name",
+          "district",
+          "state",
+          "latitude",
+          "longitude",
+          "geographic_role"
+        ],
+        "grain": "project-selected reference location",
+        "purpose": "public-context-only",
+        "limitation": "location metadata, not independent outcomes",
+        "estimate_statuses": [],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/national-horticulture.csv",
+        "sha256": "67e56db7195e18a6d0c124052370752b2804418060b64f7b9bf3f91752d35463",
+        "data_rows": 24,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "crop_label",
+          "year",
+          "area_value",
+          "area_unit",
+          "production_value",
+          "production_unit",
+          "estimate_status",
+          "dataset_id",
+          "source_reference"
+        ],
+        "grain": "India crop/year/source/estimate round",
+        "purpose": "public-context-only",
+        "limitation": "national context; distinct estimate rounds and production-only observations",
+        "estimate_statuses": [
+          "final",
+          "first_advance",
+          "not_specified_in_table",
+          "second_advance"
+        ],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      },
+      {
+        "path": "data/agriculture/source/nhb-maharashtra-2018.csv",
+        "sha256": "9088813aef8edcc074907dca402706c89f5135c22f26cdd9b9ede52145a8478a",
+        "data_rows": 9,
+        "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+        "columns": [
+          "crop_label",
+          "year",
+          "area_thousand_hectares",
+          "production_thousand_metric_tonnes",
+          "season",
+          "source_table",
+          "source_page"
+        ],
+        "grain": "Maharashtra crop/year",
+        "purpose": "public-context-only",
+        "limitation": "historical state area/production; derived yield is not a farm label",
+        "estimate_statuses": [],
+        "available_at_rows": 0,
+        "publication_as_of_status": "not_established_for_historical_decisions",
+        "usable_as_farm_yield_labels": false
+      }
+    ],
+    "total_data_rows": 7062,
+    "usable_as_farm_yield_labels": false,
+    "source_versions": {
+      "manifest_sha256": "b744ffd0e79385a52a94d24796e5e313629eddf6639ca2b9c81f7f872d9a4e37",
+      "artifact_sha256": "1a409166ded6b0a0da9ebedd77ccf6a424f9771fb3772ca7756b07f77b897554",
+      "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+      "artifact_schema_version": 3
+    },
+    "permission_audit": [
+      {
+        "dataset_id": "nhb-maharashtra-horticulture-2018",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "des-agricultural-statistics-2024-horticulture",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "maharashtra-economic-survey-horticulture-2025-26",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "pib-horticulture-national-2025-26",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": false,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "nasa-power-daily-maharashtra-2020-2025",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "agmarknet-offline-market-import",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "msamb-market-latest-eight-reporting-days",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": false,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "des-agricultural-statistics-2023-state-context",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      },
+      {
+        "dataset_id": "fao-ecocrop",
+        "accessed_on": "2026-11-15",
+        "source_url_recorded": true,
+        "reuse_terms_recorded": true,
+        "model_training_rights": "not_independently_verified",
+        "publication_available_at": null
+      }
+    ],
+    "yield_reference_coverage": [
+      {
+        "crop_id": "green-chilli",
+        "source": "NHB historical Maharashtra",
+        "annual_observations": 3,
+        "years": [
+          "2015-16",
+          "2016-17",
+          "2017-18"
+        ],
+        "grain": "state/crop/year",
+        "farm_prediction": false
+      },
+      {
+        "crop_id": "okra",
+        "source": "NHB historical Maharashtra",
+        "annual_observations": 3,
+        "years": [
+          "2015-16",
+          "2016-17",
+          "2017-18"
+        ],
+        "grain": "state/crop/year",
+        "farm_prediction": false
+      },
+      {
+        "crop_id": "tomato",
+        "source": "NHB historical Maharashtra",
+        "annual_observations": 3,
+        "years": [
+          "2015-16",
+          "2016-17",
+          "2017-18"
+        ],
+        "grain": "state/crop/year",
+        "farm_prediction": false
+      },
+      {
+        "crop_id": "tomato",
+        "source": "des-agricultural-statistics-2024-horticulture",
+        "annual_observations": 2,
+        "years": [
+          "2023-24",
+          "2024-25"
+        ],
+        "estimate_statuses": [
+          "final",
+          "first_advance"
+        ],
+        "grain": "state/crop/year/source/estimate round",
+        "farm_prediction": false
+      }
+    ],
+    "coverage_limits": [
+      "NHB crop-specific state yields cover only 2015-16 to 2017-18 for okra, green chilli and tomato.",
+      "Recent Maharashtra crop-specific yields are two tomato observations (2023-24 final; 2024-25 first advance). No recent state okra/green-chilli yield series was established.",
+      "National observations remain national; no farm, district or season labels are inferred.",
+      "NASA daily weather spans 2020-2025 at three city reference points; MSAMB spans eight reporting days for tomato/chilli and no okra."
+    ],
+    "interpretation": "Counts include reference/location and repeated source-estimate rows; they are not independent farms or training examples.",
+    "as_of_evaluation": "not_run: observation years/access dates do not establish when a historical decision maker could obtain each version"
+  },
+  "farm_outcomes": {
+    "contract_version": "farm-gross-yield-v1",
+    "submitted_rows": 0,
+    "accepted_rows": 0,
+    "eligible_rows": 0,
+    "rejected_rows": 0,
+    "issues": [],
+    "snapshot_sha256": null,
+    "hash_format": "sha256-text-with-CRLF-normalized-to-LF",
+    "template": "model_validation/farm_outcomes.template.csv",
+    "contains_real_example_rows": false
+  },
+  "evaluation": {
+    "status": "not_run",
+    "purpose": "offline farm gross-yield baseline comparison, not crop selection or income impact",
+    "primary_metric": "MAE in kg/ha",
+    "promotion_allowed": false,
+    "policy": {
+      "version": "farm-yield-offline-v1",
+      "min_train_rows": 30,
+      "min_test_rows": 10,
+      "min_train_farms": 5,
+      "min_test_farms": 3,
+      "min_train_seasons": 2,
+      "holdout_farm_fraction": 0.25
+    },
+    "split": {
+      "train_rows": 0,
+      "test_rows": 0,
+      "train_farms": 0,
+      "test_farms": 0,
+      "train_seasons": 0,
+      "test_season": null,
+      "excluded_rows": 0,
+      "farm_overlap": 0,
+      "policy": "latest season; stable hash-selected new farms; earlier labels available by first held-out decision"
+    },
+    "metrics": null,
+    "fitted_summary": null,
+    "reasons": [
+      "train_rows below execution floor 30",
+      "test_rows below execution floor 10",
+      "train_farms below execution floor 5",
+      "test_farms below execution floor 3",
+      "train_seasons below execution floor 2"
+    ],
+    "limits": [
+      "Execution floors do not establish sample sufficiency, uncertainty or external validity.",
+      "No calibration, prospective field outcome, farmer-income or agronomic safety claim follows from this offline comparison.",
+      "Test labels must remain untouched by tuning; independent protocol and human review are still required."
+    ]
+  },
+  "gates": [
+    {
+      "id": "farm_outcome_contract",
+      "status": "blocked",
+      "reason": "No eligible farm outcomes were supplied; only a header-only template exists."
+    },
+    {
+      "id": "aggregate_separation",
+      "status": "pass",
+      "reason": "Regional yield, market, weather and global species references are never copied into farm-outcome labels."
+    },
+    {
+      "id": "source_permissions",
+      "status": "blocked",
+      "reason": "Public access/reuse descriptions do not establish verified pooled model-training rights; farmer training consent and source rights need independent review."
+    },
+    {
+      "id": "publication_as_of",
+      "status": "blocked",
+      "reason": "Public aggregate snapshots lack verified per-version publication availability for old decision dates; no as-of backtest was run."
+    },
+    {
+      "id": "independent_temporal_farm_evaluation",
+      "status": "not_evaluated",
+      "reason": "No score is issued without sufficient contract-valid, independent earlier-label training and future/new-farm holdout rows."
+    },
+    {
+      "id": "prospective_and_agronomic_review",
+      "status": "blocked",
+      "reason": "Local agronomic review, preregistered error budget, interval calibration, prospective shadow outcomes and operating ownership are absent."
+    },
+    {
+      "id": "production_promotion",
+      "status": "blocked",
+      "reason": "This tool has no automatic promotion path; retain explainable rules/scenarios and human review."
+    }
+  ],
+  "registry": {
+    "registry_schema_version": 1,
+    "model_id": "meraki-pre-sowing-gross-yield",
+    "validation_version": "1.0.0",
+    "status": "untrained",
+    "target": "measured plot-season gross harvest kg/ha",
+    "trained_artifact": null,
+    "promoted_model": null,
+    "artifact_format": "json-metadata-only; no executable model deserialization",
+    "code_sha256": "56d2dc50ff224f6595d955c54478c9f7c141b37ae3dd9464e6d0fad0773b8100",
+    "configuration_sha256": "8bbdfd5c496a38a168ab0a1b1d1a8e5a137b54a7fe3d5979cd517385d3484d54",
+    "configuration": {
+      "as_of": "2026-11-15T18:20:00Z",
+      "contract_version": "farm-gross-yield-v1",
+      "evaluation_policy": {
+        "version": "farm-yield-offline-v1",
+        "min_train_rows": 30,
+        "min_test_rows": 10,
+        "min_train_farms": 5,
+        "min_test_farms": 3,
+        "min_train_seasons": 2,
+        "holdout_farm_fraction": 0.25
+      }
+    },
+    "fallback": "versioned explainable rules/scenarios, unknowns explicit, qualified human review",
+    "rollback": "No production model installed; retain the rules/scenario fallback and disable any later candidate on stale or invalid inputs."
+  },
+  "next_steps": [
+    "Select the crop/region/decision owner and preregister target, error budget and holdout protocol with a qualified local adviser.",
+    "Collect real plot-season harvest weights and areas, deidentify them, verify training consent/rights and freeze source versions.",
+    "Capture actual feature availability at the pre-sowing decision and outcome availability after measured harvest; preserve zero-yield failures.",
+    "Use the strict CSV validator, reserve future-season/new-farm holdouts, compare training-only baselines and review error slices and uncertainty.",
+    "Run a prospectively monitored shadow evaluation before considering any production promotion; software tests alone cannot establish agronomic or income benefit."
+  ]
+}

@@ -110,3 +110,40 @@ Limits retained: browser-local state only, with no backend, organisation scoping
 Delivered implementation commit `111fa5fc353e50b2843a0d965e04484cc8a07159` from `cdb18da` and pushed to [Kireeti](https://github.com/jyoti430/Meraki/tree/Kireeti). No push was made to main. [CI run 43738516442](https://github.com/jyoti430/Meraki/actions/runs/43738516442) completed successfully: the frontend job passed the 44-test suite and the TypeScript/Vite build, and the unchanged trade job passed. CI emitted action-runtime and Ubuntu-image deprecation notices without failures.
 
 The browser evidence, limits and remaining gates in the entry above stand unchanged. T01/T02/T03/T08 are development slices, not DONE; T04 remains the next prerequisite for shared multi-user persistence. This documentation follow-up changes no implementation and uses the `[skip ci]` marker.
+
+## 16 November 2026 public live data and model-validation implementation
+
+Authorised scope: connect available real public data and perform the model validation supported by current evidence. Baseline `02e6dc5` on `Kireeti`; delivery remains direct to this branch with no PR or push to main. Public reference-point requests do not send personal farm coordinates, reports or credentials. This implementation is not production deployment, farm advice, model-performance approval or a pilot.
+
+### Implemented and checked
+
+- Imported the agricultural foundation from `origin/codex/agricultural-data-foundation` source commit `7e0d1343`, preserving its original public snapshots/provenance. Added its data builder, refresh scripts, typed evidence adapter and regression tests; corrected module-safe Python imports and pytest helper collection. No refresh overwrote the preserved snapshots. The eight CSVs contain 7,062 context/reference rows, including location metadata; they are not independent farm labels.
+- `server/live_data.py`: read-only fixed-provider gateway with three public location IDs and two crop IDs, bounded concurrent operations, strict source units/dates/numerics, missing values, singleflight TTL cache, failure cooldown, explicit stale/error envelopes and conservative availability timestamps. Provider publication/forecast-run time remains unknown when absent. Forecast calendar is Asia/Kolkata; NASA history is UTC. No synthetic fallback or arbitrary URL/coordinate access.
+- `src/pages/LiveData.tsx`, `src/liveData/`: `/live-data` page with source selection, dates, original units, attribution/licence, errors, context limits and generated model-readiness gates. Farm scenarios remain separate labelled fixtures. Desktop and 390 × 844 checks passed with no whole-page horizontal overflow; mobile navigation now scrolls instead of compressing labels. No captured console errors.
+- `model_validation/`, `reports/`: versioned header-only measured-outcome contract, strict consent/permission/privacy/chronology/grain checks, deterministic future-season/new-farm holdout with unavailable labels purged, training-only conditional median comparisons and fail-closed registry. Current result: zero farm outcomes, `metrics: null`, no fitted artifact and promotion false. Frozen cutoff `2026-11-15T18:20:00Z` is an actual past UTC knowledge boundary, not a future local calendar midnight. Canonical LF UTF-8 hashing preserves deterministic report checks across Windows/Linux checkouts.
+- `scripts/dev-live.mjs`, Vite proxy, setup/docs and CI: `npm run dev:live` starts the public gateway on loopback 8002 and a separate Vite on 5175, preserving the sensor demo's ports. CI checks source artifact/report reproducibility offline and runs all Python tests. External source health is verified separately, not asserted by mocks.
+
+### Actual retrieval and browser evidence
+
+On 16 November Singapore time (15 November 18:19–18:25 UTC), real gateway requests succeeded: Open-Meteo returned seven Nashik forecast days for 15–21 November in Asia/Kolkata; NASA POWER returned thirty historical days for 10 October–8 November UTC; MSAMB returned seventeen tomato and fourteen green-chilli market observations dated 15 November. Exact source payload hashes, retrieval timestamps, source terms and caveats are in `docs/LIVE_DATA_API.md`.
+
+Browser verification loaded all three sources for Nashik/tomato, changed to Pune/green chilli with successful weather/history and fourteen market rows, refreshed through the cache while retaining original retrieval timestamps, and reloaded back to the default public reference selection. It displayed the blocked model report, zero eligible farm labels and no scores. Regional data were never assigned automatically to a synthetic plot. Responsive and console checks covered the representative page, not exhaustive device/accessibility certification. Provider availability and counts can change after this record.
+
+### Validation results
+
+| Command or check | Actual result | Limits |
+|---|---|---|
+| `npm test` | 54 passed in 7 files | Software tests, including original planning/trade/farm data; no field model outcome |
+| `npm run build` | Passed TypeScript/Vite | Existing main-chunk size advisory remains; no deployed routing check |
+| `.venv` Python `-m pytest server/tests tests -q` | 134 passed, plus 10 subtests | Local SQLite; PostgreSQL is a separate CI run; upstream TestClient deprecation warning |
+| `.venv` Python `scripts/build_agricultural_data.py --check` | Passed | Offline committed-snapshot reproducibility, not a claim of live source freshness |
+| `.venv` Python `-m model_validation --check` | Passed with readiness blocked | Reproducibility succeeds; model validation/promotion is not approved |
+| Independent review | No remaining confirmed blocker after fixes | No deployed, multiworker or agronomic validation |
+
+Tests exposed and fixed malformed deeply nested provider JSON escaping source isolation, huge-number overflow, invalid market-row inheritance, future evaluation cutoff, nonfinite median fitting and cross-platform snapshot hashing. Failed tests were observed before the corresponding fixes. Final review checked source isolation, timestamps, holdout independence, train-only fitting and absence of raw/private outcome disclosure or executable artifact loading.
+
+### Remaining gates and resume point
+
+The live-source development slice is implemented; farm-model validation remains externally gated. No real consented plot-season outcomes, verified pooled training rights, local agronomic protocol/error budget, calibrated uncertainty or prospective field results exist. A trained farm-yield model cannot be validated by reusing state averages or synthetic examples. Authenticated SHC/IMD/groundwater access and farm-specific location/evidence linkage remain absent. Broader MSAMB/FAO/source reuse permissions and commercial hosted-weather access must be settled for the intended use; public display/access is not a training licence. Part 2 identity/shared capacity and production deployment remain separate unfinished work.
+
+Local live-data launcher is running on ports 8002/5175 after restart with the reviewed gateway; the pre-existing sensor service was preserved. Re-run the documented launcher if those processes have stopped. Next model action: obtain an explicitly authorised deidentified measured-outcome snapshot, externally verify its rights/lineage, agree the independent crop/region evaluation protocol, then run the validator. Do not enable model promotion or replace farm measurements with regional context. Commit/push and final CI are recorded in the delivery result below.

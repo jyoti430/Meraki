@@ -1,0 +1,1 @@
+record_id,dataset_version,farm_id,plot_id,crop_id,variety,region_id,season_year,decision_at,sowing_at,harvest_at,label_available_at,feature_observed_at,feature_available_at,area_ha,harvested_weight_kg,label_scope,label_method,source_id,source_version,synthetic,consent_for_training,consent_reference,training_permission,permission_reference,privacy_classification
