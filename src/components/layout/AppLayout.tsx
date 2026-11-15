@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const isFarmerWorkspace = location.pathname === '/farmers-plots' || location.pathname.startsWith('/farmers-plots/') || location.pathname.startsWith('/plots/') || location.pathname.startsWith('/crop-cycles/')
   const current = isFarmerWorkspace ? navigation.find(({ to }) => to === '/farmers-plots') : navigation.find(({ to }) => to === location.pathname) ?? navigation.find(({ to }) => to !== '/' && location.pathname.startsWith(to))
   const title = current?.label ?? 'Dashboard'
-  const description = title === 'Dashboard' ? 'Welcome back. Here’s what needs your attention today.' : title === 'Buyer Orders' ? 'Capture buyer requirements and track order readiness from one place.' : title === 'Farmers & Plots' ? 'Manage FPO membership, supply participation and farm records.' : 'Manage this part of your FPO supply operations.'
+  const description = title === 'Dashboard' ? 'Welcome back. Here’s what needs your attention today.' : title === 'Buyer Orders' ? 'Capture buyer requirements and track order readiness from one place.' : title === 'Farmers & Plots' ? 'Manage FPO membership, supply participation and farm records.' : title === 'Supply Planning' ? 'Match active orders to consented crop-cycle estimates and review allocations.' : 'Manage this part of your FPO supply operations.'
   return (
     <div className="app-shell">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} onToggle={() => setSidebarOpen((open) => !open)} />
