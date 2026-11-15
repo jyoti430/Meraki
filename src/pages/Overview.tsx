@@ -1,155 +1,149 @@
-import { useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, ChevronDown, Info, ListChecks, MessageCircle, Sprout, TrendingDown, TrendingUp, Minus } from 'lucide-react'
+import { AlertTriangle, ArrowRight, BarChart3, ChevronDown, Clock3, CloudRain, Info, ShoppingBag, Sprout, TrendingDown, UsersRound, Zap } from 'lucide-react'
 import { usePlan } from '../context/PlanContext'
 import { useFarmers } from '../context/FarmersContext'
-import { PLANNING_DATE, SEASON_LABEL, farmerEligibility, plotAcres, plotBusyUntil, presetFor, replyStateFor } from '../planning/engine'
+import { PLANNING_DATE, farmerEligibility } from '../planning/engine'
 import type { Opportunity } from '../planning/engine'
-import { daysBetween, fmtDay, fmtInr, fmtKg, fmtPct } from '../planning/format'
-import { CropIcon, SourceLegend, SourceTag, SupplyMeter, VerdictBadge } from '../components/ui'
+import { daysBetween, fmtDay, fmtPct } from '../planning/format'
+import { weeklySeries } from '../planning/series'
+import { Feasibility, InfoTip, SourceTag, StatCard } from '../components/ui'
+import LineChart from '../components/LineChart'
+import PageHeader from '../components/layout/PageHeader'
 
-const trendIcon = (o: string) => (o === 'Higher than usual' ? <TrendingUp size={14} /> : o === 'Lower than usual' ? <TrendingDown size={14} /> : <Minus size={14} />)
+export const fmtT = (kg: number) => (Math.abs(kg) >= 1000 ? `${(kg / 1000).toFixed(1).replace(/\.0$/, '')} t` : `${Math.round(kg).toLocaleString('en-IN')} kg`)
 
-function OpportunityRow({ opp }: { opp: Opportunity }) {
-  const [open, setOpen] = useState(false)
-  const { plan } = opp
-  const signal = opp.signals[0]
-  const variety = plan?.varieties[0] ?? opp.crop.defaultVariety
-  return <article className="m-opp" data-open={open}>
-    <button type="button" className="m-opp-main" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-      <div className="m-opp-crop"><CropIcon emoji={opp.crop.emoji} label={opp.crop.name} /><div style={{ minWidth: 0 }}><strong>{opp.crop.name}</strong><span className="m-small">{variety}</span><div><VerdictBadge verdict={opp.verdict} /></div></div></div>
-      <div className="m-opp-col m-opp-demand">
-        <small>Buyer demand</small>
-        {plan ? <>
-          <div className="m-big">{fmtKg(plan.confirmedKg + plan.indicativeKg)}</div>
-          <span className="m-small">{plan.confirmedKg ? `${fmtKg(plan.confirmedKg)} confirmed` : 'All indicative'}{plan.confirmedKg && plan.indicativeKg ? ` · ${fmtKg(plan.indicativeKg)} indicative` : ''}</span>
-        </> : <span className="m-small">No buyer orders</span>}
-      </div>
-      <div className="m-opp-col m-opp-forecast">
-        <small>Market forecast</small>
-        {signal ? <>
-          <div className="m-row" style={{ gap: 6 }}><span className="m-tag m-tag-forecast">{trendIcon(signal.demandOutlook)}{signal.demandOutlook.replace(' than usual', '').replace(' to usual', '')}</span></div>
-          <span className="m-small">{signal.regionalSupply === 'Oversupply risk' ? 'Oversupply risk · ' : ''}₹{signal.priceBandInr[0]}–{signal.priceBandInr[1]}/kg</span>
-        </> : <span className="m-small">No signal</span>}
-      </div>
-      <div className="m-opp-col">
-        <small>Our expected supply</small>
-        {plan && plan.status !== 'not-in-scenario' && plan.window !== 'missed' ? <>
-          <SupplyMeter plan={plan} />
-          <span className="m-small m-num" style={{ display: 'block', marginTop: 6 }}>{fmtKg(plan.expectedKg)} of {fmtKg(plan.targetKg)} target{plan.window === 'urgent' || plan.window === 'open' ? ` · sow by ${fmtDay(plan.sowBy)}` : ''}</span>
-        </> : plan?.status === 'not-in-scenario' ? <span className="m-small">Not planned in this scenario (indicative only)</span>
-          : plan?.window === 'missed' ? <span className="m-small">Sowing window has passed</span>
-          : <span className="m-small">{opp.suitableAcres > 0 ? `${opp.suitableAcres.toFixed(1)} ac on ${opp.suitableFarmers} farms could grow it` : 'No suitable land'}</span>}
-      </div>
-      <ChevronDown className="m-opp-chev" size={20} aria-hidden="true" />
-    </button>
-    {open && <div className="m-opp-body">
-      <div className="m-stack" style={{ gap: 12 }}>
-        <strong style={{ fontSize: 16 }}>{opp.headline}</strong>
-        <ul className="m-why">
-          {opp.why.map((w) => <li key={w.text}><SourceTag kind={w.source === 'order' ? (w.tone === 'good' ? 'order' : 'indicative') : w.source} /><span>{w.text}</span></li>)}
-        </ul>
-        {opp.signals.map((s) => <p key={s.id} className="m-small" style={{ margin: 0 }}><strong>{s.market} forecast:</strong> {s.reason} Window {s.window}.</p>)}
-      </div>
-      <div className="m-stack" style={{ gap: 12 }}>
-        <div className="m-facts" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 0 }}>
-          <div><small>Sow by</small><strong>{plan?.sowBy ? fmtDay(plan.sowBy) : opp.crop.perennial ? 'Orchard' : '—'}</strong><span>{opp.crop.perennial ? 'No new planting' : `${opp.crop.daysToFirstHarvest} days to harvest`}</span></div>
-          <div><small>Harvest</small><strong>{plan?.harvestStart ? fmtDay(plan.harvestStart) : '—'}</strong><span>{plan?.deliveryEnd ? `Delivery to ${fmtDay(plan.deliveryEnd)}` : `${opp.crop.harvestSpanDays}-day picking`}</span></div>
-          <div><small>Suitable land</small><strong>{opp.suitableAcres.toFixed(1)} ac</strong><span>{opp.suitableFarmers} participating farms</span></div>
-          <div><small>Price</small><strong>{plan?.avgPriceInr ? `${fmtInr(plan.avgPriceInr)}/kg` : signal ? `₹${signal.priceBandInr[0]}–${signal.priceBandInr[1]}` : '—'}</strong><span>{plan?.avgPriceInr ? 'Buyer price (avg.)' : 'Forecast band – not a quote'}</span></div>
-        </div>
-        <div className="m-row">
-          {plan && <Link className="m-btn m-btn-primary m-btn-sm" to={`/plan#${opp.crop.id}`}>See plan <ArrowRight size={15} /></Link>}
-          <Link className="m-btn m-btn-secondary m-btn-sm" to="/demand">{plan ? 'View orders' : 'Add buyer demand'}</Link>
-        </div>
-      </div>
-    </div>}
-  </article>
+export function feasibilityOf(o: Opportunity): 'high' | 'medium' | 'low' {
+  if (o.crop.perennial) return (o.plan?.existingKg ?? 0) > 0 ? 'medium' : 'low'
+  if (o.plan?.window === 'missed' || o.suitableAcres === 0) return 'low'
+  const need = o.plan ? (o.plan.confirmedKg + o.plan.indicativeKg) / o.crop.yieldPerAcre[1] : 0
+  return o.suitableAcres >= need && !o.why.some((w) => w.source === 'farm' && w.tone !== 'good') ? 'high' : 'medium'
+}
+
+function actionFor(o: Opportunity): { label: string; to: string; tone: '' | 'warn' | 'bad' } {
+  const p = o.plan
+  if (o.verdict === 'too-late') return { label: 'Agree a later window', to: '/demand', tone: 'bad' }
+  if (o.crop.perennial) return p && p.gapKg > 0 ? { label: `Short by ~${fmtT(p.gapKg)}`, to: '/demand', tone: 'warn' } : { label: 'Coordinate harvest', to: '/plan', tone: '' }
+  if (!p) return o.verdict === 'caution' ? { label: 'Avoid adding area', to: '/demand', tone: 'bad' } : { label: 'Find a buyer first', to: '/demand', tone: 'warn' }
+  if (p.status === 'not-in-scenario') return { label: 'Confirm buyer first', to: '/demand', tone: 'warn' }
+  if (p.status === 'gap' || p.status === 'partial') return { label: 'Expand planting', to: `/plan#${o.crop.id}`, tone: 'warn' }
+  if (p.confirmedKg === 0) return { label: 'Confirm buyer first', to: '/demand', tone: '' }
+  return { label: 'Proceed as planned', to: `/plan#${o.crop.id}`, tone: '' }
+}
+
+function DemandBar({ o, max }: { o: Opportunity; max: number }) {
+  const w = (kg: number) => `${Math.max(kg > 0 ? 6 : 0, (kg / max) * 140)}px`
+  if (!o.plan) return <div className="m-dbar" title="Market forecast only – no buyer orders"><i className="f" style={{ width: 60 }} /></div>
+  return <div className="m-dbar" title={`${fmtT(o.plan.confirmedKg)} confirmed · ${fmtT(o.plan.indicativeKg)} indicative`}>
+    {o.plan.confirmedKg > 0 && <i className="c" style={{ width: w(o.plan.confirmedKg) }} />}
+    {o.plan.indicativeKg > 0 && <i className="n" style={{ width: w(o.plan.indicativeKg) }} />}
+    {o.signals.length > 0 && <i className="f" style={{ width: 22 }} />}
+  </div>
 }
 
 export default function Overview() {
-  const { result, responses, changes, scenario, messages } = usePlan()
+  const { result, responses } = usePlan()
   const { data } = useFarmers()
-  const worth = result.opportunities.filter((o) => o.verdict === 'strong' || o.verdict === 'consider')
-  const confirmedCov = result.confirmedDemandKg ? result.confirmedCoveredKg / result.confirmedDemandKg : 0
-  const states = result.farmersInvolved.map((id) => replyStateFor(id, responses, result.allocations))
-  const confirmedFarmers = states.filter((s) => s === 'confirmed').length
-  const messaged = states.filter((s) => s !== 'not-sent').length
-  const nextSow = result.plans.filter((p) => (p.window === 'open' || p.window === 'urgent') && p.allocations.length).sort((a, b) => a.sowBy.localeCompare(b.sowBy))[0]
-  const eligibleFarmers = data.farmers.filter((f) => !farmerEligibility(f, responses[f.id]))
-  const freeAcres = data.plots.filter((p) => eligibleFarmers.some((f) => f.id === p.farmerId) && !plotBusyUntil(data, p.id)).reduce((s, p) => s + plotAcres(p), 0)
-  const unknownPlots = data.plots.filter((p) => eligibleFarmers.some((f) => f.id === p.farmerId) && (p.waterAvailability === 'Unknown' || !p.soilType)).length
-  const activeOrders = result.plans.reduce((s, p) => s + p.orders.length, 0)
-  const preset = presetFor(scenario)
-  const replies = messages.filter((m) => m.direction === 'in').length
+  const [open, setOpen] = useState<string | null>(null)
+  const [done, setDone] = useState<string[]>([])
 
-  const journey = [
-    { to: '/demand', title: 'Understand demand', detail: `${activeOrders} active orders · ${fmtKg(result.confirmedDemandKg)} confirmed`, state: activeOrders ? 'done' : 'attn' },
-    { to: '/#opportunities', title: 'Spot opportunities', detail: `${worth.length} crops worth planting`, state: 'done' },
-    { to: '/farmers', title: 'Check feasibility', detail: `${eligibleFarmers.length} farmers · ${freeAcres.toFixed(1)} ac free${unknownPlots ? ` · ${unknownPlots} need details` : ''}`, state: unknownPlots ? 'attn' : 'done' },
-    { to: '/plan', title: 'Build the plan', detail: `${result.totalAcres.toFixed(1)} ac · ${fmtPct(confirmedCov)} of confirmed demand`, state: 'done' },
-    { to: '/messages', title: 'Message farmers', detail: `${messaged}/${result.farmersInvolved.length} messaged · ${confirmedFarmers} confirmed`, state: messaged === result.farmersInvolved.length && messaged > 0 ? 'done' : 'attn' },
-    { to: '/plan#history', title: 'Update the plan', detail: `${replies} replies · ${changes.length} plan changes`, state: changes.length ? 'done' : '' },
-  ]
+  const inScope = result.plans.filter((p) => p.status !== 'not-in-scenario')
+  const demandKg = result.plans.reduce((s, p) => s + p.confirmedKg + p.indicativeKg, 0)
+  const confirmedKg = result.plans.reduce((s, p) => s + p.confirmedKg, 0)
+  const supplyKg = result.plans.reduce((s, p) => s + p.expectedKg, 0)
+  const gapKg = inScope.reduce((s, p) => s + p.gapKg, 0)
+  const eligible = data.farmers.filter((f) => !farmerEligibility(f, responses[f.id]))
+  const villages = new Set(eligible.map((f) => f.village)).size
+  const maxDemand = Math.max(1, ...result.opportunities.map((o) => (o.plan ? o.plan.confirmedKg + o.plan.indicativeKg : 0)))
+
+  const weeks = useMemo(() => weeklySeries(result.plans), [result.plans])
+  const weekLabels = weeks.map((_, i) => `W${i + 1}`)
+  const weekSubs = weeks.map((w) => fmtDay(w.start))
+  const chartDemand = weeks.reduce((s, w) => s + w.demand, 0)
+  const chartSupply = weeks.reduce((s, w) => s + w.supply, 0)
+
+  const watchouts = [
+    ...result.plans.filter((p) => p.window === 'urgent' && p.allocations.length).map((p) => ({ icon: <Clock3 size={20} />, tone: 'bad', title: `Sow ${p.crop.name.toLowerCase()} by ${fmtDay(p.sowBy)}`, text: `${daysBetween(PLANNING_DATE, p.sowBy)} days left to meet the buyer's ${fmtDay(p.deliveryStart)} start.` })),
+    ...inScope.filter((p) => p.gapKg > 0).map((p) => ({ icon: <Sprout size={20} />, tone: 'warn', title: `${p.crop.name} supply short by ${fmtT(p.gapKg)}`, text: p.crop.perennial ? 'Orchard crop – agree a smaller volume or later window.' : 'Increase area or mobilise more farmers.' })),
+    ...result.opportunities.filter((o) => o.signals.some((s) => s.regionalSupply === 'Oversupply risk')).map((o) => ({ icon: <TrendingDown size={20} />, tone: 'warn', title: `${o.crop.name}: oversupply risk forecast`, text: `Prices may fall to ₹${o.signals[0].priceBandInr[0]}–${o.signals[0].priceBandInr[1]}/kg. Avoid adding area without a buyer.` })),
+    { icon: <CloudRain size={20} />, tone: '', title: 'Weather is not yet modelled', text: 'Yields use indicative ranges. Add a buffer in Planting Plans for weather risk.' },
+  ].slice(0, 4)
 
   return <div className="m-page">
-    <section className="m-hero" aria-labelledby="hero-title">
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <div className="m-eyebrow">{SEASON_LABEL} · planning as of {fmtDay(PLANNING_DATE)}</div>
-        <h1 className="m-h1" id="hero-title"><em>{worth.length} crops</em> are worth planting this season</h1>
-        <p>The {preset ? <strong>{preset.label.toLowerCase()}</strong> : 'custom'} plan covers <strong>{fmtPct(confirmedCov)}</strong> of confirmed buyer demand using {result.totalAcres.toFixed(1)} acres across {result.farmersInvolved.length} farmers.</p>
-        <div className="m-row">
-          <Link to="/plan" className="m-btn m-btn-accent"><Sprout size={18} /> Review planting plan</Link>
-          <Link to="/messages" className="m-btn m-btn-tertiary"><MessageCircle size={18} /> Message farmers</Link>
-        </div>
-      </div>
-      <div className="m-hero-stats">
-        <Link to="/plan" className="m-hero-stat"><div><strong>{fmtPct(confirmedCov)}</strong><span>Confirmed demand covered by plan</span></div><ArrowRight size={18} /></Link>
-        <Link to="/messages" className="m-hero-stat"><div><strong>{confirmedFarmers} of {result.farmersInvolved.length}</strong><span>Farmers confirmed their planting</span></div><ArrowRight size={18} /></Link>
-        {nextSow && <Link to={`/plan#${nextSow.crop.id}`} className="m-hero-stat"><div><strong>{fmtDay(nextSow.sowBy)}</strong><span>Next sowing deadline – {nextSow.crop.name.toLowerCase()} ({daysBetween(PLANNING_DATE, nextSow.sowBy)} days)</span></div><ArrowRight size={18} /></Link>}
-      </div>
+    <PageHeader title="Crop forecast overview" subtitle="Turn buyer demand into a collective planting plan for your FPO." />
+
+    <section className="m-stats" aria-label="Season summary">
+      <StatCard icon={<ShoppingBag size={24} />} label="Buyer demand" tip="All active buyer orders, confirmed and indicative" value={fmtT(demandKg)} sub={<>{fmtT(confirmedKg)} confirmed</>} />
+      <StatCard icon={<Sprout size={24} />} label="Expected supply" tip="Planned planting at the scenario's yield assumption plus crops already growing" value={fmtT(supplyKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
+      <StatCard icon={<AlertTriangle size={24} />} tone="warn" label="Supply gaps" tip="Shortfall against the plan target, including the safety buffer" value={fmtT(gapKg)} sub={<>≈ {fmtPct(demandKg ? gapKg / demandKg : 0)} of demand</>} />
+      <StatCard icon={<UsersRound size={24} />} label="Participating farms" value={eligible.length} sub={<>across {villages} villages</>} />
     </section>
 
-    <nav className="m-journey" aria-label="Planning journey">
-      {journey.map((step, i) => <Link key={step.title} to={step.to} className={step.state}>
-        <span className="m-journey-num"><i>{step.state === 'done' ? '✓' : i + 1}</i>Step {i + 1}</span>
-        <strong>{step.title}</strong>
-        <span className="m-small">{step.detail}</span>
-      </Link>)}
-    </nav>
-
-    <div className="m-grid-main">
-      <section className="m-stack" id="opportunities" aria-labelledby="opp-title" style={{ scrollMarginTop: 20 }}>
-        <div>
-          <h2 className="m-h2" id="opp-title">Crop opportunities</h2>
-          <p className="m-sub">Every crop with buyer demand or a market signal, ranked by how strong the case is. Click a crop to see why.</p>
+    <div className="m-cols">
+      <section className="m-panel" id="opportunities" aria-labelledby="opp-title">
+        <div className="m-panel-head">
+          <div><h2 className="m-panel-title" id="opp-title">Top crop opportunities</h2><p className="m-panel-sub">Buyer demand, projected supply and recommended actions for this season.</p></div>
+          <div className="m-legend2">
+            <span><i style={{ background: '#2e7d32' }} />Confirmed demand <InfoTip text="Committed by a buyer" /></span>
+            <span><i style={{ background: '#9ccc65' }} />Indicative demand <InfoTip text="Buyer interest, not committed" /></span>
+            <span><i style={{ border: '1.5px dashed #9ccc65' }} />Forecast <InfoTip text="Synthetic market signal – not guaranteed" /></span>
+          </div>
         </div>
-        <SourceLegend />
-        <div className="m-opps">{result.opportunities.map((o) => <OpportunityRow key={o.crop.id} opp={o} />)}</div>
-        <p className="m-footnote"><Info size={15} style={{ flex: 'none', marginTop: 2 }} />Forecasts are synthetic scenarios for this demo and are not guaranteed demand, prices or yields. Expected supply uses indicative yield ranges; real harvests vary with weather and practice.</p>
+        <div className="m-dt-scroll"><table className="m-dt">
+          <thead><tr><th>Crop</th><th>Expected demand <InfoTip text="Active buyer orders" /></th><th>Projected supply <InfoTip text="Expected harvest from the current plan" /></th><th>Feasibility <InfoTip text="Can participating farms grow it in time, with their water and soil?" /></th><th>Recommended action</th><th><span className="sr-only">Details</span></th></tr></thead>
+          <tbody>{result.opportunities.map((o) => {
+            const a = actionFor(o)
+            const isOpen = open === o.crop.id
+            return <Fragment key={o.crop.id}>
+              <tr className="click" onClick={() => setOpen(isOpen ? null : o.crop.id)} aria-expanded={isOpen}>
+                <td><span className="m-crop"><span className="e" aria-hidden="true">{o.crop.emoji}</span>{o.crop.name}</span></td>
+                <td><strong>{o.plan ? fmtT(o.plan.confirmedKg + o.plan.indicativeKg) : '—'}</strong><DemandBar o={o} max={maxDemand} /></td>
+                <td><strong>{o.plan && o.plan.status !== 'not-in-scenario' ? fmtT(o.plan.expectedKg) : '—'}</strong></td>
+                <td><Feasibility level={feasibilityOf(o)} /></td>
+                <td><Link to={a.to} className={`m-action-btn ${a.tone}`} onClick={(e) => e.stopPropagation()}>{a.label}<ArrowRight size={16} /></Link></td>
+                <td><ChevronDown size={18} style={{ transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform .2s', color: 'var(--mute)' }} /></td>
+              </tr>
+              {isOpen && <tr><td colSpan={6} style={{ background: '#fafcf8' }}>
+                <strong style={{ display: 'block', marginBottom: 8 }}>{o.headline}</strong>
+                <ul className="m-why">{o.why.map((w) => <li key={w.text}><SourceTag kind={w.source === 'order' ? (w.tone === 'good' ? 'order' : 'indicative') : w.source} /><span>{w.text}</span></li>)}</ul>
+              </td></tr>}
+            </Fragment>
+          })}</tbody>
+        </table></div>
       </section>
 
-      <aside className="m-stack">
-        <section className="m-card" aria-labelledby="actions-title">
-          <div className="m-card-head" style={{ marginBottom: 12 }}><div><h2 className="m-h3" id="actions-title"><ListChecks size={18} style={{ verticalAlign: '-3px', marginRight: 6 }} />Next actions</h2><p className="m-sub">What to do now to secure supply</p></div></div>
-          <div className="m-actions">
-            {result.actions.slice(0, 6).map((a) => <Link key={a.id} to={a.to} className="m-action">
-              <span className={`m-action-ico ${a.tone}`}>{a.tone === 'urgent' ? <AlertTriangle size={16} /> : a.tone === 'attention' ? <ArrowRight size={16} /> : <Info size={16} />}</span>
-              <div><strong>{a.title}</strong><span className="m-small">{a.detail}</span><span className="m-action-cta">{a.cta} <ArrowRight size={13} /></span></div>
-            </Link>)}
-            {!result.actions.length && <p className="m-small">Nothing urgent. Your plan is on track.</p>}
-          </div>
+      <div className="m-stack" style={{ gap: 20 }}>
+        <section className="m-panel" aria-labelledby="next-title">
+          <h2 className="m-panel-title" id="next-title" style={{ fontSize: 24 }}><Zap size={24} />Next actions</h2>
+          <p className="m-panel-sub" style={{ marginBottom: 8 }}>Keep your seasonal plan on track.</p>
+          <ul className="m-checklist">{result.actions.slice(0, 5).map((a) => {
+            const isDone = done.includes(a.id)
+            return <li key={a.id} className={isDone ? 'done' : ''}>
+              <input type="checkbox" checked={isDone} onChange={() => setDone((d) => (isDone ? d.filter((x) => x !== a.id) : [...d, a.id]))} aria-label={`Mark "${a.title}" done`} />
+              <Link to={a.to}><strong>{a.title}</strong><span>{a.detail}</span></Link>
+            </li>
+          })}</ul>
         </section>
-        <section className="m-card m-card-sage" aria-labelledby="dates-title">
-          <h2 className="m-h3" id="dates-title" style={{ marginBottom: 10 }}>Sowing deadlines</h2>
-          <div className="m-stack" style={{ gap: 10 }}>
-            {result.plans.filter((p) => p.sowBy).map((p) => <Link key={p.crop.id} to={`/plan#${p.crop.id}`} className="m-row" style={{ textDecoration: 'none', justifyContent: 'space-between', flexWrap: 'nowrap' }}>
-              <span>{p.crop.emoji} {p.crop.name}</span>
-              <span className={`m-tag ${p.window === 'urgent' ? 'm-tag-bad' : p.window === 'missed' ? 'm-tag-neutral' : 'm-tag-plan'}`}>{p.window === 'missed' ? 'Passed' : `${fmtDay(p.sowBy)} · ${daysBetween(PLANNING_DATE, p.sowBy)}d`}</span>
-            </Link>)}
-          </div>
+        <section className="m-panel" aria-labelledby="watch-title">
+          <h2 className="m-panel-title" id="watch-title" style={{ fontSize: 24 }}><AlertTriangle size={24} />Watchouts</h2>
+          <p className="m-panel-sub" style={{ marginBottom: 8 }}>Risks to monitor for this season.</p>
+          <ul className="m-why2">{watchouts.map((w) => <li key={w.title}><span className={`m-roundico ${w.tone}`}>{w.icon}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
         </section>
-      </aside>
+      </div>
     </div>
+
+    {weeks.length > 0 && <section className="m-panel" aria-labelledby="sd-title">
+      <div className="m-panel-head">
+        <div><h2 className="m-panel-title" id="sd-title"><BarChart3 size={24} color="var(--forest)" />Supply vs. demand <small>(delivery season, {weeks.length} weeks)</small></h2><p className="m-panel-sub">Projected weekly supply against total buyer demand across all crops.</p></div>
+        <div className="m-minis row">
+          <div className="m-mini"><small>Demand (total)</small><strong>{fmtT(chartDemand)}</strong></div>
+          <div className="m-mini"><small>Supply (projected)</small><strong>{fmtT(chartSupply)}</strong></div>
+          <div className="m-mini amber"><small>{chartSupply >= chartDemand ? 'Surplus' : 'Gap'}</small><strong>{fmtT(Math.abs(chartDemand - chartSupply))}</strong></div>
+        </div>
+      </div>
+      <LineChart ariaLabel="Weekly buyer demand versus projected supply" labels={weekLabels} sublabels={weekSubs}
+        series={[{ label: 'Total demand (confirmed + indicative)', color: '#1b5e20', values: weeks.map((w) => w.demand / 1000) }, { label: 'Projected supply (forecast)', color: '#7cc35b', values: weeks.map((w) => w.supply / 1000), fill: true }]} />
+      <p className="m-footnote" style={{ marginTop: 10 }}><Info size={15} style={{ flex: 'none', marginTop: 2 }} />Demand is spread over each order’s delivery window and supply over each crop’s harvest window. Forecasts and yields are synthetic, indicative values – not guaranteed.</p>
+    </section>}
   </div>
 }

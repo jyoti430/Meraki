@@ -1,17 +1,35 @@
+import { useId } from 'react'
 import type { ReactNode } from 'react'
-import { AlertTriangle, Check, CheckCircle2, CircleDashed, Clock3, Droplets, Handshake, LineChart, Sprout, X } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, CircleDashed, Clock3, Droplets, Handshake, Info, LineChart, Sprout, X } from 'lucide-react'
 import type { CropPlan, Reason, ResponseStatus, Verdict } from '../planning/engine'
 import { fmtKg } from '../planning/format'
 
 export function MerakiMark({ size = 36 }: { size?: number }) {
-  // Three leaves meeting at one stem: many farmers, one plan.
+  const id = `mk-leaf-${useId().replace(/:/g, '')}`
   return <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-    <rect width="40" height="40" rx="12" fill="#174a33" />
-    <path d="M20 31V19" stroke="#f2b53a" strokeWidth="2.4" strokeLinecap="round" />
-    <path d="M20 19c0-5 3.2-8.5 8-9-.2 5-3.4 8.6-8 9Z" fill="#f2b53a" />
-    <path d="M20 19c0-5-3.2-8.5-8-9 .2 5 3.4 8.6 8 9Z" fill="#9fd1b0" />
-    <path d="M20 24c3.2-.2 6.6 1.3 8 4.6-3.4.6-6.6-.9-8-4.6Z" fill="#e3eee6" />
+    <defs><linearGradient id={id} x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#1f6e26" /><stop offset="1" stopColor="#5cb85c" /></linearGradient></defs>
+    <path d="M6 34C6 17 17 6 35 5c1 18-10 29-27 29Z" fill={`url(#${id})`} />
+    <path d="M8 32C15 24 22 17 30 10" stroke="#e9f6e2" strokeWidth="2" strokeLinecap="round" fill="none" />
   </svg>
+}
+
+export function InfoTip({ text }: { text: string }) {
+  return <span className="m-info" title={text} aria-label={text} role="img"><Info size={16} /></span>
+}
+
+export function StatCard({ icon, label, value, sub, tone, tip }: { icon: ReactNode; label: string; value: ReactNode; sub?: ReactNode; tone?: 'warn' | 'amber'; tip?: string }) {
+  return <article className="m-stat">
+    <span className={`m-stat-ico ${tone ?? ''}`}>{icon}</span>
+    <div style={{ minWidth: 0 }}>
+      <small>{label}{tip && <InfoTip text={tip} />}</small>
+      {typeof value === 'string' || typeof value === 'number' ? <strong>{value}</strong> : value}
+      {sub && <span className="m-stat-sub">{sub}</span>}
+    </div>
+  </article>
+}
+
+export function Feasibility({ level }: { level: 'high' | 'medium' | 'low' }) {
+  return <span className={`m-feas ${level}`}><span>{level === 'high' ? 'High' : level === 'medium' ? 'Medium' : 'Low'}</span></span>
 }
 
 export const CropIcon = ({ emoji, label }: { emoji: string; label: string }) => <span className="m-crop-icon" role="img" aria-label={label}>{emoji}</span>

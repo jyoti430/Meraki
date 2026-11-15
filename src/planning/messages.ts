@@ -1,5 +1,4 @@
 import type { Allocation, CropPlan } from './engine'
-import { SEASON_LABEL } from './engine'
 import { fmtDay, toDate } from './format'
 
 export type Channel = 'WhatsApp' | 'SMS'
@@ -9,7 +8,7 @@ export const languages: { id: Language; label: string }[] = [
   { id: 'Hindi', label: 'हिन्दी' },
   { id: 'Marathi', label: 'मराठी' },
 ]
-export const FPO_NAME = 'Nirmal Kisan FPO'
+export const FPO_NAME = 'Shivganga FPO'
 
 export const languageFor = (preferred: string): Language => (preferred === 'Marathi' ? 'Marathi' : preferred === 'Hindi' || preferred === 'Urdu' ? 'Hindi' : 'English')
 
@@ -27,36 +26,31 @@ const cropNames: Record<string, { Hindi: string; Marathi: string }> = {
 const numDate = (iso: string) => { const d = toDate(iso); return `${d.getUTCDate()}/${d.getUTCMonth() + 1}` }
 const acres = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 2 })
 
+const L = {
+  English: { hi: (n: string) => `Namaskar ${n}! 👋`, intro: (crops: string, upd: boolean) => `${upd ? 'UPDATED plan: ' : ''}This season, please plant ${crops} as per the ${FPO_NAME} plan.`, area: 'Area', acre: 'acre', window: 'Planting window', seed: 'Seed', rec: '(recommended)', harvest: 'Harvest from', reply: 'Reply with:', r1: '1 – Confirm', r2: '2 – Cannot plant this season', r3: '3 – Any issue / need support (land, water, timing)', and: ' and ' },
+  Hindi: { hi: (n: string) => `नमस्ते ${n} जी! 👋`, intro: (crops: string, upd: boolean) => `${upd ? 'योजना में बदलाव: ' : ''}इस सीज़न ${FPO_NAME} की योजना के अनुसार ${crops} लगाएँ।`, area: 'क्षेत्र', acre: 'एकड़', window: 'बुवाई का समय', seed: 'बीज', rec: '(सुझाया गया)', harvest: 'तुड़ाई', reply: 'जवाब दें:', r1: '1 – हाँ, लगाऊँगा/लगाऊँगी', r2: '2 – इस सीज़न नहीं', r3: '3 – कोई समस्या (ज़मीन / पानी / समय)', and: ' और ' },
+  Marathi: { hi: (n: string) => `नमस्कार ${n}! 👋`, intro: (crops: string, upd: boolean) => `${upd ? 'नियोजनात बदल: ' : ''}या हंगामात ${FPO_NAME} च्या नियोजनानुसार ${crops} लागवड करा.`, area: 'क्षेत्र', acre: 'एकर', window: 'लागवडीचा काळ', seed: 'बियाणे', rec: '(शिफारस)', harvest: 'काढणी', reply: 'उत्तर द्या:', r1: '1 – होय, लागवड करेन', r2: '2 – या हंगामात नाही', r3: '3 – अडचण (जमीन / पाणी / वेळ)', and: ' आणि ' },
+}
+
 export function composeInstruction(firstName: string, allocations: Allocation[], plans: CropPlan[], language: Language, channel: Channel, isUpdate: boolean): string {
+  const t = L[language]
   const rich = channel === 'WhatsApp'
-  const lines = allocations.map((a) => {
+  const tick = rich ? '✅ ' : '- '
+  const date = (iso: string) => (language === 'English' ? fmtDay(iso) : numDate(iso))
+  const cropName = (c: string) => (language === 'English' ? c : cropNames[c]?.[language] ?? c)
+  const names = [...new Set(allocations.map((a) => cropName(a.crop)))].join(t.and)
+  const blocks = allocations.map((a) => {
     const plan = plans.find((p) => p.crop.name === a.crop)!
     const variety = plan.varieties[0] ?? plan.crop.defaultVariety
-    if (language === 'Hindi') return `${rich ? '• ' : '- '}${cropNames[a.crop]?.Hindi ?? a.crop} (${variety}), ${a.plotName}: ${acres(a.acres)} एकड़। बुवाई ${numDate(plan.sowFrom)} से ${numDate(plan.sowBy)} के बीच। तुड़ाई ${numDate(plan.harvestStart)} से।`
-    if (language === 'Marathi') return `${rich ? '• ' : '- '}${cropNames[a.crop]?.Marathi ?? a.crop} (${variety}), ${a.plotName}: ${acres(a.acres)} एकर. लागवड ${numDate(plan.sowFrom)} ते ${numDate(plan.sowBy)} दरम्यान. काढणी ${numDate(plan.harvestStart)} पासून.`
-    return `${rich ? '• ' : '- '}${a.crop} (${variety}) on ${a.plotName}: ${acres(a.acres)} acre. Sow between ${fmtDay(plan.sowFrom)} and ${fmtDay(plan.sowBy)}. Harvest from ${fmtDay(plan.harvestStart)}.`
+    return [
+      allocations.length > 1 ? `${rich ? '🌱 ' : ''}${cropName(a.crop)} – ${a.plotName}` : '',
+      `${tick}${t.area}: ${acres(a.acres)} ${t.acre}${allocations.length > 1 ? '' : ` (${a.plotName})`}`,
+      `${tick}${t.window}: ${date(plan.sowFrom)} – ${date(plan.sowBy)}`,
+      `${tick}${t.seed}: ${variety} ${t.rec}`,
+      `${tick}${t.harvest}: ${date(plan.harvestStart)}`,
+    ].filter(Boolean).join('\n')
   })
-  if (language === 'Hindi') return [
-    `${rich ? '🌱 ' : ''}नमस्ते ${firstName} जी,`,
-    `${FPO_NAME} – ${SEASON_LABEL} ${isUpdate ? 'बुवाई योजना में बदलाव' : 'बुवाई योजना'}:`,
-    ...lines,
-    'खरीदार की माँग FPO के माध्यम से है। बीज व सलाह के लिए FPO कार्यालय से संपर्क करें।',
-    'जवाब दें: 1 = हाँ, बुवाई करूँगा/करूँगी · 2 = इस सीज़न नहीं · 3 = समस्या (ज़मीन / पानी / समय)',
-  ].join('\n')
-  if (language === 'Marathi') return [
-    `${rich ? '🌱 ' : ''}नमस्कार ${firstName},`,
-    `${FPO_NAME} – ${SEASON_LABEL} ${isUpdate ? 'लागवड नियोजनात बदल' : 'लागवड नियोजन'}:`,
-    ...lines,
-    'खरेदीदाराची मागणी FPO मार्फत आहे. बियाणे व सल्ल्यासाठी FPO कार्यालयाशी संपर्क साधा.',
-    'उत्तर द्या: 1 = होय, लागवड करेन · 2 = या हंगामात नाही · 3 = अडचण (जमीन / पाणी / वेळ)',
-  ].join('\n')
-  return [
-    `${rich ? '🌱 ' : ''}Namaste ${firstName},`,
-    `${FPO_NAME} – ${SEASON_LABEL} ${isUpdate ? 'UPDATED planting plan' : 'planting plan'}:`,
-    ...lines,
-    'Buyer demand is arranged through the FPO. Contact the FPO office for seed and advice.',
-    'Reply: 1 = Yes, I will plant · 2 = Not this season · 3 = Problem (land / water / timing)',
-  ].join('\n')
+  return [`${rich ? t.hi(firstName) : t.hi(firstName).replace(' 👋', '')}`, t.intro(names, isUpdate), '', blocks.join('\n\n'), '', t.reply, t.r1, t.r2, t.r3].join('\n')
 }
 
 export const replyText: Record<'confirmed' | 'declined' | 'land' | 'water' | 'timing' | 'other', string> = {
