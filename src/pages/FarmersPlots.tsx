@@ -1,71 +1,126 @@
 import { useMemo, useState } from 'react'
-import { ArrowRight, CheckCircle2, CircleUserRound, ClipboardList, MapPinned, Plus, Search, ShieldCheck, UserRoundPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { CalendarClock, Cpu, Droplets, Layers, Plus, Search, UserRoundPlus } from 'lucide-react'
 import { useFarmers } from '../context/FarmersContext'
-import { getActiveCropCycles, getFarmersOptedOutOfAnyProgramme, getPlotsForFarmer } from '../services/FarmersService'
-import type { Farmer, MembershipStatus, ParticipationStatus } from '../types'
+import { usePlan } from '../context/PlanContext'
+import { soilTypes } from '../data/crops'
+import { addDays } from '../planning/format'
+import { farmerEligibility, plotAcres, plotBusyUntil, replyStateFor } from '../planning/engine'
+import { fmtAcres, fmtDay } from '../planning/format'
+import type { Farmer, Plot } from '../types'
+import { ReplyBadge, initials } from '../components/ui'
 
-type MembershipFilter = 'All members' | MembershipStatus
-type ParticipationFilter = 'All participation' | ParticipationStatus
+type Filter = 'all' | 'in-plan' | 'needs-details' | 'not-participating'
+const waterTone: Record<Plot['waterAvailability'], string> = { Available: 'var(--good)', Limited: 'var(--warn)', None: 'var(--bad)', Unknown: 'var(--faint)' }
+const needsDetails = (p: Plot) => p.waterAvailability === 'Unknown' || !p.soilType.trim()
 
-function StatusBadge({ status, type = 'membership' }: { status: MembershipStatus | ParticipationStatus; type?: 'membership' | 'participation' }) {
-  const labels: Record<MembershipStatus | ParticipationStatus, string> = { Active: 'Active member', Inactive: 'Inactive', 'not-recorded': 'Not recorded', 'opted-in': 'Opted in', 'opted-out': 'Opted out', unavailable: 'Unavailable' }
-  return <span className={`farmer-status-badge ${type === 'membership' ? `membership-${status.toLowerCase()}` : `participation-${status}`} `}><i />{labels[status]}</span>
+function PlotRow({ plot, inPlan }: { plot: Plot; inPlan: string[] }) {
+  const { data, editPlot } = useFarmers()
+  const busy = plotBusyUntil(data, plot.id)
+  const update = (patch: Partial<Plot>) => {
+    const { id: _id, createdAt: _c, updatedAt: _u, ...input } = { ...plot, ...patch }
+    editPlot(plot.id, input)
+  }
+  const m = plot.soilMeasurement
+  return <div className="m-plot-row">
+    <div><Link to={`/plots/${plot.id}`} className="m-link">{plot.name}</Link><div className="m-small">{plot.irrigationType ? `${plot.irrigationType} irrigation` : 'No irrigation recorded'}</div></div>
+    <div className="m-num"><strong>{fmtAcres(plotAcres(plot))}</strong></div>
+    <label><span className="m-plot-label">Water</span>
+      <select className="m-select m-select-sm" value={plot.waterAvailability} onChange={(e) => update({ waterAvailability: e.target.value as Plot['waterAvailability'] })} style={{ borderColor: waterTone[plot.waterAvailability] }} aria-label={`Water availability for ${plot.name}`}>
+        <option>Available</option><option>Limited</option><option>None</option><option>Unknown</option>
+      </select>
+    </label>
+    <label><span className="m-plot-label">Soil</span>
+      <select className="m-select m-select-sm" value={soilTypes.includes(plot.soilType) ? plot.soilType : plot.soilType ? '__other' : ''} onChange={(e) => e.target.value !== '__other' && update({ soilType: e.target.value })} aria-label={`Soil type for ${plot.name}`}>
+        <option value="">Not sure</option>{soilTypes.map((s) => <option key={s}>{s}</option>)}{plot.soilType && !soilTypes.includes(plot.soilType) && <option value="__other">{plot.soilType}</option>}
+      </select>
+    </label>
+    <div>{m ? <span className="m-tag m-tag-neutral" title={`Measured ${fmtDay(m.measuredAt)}`}>{m.source === 'Soil sensor' && <Cpu size={13} />}{m.ph != null ? `pH ${m.ph}` : ''}{m.moisturePct != null ? ` · ${m.moisturePct}% moisture` : ''} <span className="m-small" style={{ fontSize: 11.5 }}>({m.source.toLowerCase()})</span></span> : <span className="m-small">No measurements (optional)</span>}</div>
+    <div>{busy ? <span className="m-small"><CalendarClock size={13} style={{ verticalAlign: '-2px' }} /> {busy.cycle.crop} until {fmtDay(busy.until)}<br />free from {fmtDay(addDays(busy.until, 7))}</span> : <span className="m-small">Free now</span>}{inPlan.length > 0 && <div style={{ marginTop: 4 }}>{inPlan.map((t) => <span key={t} className="m-tag m-tag-plan" style={{ marginRight: 4 }}>{t}</span>)}</div>}</div>
+  </div>
 }
 
-function FarmerRow({ farmer, plotCount, activeCycles }: { farmer: Farmer; plotCount: number; activeCycles: number }) {
-  const { changeMembership } = useFarmers()
-  function toggleMembership() {
-    const next = farmer.membershipStatus === 'Active' ? 'Inactive' : 'Active'
-    if (window.confirm(`${next === 'Inactive' ? 'Deactivate' : 'Activate'} FPO membership for ${farmer.name}?`)) changeMembership(farmer.id, next)
-  }
-  return <tr>
-    <td><Link className="farmer-id-link" to={`/farmers-plots/${farmer.id}`}>{farmer.id}</Link></td>
-    <td><Link className="farmer-name-link" to={`/farmers-plots/${farmer.id}`}>{farmer.name}</Link><small>{farmer.village}, {farmer.district}</small></td>
-    <td>{farmer.phone}</td><td>{plotCount}</td><td><span className="cycle-count">{activeCycles}</span></td>
-    <td><StatusBadge status={farmer.membershipStatus} /></td><td><StatusBadge status={farmer.consent.status} type="participation" /></td>
-    <td><div className="farmer-row-actions"><Link className="entity-row-action" to={`/farmers-plots/${farmer.id}`} aria-label={`View ${farmer.name}`} title="View farmer"><ArrowRight size={15} /></Link><Link className="entity-row-action" to={`/farmers-plots/${farmer.id}/edit`} aria-label={`Edit ${farmer.name}`} title="Edit farmer"><ClipboardList size={14} /></Link><button type="button" className="membership-action" onClick={toggleMembership}>{farmer.membershipStatus === 'Active' ? 'Deactivate' : 'Activate'}</button></div></td>
-  </tr>
+function FarmerCard({ farmer }: { farmer: Farmer }) {
+  const { data, addParticipation } = useFarmers()
+  const { result, responses } = usePlan()
+  const plots = data.plots.filter((p) => p.farmerId === farmer.id)
+  const allocs = result.allocations.filter((a) => a.farmerId === farmer.id)
+  const reason = farmerEligibility(farmer, responses[farmer.id])
+  const record = (status: 'opted-in' | 'opted-out') => addParticipation({ farmerId: farmer.id, scope: 'supply-programme', scopeId: null, status, reason: status === 'opted-in' ? 'Farmer agreed to join this season’s plan' : 'Farmer chose not to participate', notes: 'Recorded from Farmers & farms' })
+  return <article className="m-card m-farmer-card">
+    <div className="m-farmer-head">
+      <span className="m-avatar">{initials(farmer.name)}</span>
+      <div>
+        <strong style={{ fontSize: 16 }}><Link to={`/farmers-plots/${farmer.id}`}>{farmer.name}</Link></strong>
+        <div className="m-small">{farmer.village}, {farmer.district} · {farmer.preferredLanguage} · {plots.length} plot{plots.length === 1 ? '' : 's'}, {fmtAcres(plots.reduce((s, p) => s + plotAcres(p), 0))}</div>
+      </div>
+      <div className="m-row" style={{ gap: 6 }}>
+        {reason ? <span className="m-tag m-tag-neutral">{reason}</span> : allocs.length ? <span className="m-tag m-tag-plan">In plan · {allocs.map((a) => a.crop).filter((c, i, arr) => arr.indexOf(c) === i).join(', ')}</span> : <span className="m-tag m-tag-neutral">Participating · not needed yet</span>}
+        {allocs.length > 0 && <ReplyBadge state={replyStateFor(farmer.id, responses, result.allocations)} />}
+        {farmer.membershipStatus === 'Active' && farmer.consent.status === 'not-recorded' && <>
+          <button type="button" className="m-btn m-btn-primary m-btn-xs" onClick={() => record('opted-in')}>Joins this season</button>
+          <button type="button" className="m-btn m-btn-secondary m-btn-xs" onClick={() => record('opted-out')}>Not joining</button>
+        </>}
+      </div>
+    </div>
+    {plots.length > 0 && <div className="m-plot-row m-plot-head"><span>Plot</span><span>Area</span><span>Water</span><span>Soil type</span><span>Measured soil</span><span>Availability & plan</span></div>}
+    {plots.map((p) => <PlotRow key={p.id} plot={p} inPlan={allocs.filter((a) => a.plotId === p.id).map((a) => `${a.crop} ${fmtAcres(a.acres)}`)} />)}
+    {!plots.length && <div className="m-plot-row"><span className="m-small">No plots recorded.</span><Link className="m-link" to={`/plots/new?farmerId=${farmer.id}`}><Plus size={14} /> Add plot</Link></div>}
+  </article>
 }
 
 export default function FarmersPlots() {
   const { data } = useFarmers()
+  const { result, responses } = usePlan()
+  const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
-  const [membership, setMembership] = useState<MembershipFilter>('All members')
-  const [participation, setParticipation] = useState<ParticipationFilter>('All participation')
-  const activeFarmers = useMemo(() => data.farmers.filter((farmer) => farmer.membershipStatus === 'Active').length, [data.farmers])
-  const farmerCycleCount = useMemo(() => data.farmers.filter((farmer) => getActiveCropCycles(data, farmer.id).length > 0).length, [data])
-  const optedOutCount = useMemo(() => getFarmersOptedOutOfAnyProgramme(data).length, [data])
-  const rows = useMemo(() => {
-    const search = query.trim().toLowerCase()
-    return data.farmers.filter((farmer) => {
-      const matchesText = !search || [farmer.id, farmer.name, farmer.phone].some((item) => item.toLowerCase().includes(search))
-      const matchesMembership = membership === 'All members' || farmer.membershipStatus === membership
-      const matchesParticipation = participation === 'All participation' || farmer.consent.status === participation
-      return matchesText && matchesMembership && matchesParticipation
-    }).sort((a, b) => a.name.localeCompare(b.name))
-  }, [data.farmers, query, membership, participation])
+  const eligible = data.farmers.filter((f) => !farmerEligibility(f, responses[f.id]))
+  const eligibleIds = new Set(eligible.map((f) => f.id))
+  const participatingPlots = data.plots.filter((p) => eligibleIds.has(p.farmerId))
+  const freeAcres = participatingPlots.filter((p) => !plotBusyUntil(data, p.id)).reduce((s, p) => s + plotAcres(p), 0)
+  const detailFarmers = new Set(participatingPlots.filter(needsDetails).map((p) => p.farmerId))
+  const measured = data.plots.filter((p) => p.soilMeasurement).length
 
-  return <div className="entity-page farmers-page">
-    <div className="entity-page-top"><div><div className="entity-kicker"><UsersIcon /> FARMER DIRECTORY</div><h2>Farmers &amp; Plots</h2><p>Manage FPO membership, supply participation and the plots and crop cycles linked to each farmer.</p></div><div className="entity-top-actions"><span className="entity-demo-label">Synthetic demo records</span><Link to="/farmers-plots/new" className="primary-button"><UserRoundPlus size={15} /> Add Farmer</Link></div></div>
+  const groups: Record<Filter, (f: Farmer) => boolean> = {
+    all: () => true,
+    'in-plan': (f) => result.farmersInvolved.includes(f.id),
+    'needs-details': (f) => detailFarmers.has(f.id),
+    'not-participating': (f) => !eligibleIds.has(f.id),
+  }
+  const visible = useMemo(() => data.farmers.filter((f) => groups[filter](f) && (!query.trim() || `${f.name} ${f.village} ${f.district}`.toLowerCase().includes(query.trim().toLowerCase())))
+    .sort((a, b) => Number(!result.farmersInvolved.includes(a.id)) - Number(!result.farmersInvolved.includes(b.id)) || a.name.localeCompare(b.name)), [data.farmers, filter, query, result.farmersInvolved]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    <div className="entity-summary-grid">
-      <Summary icon={<CircleUserRound size={17} />} label="Total farmers" value={data.farmers.length} caption="In this directory" />
-      <Summary icon={<CheckCircle2 size={17} />} label="Active members" value={activeFarmers} caption="FPO membership active" tone="green" />
-      <Summary icon={<MapPinned size={17} />} label="Farmers with active crop cycles" value={farmerCycleCount} caption="Planned, growing or harvest-ready" tone="blue" />
-      <Summary icon={<ShieldCheck size={17} />} label="Opted out of a programme / order" value={optedOutCount} caption="Scope-specific participation records" tone="amber" />
+  return <div className="m-page">
+    <header className="m-pagehead">
+      <div><div className="m-eyebrow">Step 3 · Farmer feasibility</div><h1 className="m-h1">Farmers & farm conditions</h1><p className="m-lead">What your members can realistically grow depends on land that is free in time, water and soil. Change a detail here and the plan updates immediately.</p></div>
+      <div className="m-pagehead-actions"><Link to="/plots/new" className="m-btn m-btn-secondary"><Plus size={17} /> Add plot</Link><Link to="/farmers-plots/new" className="m-btn m-btn-primary"><UserRoundPlus size={17} /> Add farmer</Link></div>
+    </header>
+
+    <div className="m-kpis">
+      <div className="m-kpi"><small>Participating farmers</small><strong>{eligible.length} of {data.farmers.length}</strong><span>{result.farmersInvolved.length} assigned in the plan</span></div>
+      <div className="m-kpi"><small>Participating land free now</small><strong>{freeAcres.toFixed(1)} ac</strong><span>of {participatingPlots.reduce((s, p) => s + plotAcres(p), 0).toFixed(1)} ac in total</span></div>
+      <div className="m-kpi"><small>Plots missing water or soil</small><strong>{participatingPlots.filter(needsDetails).length}</strong><span>Kept out of the strongest matches</span></div>
+      <div className="m-kpi"><small>Plots with soil measurements</small><strong>{measured}</strong><span>Sensor, lab or field kit – optional</span></div>
     </div>
 
-    <section className="entity-list-panel"><div className="entity-list-heading"><div><h3>Farmer records</h3><p>Consent and participation are tracked separately from FPO membership.</p></div><span className="entity-record-count">{rows.length} of {data.farmers.length}</span></div>
-      <div className="entity-list-controls"><label className="entity-search"><Search size={16} /><input aria-label="Search by farmer name, farmer ID or phone" placeholder="Search name, farmer ID or phone" value={query} onChange={(event) => setQuery(event.target.value)} />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search">×</button>}</label><label className="entity-filter"><span>Membership</span><select value={membership} onChange={(event) => setMembership(event.target.value as MembershipFilter)}><option>All members</option><option>Active</option><option>Inactive</option></select></label><label className="entity-filter"><span>Participation</span><select value={participation} onChange={(event) => setParticipation(event.target.value as ParticipationFilter)}><option>All participation</option><option value="not-recorded">Not recorded</option><option value="opted-in">Opted in</option><option value="opted-out">Opted out</option><option value="unavailable">Unavailable</option></select></label></div>
-      {rows.length ? <div className="entity-table-scroll"><table className="farmers-table"><thead><tr><th>FARMER ID</th><th>FARMER</th><th>CONTACT NUMBER</th><th>PLOTS</th><th>ACTIVE CYCLES</th><th>MEMBERSHIP</th><th>SUPPLY PARTICIPATION</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((farmer) => <FarmerRow key={farmer.id} farmer={farmer} plotCount={getPlotsForFarmer(data, farmer.id).length} activeCycles={getActiveCropCycles(data, farmer.id).length} />)}</tbody></table></div> : <div className="entity-empty-state"><div><Search size={19} /></div><h3>{data.farmers.length ? 'No matching farmers' : 'No farmers registered yet'}</h3><p>{data.farmers.length ? 'Try a different search or clear one of the filters.' : 'Register a farmer to start connecting plots and crop cycles.'}</p>{data.farmers.length ? <button className="secondary-button" onClick={() => { setQuery(''); setMembership('All members'); setParticipation('All participation') }}>Clear filters</button> : <Link className="primary-button" to="/farmers-plots/new"><Plus size={15} /> Add Farmer</Link>}</div>}
-      <div className="entity-list-footnote">All people, contact numbers, locations and crop details are synthetic demo data.</div>
+    <section className="m-card m-card-sage" aria-labelledby="explain-title">
+      <h2 className="m-h3" id="explain-title" style={{ marginBottom: 14 }}>How farm conditions shape recommendations</h2>
+      <div className="m-explain">
+        <div><strong><CalendarClock size={17} /> Timing</strong>A plot still growing another crop past the sow-by date is skipped for that crop. Meraki allows 7 days to prepare land after harvest.</div>
+        <div><strong><Droplets size={17} /> Water</strong>No water rules a plot out. Limited water rules out thirsty crops like baby corn; drip irrigation makes medium-water crops workable.</div>
+        <div><strong><Layers size={17} /> Soil</strong>A less-suited or unknown soil type adds caution but never excludes a plot on its own. Farmers’ experience matters too.</div>
+        <div><strong><Cpu size={17} /> Measurements</strong>Optional pH or moisture readings from a field kit, lab or future soil sensor sharpen the advice. They are never required.</div>
+      </div>
     </section>
+
+    <div className="m-row" style={{ justifyContent: 'space-between' }}>
+      <div className="m-chips" role="group" aria-label="Filter farmers">
+        {([['all', 'All'], ['in-plan', 'In plan'], ['needs-details', 'Needs details'], ['not-participating', 'Not participating']] as [Filter, string][]).map(([id, label]) => <button key={id} type="button" className="m-chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}<span className="m-count">{data.farmers.filter(groups[id]).length}</span></button>)}
+      </div>
+      <label className="m-row" style={{ flexWrap: 'nowrap', gap: 0, position: 'relative' }}><Search size={16} style={{ position: 'absolute', left: 14, color: 'var(--mute)' }} /><input className="m-input" style={{ paddingLeft: 38, minHeight: 40, width: 260, borderRadius: 999 }} placeholder="Search farmer or village" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search farmers" /></label>
+    </div>
+
+    <div className="m-stack">{visible.map((f) => <FarmerCard key={f.id} farmer={f} />)}{!visible.length && <p className="m-small">No farmers match this filter.</p>}</div>
+    <p className="m-footnote">All people, phone numbers, locations and soil readings are synthetic demo records.</p>
   </div>
 }
-
-function Summary({ icon, label, value, caption, tone = '' }: { icon: React.ReactNode; label: string; value: number; caption: string; tone?: string }) {
-  return <article className="entity-summary-card"><span className={`entity-summary-icon ${tone}`}>{icon}</span><div><small>{label}</small><strong>{value}</strong><span>{caption}</span></div></article>
-}
-
-function UsersIcon() { return <CircleUserRound size={14} /> }

@@ -4,6 +4,29 @@ import { Link, useParams } from 'react-router-dom'
 import { formatOrderDateTime } from '../data/buyerOrders'
 import { useBuyerOrders } from '../context/BuyerOrdersContext'
 import type { BuyerOrderStatus } from '../types'
+import { usePlan } from '../context/PlanContext'
+import { findCrop } from '../data/crops'
+import { fmtDay, fmtKg } from '../planning/format'
+import { PlanStatus, SourceTag, SupplyMeter } from '../components/ui'
+
+function PlanImpact({ crop, active, orderType }: { crop: string; active: boolean; orderType: string }) {
+  const { result } = usePlan()
+  const profile = findCrop(crop)
+  const plan = result.plans.find((p) => p.crop.name === profile?.name)
+  return <section className="m-card" style={{ marginBottom: 14 }} aria-label="Planting plan impact">
+    <div className="m-card-head" style={{ marginBottom: 12 }}>
+      <div><h3 className="m-h3">How this order shapes the planting plan</h3><p className="m-sub">{!active ? 'Only active orders are used for planning.' : !profile ? 'Meraki has no growing reference for this crop, so it can’t be planned automatically.' : orderType === 'Indicative' ? 'Indicative demand is planned only in scenarios that include it.' : 'Confirmed demand is always planned first.'}</p></div>
+      <SourceTag kind={orderType === 'Confirmed' ? 'order' : 'indicative'}>{orderType}</SourceTag>
+    </div>
+    {active && plan && <>
+      <SupplyMeter plan={plan} showLegend />
+      <div className="m-row" style={{ marginTop: 14, justifyContent: 'space-between' }}>
+        <span className="m-small"><PlanStatus plan={plan} /> &nbsp;{plan.crop.name}: {fmtKg(plan.expectedKg)} expected for {fmtKg(plan.confirmedKg + plan.indicativeKg)} total demand · {plan.allocations.length} plots{plan.sowBy ? ` · sow by ${fmtDay(plan.sowBy)}` : ''}</span>
+        <Link className="m-btn m-btn-primary m-btn-sm" to={`/plan#${plan.crop.id}`}>Open in plan</Link>
+      </div>
+    </>}
+  </section>
+}
 
 const statusClass: Record<BuyerOrderStatus, string> = { Draft: 'order-status-draft', Active: 'order-status-active', Completed: 'order-status-completed', Cancelled: 'order-status-cancelled' }
 
@@ -23,7 +46,7 @@ export default function BuyerOrderDetails() {
   const versions = useMemo(() => order?.specificationHistory ?? [], [order])
   const selected = versions.find((version) => version.version === (selectedVersion ?? order?.specificationVersion))
   const specification = selected?.specification ?? order?.specification
-  if (!order) return <div className="order-not-found"><h2>Order not found</h2><p>This order may have been removed from local demo data.</p><Link className="secondary-button" to="/buyer-orders"><ArrowLeft size={15} /> Back to orders</Link></div>
+  if (!order) return <div className="order-not-found"><h2>Order not found</h2><p>This order may have been removed from local demo data.</p><Link className="secondary-button" to="/demand"><ArrowLeft size={15} /> Back to buyer demand</Link></div>
 
   const orderKey = order.id
   const canEdit = order.status === 'Draft' || order.status === 'Active'
@@ -33,13 +56,14 @@ export default function BuyerOrderDetails() {
   }
 
   return <div className="buyer-order-page buyer-order-detail-page">
-    <div className="buyer-order-page-top detail-page-top"><div><Link className="back-link" to="/buyer-orders"><ArrowLeft size={15} /> All orders</Link><div className="detail-title-line"><h2>{order.id}</h2><span className={`order-status-pill ${statusClass[order.status]}`}><i />{order.status}</span></div><p>{order.buyer.name} <span className="detail-title-divider">·</span> {order.product.crop}{order.product.variety ? `, ${order.product.variety}` : ''}</p></div><div className="buyer-order-top-actions"><span className="detail-version-chip"><History size={14} /> Spec v{order.specificationVersion}</span>{canEdit && <Link className="primary-button" to={`/buyer-orders/${order.id}/edit`}><PencilLine size={15} /> Edit order</Link>}</div></div>
+    <div className="buyer-order-page-top detail-page-top"><div><Link className="back-link" to="/demand"><ArrowLeft size={15} /> Buyer demand</Link><div className="detail-title-line"><h2>{order.id}</h2><span className={`order-status-pill ${statusClass[order.status]}`}><i />{order.status}</span></div><p>{order.buyer.name} <span className="detail-title-divider">·</span> {order.product.crop}{order.product.variety ? `, ${order.product.variety}` : ''}</p></div><div className="buyer-order-top-actions"><span className="detail-version-chip"><History size={14} /> Spec v{order.specificationVersion}</span>{canEdit && <Link className="primary-button" to={`/buyer-orders/${order.id}/edit`}><PencilLine size={15} /> Edit order</Link>}</div></div>
 
     <div className="order-detail-meta"><div><span><Clock3 size={14} /> Created</span><strong>{formatOrderDateTime(order.createdAt)}</strong></div><div><span><Clock3 size={14} /> Last updated</span><strong>{formatOrderDateTime(order.updatedAt)}</strong></div><div><span><Package size={14} /> Order type</span><strong>{order.product.orderType}</strong></div></div>
 
     {canEdit && <div className="order-lifecycle-bar"><div><strong>{order.status === 'Draft' ? 'This order is a draft.' : 'This order is active.'}</strong><span>{order.status === 'Draft' ? 'Complete the required information to activate it.' : 'Order requirements can be edited and specification changes are versioned.'}</span></div><div className="lifecycle-actions">{order.status === 'Draft' && <Link to={`/buyer-orders/${order.id}/edit`} className="secondary-button"><FileEdit size={14} /> Complete draft</Link>}{order.status === 'Active' && <button type="button" className="secondary-button" onClick={() => confirmStatus('Completed')}><CircleCheck size={14} /> Mark completed</button>}<button type="button" className="cancel-order-button" onClick={() => confirmStatus('Cancelled')}><Ban size={14} /> Cancel order</button></div></div>}
     {!canEdit && <div className={`order-readonly-notice ${order.status === 'Cancelled' ? 'cancelled-notice' : ''}`}><ShieldCheck size={16} /> This {order.status.toLowerCase()} order is read-only.</div>}
 
+    <PlanImpact crop={order.product.crop} active={order.status === 'Active'} orderType={order.product.orderType} />
     <div className="order-detail-layout"><div className="order-detail-main">
       <DetailSection icon={<MapPin size={17} />} title="Buyer information" description="Buyer contact and destination for this order.">
         <div className="detail-values-grid"><Value label="Buyer name">{order.buyer.name}</Value><Value label="Contact person">{order.buyer.contactPerson}</Value><Value label="Email">{order.buyer.email}</Value><Value label="Phone">{order.buyer.phone}</Value><Value label="Destination country">{order.buyer.destinationCountry}</Value><Value label="Destination city / port">{order.buyer.destinationCityPort}</Value></div>
@@ -57,6 +81,6 @@ export default function BuyerOrderDetails() {
         <div className="detail-values-grid"><Value label="Packaging type">{order.commercial.packagingType}</Value><Value label="Agreed price per kg">{order.commercial.agreedPricePerKg === '' ? '' : `${order.commercial.currency} ${Number(order.commercial.agreedPricePerKg).toLocaleString()}`}</Value><Value label="Currency">{order.commercial.currency}</Value><Value label="Payment terms">{order.commercial.paymentTerms}</Value><Value label="Packaging instructions">{order.commercial.packagingInstructions}</Value><Value label="Additional instructions">{order.commercial.additionalInstructions}</Value></div>
       </DetailSection>
     </div><aside className="order-detail-aside"><div className="detail-aside-heading"><History size={16} /><h3>Specification history</h3></div><p>Previous buyer requirements stay available when specifications change.</p><div className="history-timeline">{versions.slice().reverse().map((version) => <button type="button" key={version.version} className={`history-entry ${version.version === (selected?.version ?? order.specificationVersion) ? 'history-entry-selected' : ''}`} onClick={() => setSelectedVersion(version.version)}><span className="history-marker" /><span className="history-entry-copy"><strong>Version {version.version}{version.version === order.specificationVersion && <i>Current</i>}</strong><small>{formatOrderDateTime(version.changedAt)}</small><small>{version.changedBy}</small></span></button>)}</div><div className="history-retention-note">Each saved version preserves the buyer's criteria and documentation requirements at that point in time.</div></aside></div>
-    <div className="detail-bottom-actions"><Link className="secondary-button" to="/buyer-orders"><ArrowLeft size={15} /> Back to all orders</Link>{canEdit && <Link className="primary-button" to={`/buyer-orders/${order.id}/edit`}><PencilLine size={15} /> Edit order</Link>}</div>
+    <div className="detail-bottom-actions"><Link className="secondary-button" to="/demand"><ArrowLeft size={15} /> Back to buyer demand</Link>{canEdit && <Link className="primary-button" to={`/buyer-orders/${order.id}/edit`}><PencilLine size={15} /> Edit order</Link>}</div>
   </div>
 }

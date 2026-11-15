@@ -127,6 +127,15 @@ export interface SoilReport {
   reportDate: string
 }
 
+export type SoilMeasurementSource = 'Soil sensor' | 'Lab test' | 'Field test kit'
+
+export interface SoilMeasurement {
+  source: SoilMeasurementSource
+  ph: number | null
+  moisturePct: number | null
+  measuredAt: string
+}
+
 export interface Plot {
   id: string
   farmerId: string
@@ -138,6 +147,8 @@ export interface Plot {
   irrigationType: string
   soilType: string
   soilReport: SoilReport | null
+  /** Optional measured values (field kit, lab or a future soil sensor). Never required for planning. */
+  soilMeasurement?: SoilMeasurement | null
   notes: string
   createdAt: string
   updatedAt: string

@@ -1,48 +1,44 @@
 import { NavLink } from 'react-router-dom'
-import {
-  BadgeIndianRupee, Boxes, ClipboardCheck, ClipboardList, FlaskConical, LayoutDashboard,
-  MapPinned, Menu, PackageCheck, Truck, UsersRound, X,
-} from 'lucide-react'
+import { Archive, Handshake, LayoutGrid, MessageCircle, RotateCcw, Sprout, UsersRound } from 'lucide-react'
+import { usePlan, resetDemoData } from '../../context/PlanContext'
+import { PLANNING_DATE, SEASON_LABEL, replyStateFor } from '../../planning/engine'
+import { fmtDate } from '../../planning/format'
+import { MerakiMark } from '../ui'
 
 export const navigation = [
-  { label: 'Dashboard', to: '/', icon: LayoutDashboard },
-  { label: 'Buyer Orders', to: '/buyer-orders', icon: ClipboardList },
-  { label: 'Farmers & Plots', to: '/farmers-plots', icon: MapPinned },
-  { label: 'Supply Planning', to: '/supply-planning', icon: Boxes },
-  { label: 'Lots & Inspection', to: '/lots-inspection', icon: ClipboardCheck },
-  { label: 'Lab & Release Review', to: '/lab-release-review', icon: FlaskConical },
-  { label: 'Crates & Shipments', to: '/crates-shipments', icon: Truck },
-  { label: 'Arrival & Claims', to: '/arrival-claims', icon: PackageCheck },
-  { label: 'Farmer Settlements', to: '/farmer-settlements', icon: BadgeIndianRupee },
+  { label: 'Overview', short: 'Overview', to: '/', icon: LayoutGrid },
+  { label: 'Buyer demand', short: 'Demand', to: '/demand', icon: Handshake },
+  { label: 'Farmers & farms', short: 'Farmers', to: '/farmers', icon: UsersRound },
+  { label: 'Planting plan', short: 'Plan', to: '/plan', icon: Sprout },
+  { label: 'Messages', short: 'Messages', to: '/messages', icon: MessageCircle },
 ]
 
-type SidebarProps = { open: boolean; onClose: () => void; onToggle: () => void }
+export function useMessageBadge() {
+  const { result, responses } = usePlan()
+  return result.farmersInvolved.filter((id) => { const s = replyStateFor(id, responses, result.allocations); return s === 'not-sent' || s === 'needs-update' }).length
+}
 
-export default function Sidebar({ open, onClose, onToggle }: SidebarProps) {
-  return (
-    <>
-      <button className="mobile-menu" onClick={onToggle} aria-label={open ? 'Close navigation' : 'Open navigation'}>
-        {open ? <X size={20} /> : <Menu size={20} />}
-      </button>
-      {open && <button className="sidebar-scrim" aria-label="Close navigation" onClick={onClose} />}
-      <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
-        <div className="brand-lockup">
-          <div className="brand-mark"><span /></div>
-          <div><div className="brand-name">Nexus<span>Supply</span></div><div className="brand-caption">FPO OPERATIONS</div></div>
-        </div>
-        <div className="workspace-label">WORKSPACE</div>
-        <nav aria-label="Main navigation" className="nav-list">
-          {navigation.map(({ label, to, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === '/'} onClick={onClose} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
-              <Icon size={18} strokeWidth={1.8} /><span>{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="workspace-card"><div className="workspace-card-icon"><UsersRound size={16} /></div><div><strong>FPO Manager</strong><span>Workspace</span></div></div>
-          <div className="sidebar-footnote">Nexus Supply <span>·</span> Demo workspace</div>
-        </div>
-      </aside>
-    </>
-  )
+export function isNavActive(to: string, pathname: string) {
+  if (to === '/') return pathname === '/'
+  if (to === '/demand') return pathname.startsWith('/demand') || pathname.startsWith('/buyer-orders')
+  if (to === '/farmers') return pathname.startsWith('/farmers') || pathname.startsWith('/plots') || pathname.startsWith('/crop-cycles')
+  return pathname.startsWith(to)
+}
+
+export default function Sidebar({ pathname }: { pathname: string }) {
+  const badge = useMessageBadge()
+  return <aside className="m-sidebar">
+    <NavLink to="/" className="m-brand" aria-label="Meraki home"><MerakiMark /><div><div className="m-brand-name">Meraki</div><div className="m-brand-caption">Collective crop planning</div></div></NavLink>
+    <div className="m-season"><strong>{SEASON_LABEL} season</strong><span>Planning as of {fmtDate(PLANNING_DATE)}</span></div>
+    <nav className="m-nav" aria-label="Main navigation">
+      {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')} aria-current={isNavActive(to, pathname) ? 'page' : undefined}>
+        <Icon size={19} strokeWidth={1.9} /><span>{label}</span>{to === '/messages' && badge > 0 && <span className="m-nav-step" aria-label={`${badge} farmers to message`}>{badge}</span>}
+      </NavLink>)}
+    </nav>
+    <div className="m-sidebar-foot">
+      <div className="m-synthetic-note">Demo workspace. Orders, farms, forecasts and replies are <strong>synthetic</strong>; no messages are really sent.</div>
+      <NavLink to="/later"><Archive size={15} /> Later modules</NavLink>
+      <button type="button" onClick={() => { if (window.confirm('Reset all demo data? Your edits, messages and replies in this browser will be cleared.')) resetDemoData() }}><RotateCcw size={15} /> Reset demo data</button>
+    </div>
+  </aside>
 }

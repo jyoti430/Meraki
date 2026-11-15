@@ -12,7 +12,7 @@ type BuyerOrdersContextValue = {
   updateStatus: (id: string, status: BuyerOrderStatus) => void
 }
 
-const STORAGE_KEY = 'nexus-supply-buyer-orders-v1'
+const STORAGE_KEY = 'meraki-buyer-orders-v1'
 const BuyerOrdersContext = createContext<BuyerOrdersContextValue | null>(null)
 
 function loadOrders(): BuyerOrder[] {
@@ -45,7 +45,7 @@ export function BuyerOrdersProvider({ children }: { children: ReactNode }) {
   const value = useMemo<BuyerOrdersContextValue>(() => ({
     orders,
     createOrder(input, status) {
-      const nextNumber = Math.max(24, ...orders.map((order) => Number(order.id.match(/(\d+)$/)?.[1] ?? 0))) + 1
+      const nextNumber = Math.max(30, ...orders.map((order) => Number(order.id.match(/(\d+)$/)?.[1] ?? 0))) + 1
       const timestamp = now()
       const id = `ORD-DEMO-${String(nextNumber).padStart(3, '0')}`
       const specification = copySpecification(input.specification)

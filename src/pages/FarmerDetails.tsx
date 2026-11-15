@@ -17,7 +17,7 @@ export default function FarmerDetails() {
   const [participationNotes, setParticipationNotes] = useState('')
   const [feedback, setFeedback] = useState('')
   const [formError, setFormError] = useState('')
-  if (!farmer) return <div className="entity-not-found"><h2>Farmer not found</h2><p>This farmer record is not available in the current demo data.</p><Link className="secondary-button" to="/farmers-plots"><ArrowLeft size={14} /> Back to farmers</Link></div>
+  if (!farmer) return <div className="entity-not-found"><h2>Farmer not found</h2><p>This farmer record is not available in the current demo data.</p><Link className="secondary-button" to="/farmers"><ArrowLeft size={14} /> Back to farmers</Link></div>
   const currentFarmer = farmer
 
   const plots = getPlotsForFarmer(data, farmer.id)
@@ -44,7 +44,7 @@ export default function FarmerDetails() {
   }
 
   return <div className="entity-page farmer-detail-page">
-    <div className="entity-page-top"><div><Link className="entity-back-link" to="/farmers-plots"><ArrowLeft size={14} /> Farmer directory</Link><div className="farmer-profile-title"><span className="farmer-avatar"><UserRound size={20} /></span><div><h2>{farmer.name}</h2><p>{farmer.id} <span>·</span> {farmer.village}, {farmer.district}, {farmer.state}</p></div></div></div><div className="entity-top-actions"><Link to={`/farmers-plots/${farmer.id}/edit`} className="secondary-button"><Edit3 size={14} /> Edit farmer</Link><button className="secondary-button" type="button" onClick={toggleMembership}>{farmer.membershipStatus === 'Active' ? 'Deactivate membership' : 'Activate membership'}</button><Link to={`/plots/new?farmerId=${farmer.id}`} className="primary-button"><Plus size={15} /> Add plot</Link></div></div>
+    <div className="entity-page-top"><div><Link className="entity-back-link" to="/farmers"><ArrowLeft size={14} /> Farmers & farms</Link><div className="farmer-profile-title"><span className="farmer-avatar"><UserRound size={20} /></span><div><h2>{farmer.name}</h2><p>{farmer.id} <span>·</span> {farmer.village}, {farmer.district}, {farmer.state}</p></div></div></div><div className="entity-top-actions"><Link to={`/farmers-plots/${farmer.id}/edit`} className="secondary-button"><Edit3 size={14} /> Edit farmer</Link><button className="secondary-button" type="button" onClick={toggleMembership}>{farmer.membershipStatus === 'Active' ? 'Deactivate membership' : 'Activate membership'}</button><Link to={`/plots/new?farmerId=${farmer.id}`} className="primary-button"><Plus size={15} /> Add plot</Link></div></div>
 
     <div className="farmer-profile-status-row"><div><span className="profile-label">FPO membership</span><span className={`farmer-status-badge membership-${farmer.membershipStatus.toLowerCase()}`}><i />{farmer.membershipStatus}</span></div><div><span className="profile-label">Supply participation</span><span className={`farmer-status-badge participation-${farmer.consent.status}`}><i />{farmer.consent.status === 'not-recorded' ? 'Not recorded' : farmer.consent.status.replace('-', ' ')}</span></div><div><span className="profile-label">General programme eligibility</span><span className={`eligibility-badge ${eligible ? 'eligible' : 'ineligible'}`}><i />{eligible ? 'Eligible to be considered' : 'Not eligible'}</span></div><p>Eligibility only confirms current consent and membership. It does not reserve or allocate estimated production.</p></div>
 

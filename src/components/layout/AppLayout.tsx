@@ -1,20 +1,43 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { useLocation } from 'react-router-dom'
-import Sidebar, { navigation } from './Sidebar'
-import Header from './Header'
+import { NavLink, useLocation } from 'react-router-dom'
+import Sidebar, { isNavActive, navigation, useMessageBadge } from './Sidebar'
+import { MerakiMark } from '../ui'
+import { Archive, RotateCcw } from 'lucide-react'
+import { resetDemoData } from '../../context/PlanContext'
+import { SEASON_LABEL } from '../../planning/engine'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
-  const isFarmerWorkspace = location.pathname === '/farmers-plots' || location.pathname.startsWith('/farmers-plots/') || location.pathname.startsWith('/plots/') || location.pathname.startsWith('/crop-cycles/')
-  const current = isFarmerWorkspace ? navigation.find(({ to }) => to === '/farmers-plots') : navigation.find(({ to }) => to === location.pathname) ?? navigation.find(({ to }) => to !== '/' && location.pathname.startsWith(to))
-  const title = current?.label ?? 'Dashboard'
-  const description = title === 'Dashboard' ? 'Welcome back. Here’s what needs your attention today.' : title === 'Buyer Orders' ? 'Capture buyer requirements and track order readiness from one place.' : title === 'Farmers & Plots' ? 'Manage FPO membership, supply participation and farm records.' : 'Manage this part of your FPO supply operations.'
-  return (
-    <div className="app-shell">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} onToggle={() => setSidebarOpen((open) => !open)} />
-      <main className="main-panel"><Header title={title} description={description} /><div className="page-content">{children}</div></main>
+  const { pathname, hash } = useLocation()
+  const badge = useMessageBadge()
+
+  useEffect(() => {
+    if (!hash) { window.scrollTo(0, 0); return }
+    // Wait a frame so the target page has rendered before scrolling to the anchor.
+    const id = window.setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' }), 60)
+    return () => window.clearTimeout(id)
+  }, [pathname, hash])
+
+  return <div className="m-shell">
+    <Sidebar pathname={pathname} />
+    <div>
+      <header className="m-mobile-bar">
+        <NavLink to="/" className="m-brand"><MerakiMark size={30} /><div className="m-brand-name" style={{ fontSize: 21 }}>Meraki</div></NavLink>
+        <span className="m-tag m-tag-neutral">{SEASON_LABEL}</span>
+      </header>
+      <main className="m-main">{children}</main>
+      <footer className="m-mobile-foot">
+        <div className="m-synthetic-note m-small">Demo workspace. Orders, farms, forecasts and replies are synthetic; no messages are really sent.</div>
+        <div className="m-row" style={{ gap: 18 }}>
+          <NavLink to="/later"><Archive size={15} /> Later modules</NavLink>
+          <button type="button" onClick={() => { if (window.confirm('Reset all demo data? Your edits, messages and replies in this browser will be cleared.')) resetDemoData() }}><RotateCcw size={15} /> Reset demo data</button>
+        </div>
+      </footer>
     </div>
-  )
+    <nav className="m-tabbar" aria-label="Main navigation">
+      {navigation.map(({ short, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')}>
+        <Icon size={20} strokeWidth={1.9} />{short}{to === '/messages' && badge > 0 && <span className="m-nav-step">{badge}</span>}
+      </NavLink>)}
+    </nav>
+  </div>
 }

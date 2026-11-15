@@ -28,7 +28,7 @@ export default function CropCycleForm() {
   const selectedPlot = data.plots.find((plot) => plot.id === draft.plotId)
   const selectedFarmer = data.farmers.find((farmer) => farmer.id === selectedPlot?.farmerId)
 
-  if (cycleId && !existing) return <div className="entity-not-found"><h2>Crop cycle not found</h2><p>This crop cycle is not available in the current demo data.</p><Link className="secondary-button" to="/farmers-plots"><ArrowLeft size={14} /> Back to farmers</Link></div>
+  if (cycleId && !existing) return <div className="entity-not-found"><h2>Crop cycle not found</h2><p>This crop cycle is not available in the current demo data.</p><Link className="secondary-button" to="/farmers"><ArrowLeft size={14} /> Back to farmers</Link></div>
 
   function submit() {
     const next: Record<string, string> = {}
@@ -56,7 +56,7 @@ export default function CropCycleForm() {
   if (!availablePlots.length) return <div className="entity-not-found"><h2>Register a plot first</h2><p>Every crop cycle must belong to a plot. Add a plot before recording this crop cycle.</p><Link className="primary-button" to={requestedFarmerId ? `/plots/new?farmerId=${requestedFarmerId}` : '/plots/new'}>Register plot</Link></div>
 
   return <div className="entity-page entity-form-page">
-    <div className="entity-page-top"><div><Link className="entity-back-link" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers-plots'}><ArrowLeft size={14} /> {selectedPlot ? `Back to ${selectedPlot.name}` : 'Farmer directory'}</Link><h2>{existing ? 'Edit crop cycle' : 'Add crop cycle'}</h2><p>Capture dates, status, estimated production and known supply limitations for this plot.</p></div><span className="entity-demo-label">Synthetic demo records</span></div>
+    <div className="entity-page-top"><div><Link className="entity-back-link" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers'}><ArrowLeft size={14} /> {selectedPlot ? `Back to ${selectedPlot.name}` : 'Farmers & farms'}</Link><h2>{existing ? 'Edit crop cycle' : 'Add crop cycle'}</h2><p>Capture dates, status, estimated production and known supply limitations for this plot.</p></div><span className="entity-demo-label">Synthetic demo records</span></div>
     {formError && <EntityAlert>{formError}</EntityAlert>}
     <div className="entity-form-layout"><div className="entity-form-main">
       <EntitySection number="01" title="Plot and crop" description="Crop cycles reference a plot. Farmer and plot details remain linked by their IDs.">
@@ -83,6 +83,6 @@ export default function CropCycleForm() {
         <div className="entity-fields-grid"><EntityField label="Water constraints"><textarea rows={3} value={draft.waterConstraints} onChange={(event) => set('waterConstraints', event.target.value)} placeholder="Known crop-cycle water constraints" /></EntityField><EntityField label="Capital / input constraints"><textarea rows={3} value={draft.capitalInputConstraints} onChange={(event) => set('capitalInputConstraints', event.target.value)} placeholder="Input or working-capital limitations" /></EntityField><EntityField label="Other limitations"><textarea rows={3} value={draft.otherLimitations} onChange={(event) => set('otherLimitations', event.target.value)} placeholder="Other supply-related limitations" /></EntityField><EntityField label="Crop cycle notes"><textarea rows={3} value={draft.notes} onChange={(event) => set('notes', event.target.value)} placeholder="Additional notes" /></EntityField></div>
       </EntitySection>
     </div><aside className="entity-form-aside"><div className="entity-aside-icon"><CalendarRange size={19} /></div><h3>Crop cycle dates</h3><p>Dates must follow the crop cycle sequence: planting, expected harvest start, then expected harvest end.</p><div className="entity-aside-separator" /><h4>Overlapping cycles</h4><p>A plot cannot have overlapping Planned, Growing or Harvest-ready cycles. Mark an earlier cycle Harvested or Cancelled before creating an overlapping active cycle.</p><div className="entity-aside-separator" /><h4>Participation</h4><p>Crop-cycle estimates are not allocated. Farmers who opt out are excluded from eligible participant queries.</p></aside></div>
-    <div className="entity-form-footer"><Link className="secondary-button" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers-plots'}>Cancel</Link><button className="primary-button" type="button" disabled={saving} onClick={submit}>{saving ? 'Saving…' : existing ? 'Save crop cycle' : 'Add crop cycle'}</button></div>
+    <div className="entity-form-footer"><Link className="secondary-button" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers'}>Cancel</Link><button className="primary-button" type="button" disabled={saving} onClick={submit}>{saving ? 'Saving…' : existing ? 'Save crop cycle' : 'Add crop cycle'}</button></div>
   </div>
 }
