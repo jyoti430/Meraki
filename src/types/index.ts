@@ -174,3 +174,101 @@ export interface ParticipationRecord {
   reason: string
   notes: string
 }
+
+export type SupplyPlanStatus = 'Draft' | 'Previewed' | 'Confirmed' | 'Needs Review' | 'Cancelled'
+
+export interface AllocationExclusionReason {
+  code: string
+  message: string
+}
+
+export interface AllocationWarning {
+  code: string
+  message: string
+  severity: 'info' | 'warning'
+  candidateId?: string
+}
+
+export interface SupplyCandidate {
+  candidateId: string
+  farmerId: string | null
+  plotId: string
+  cropCycleId: string
+  crop: string
+  variety: string
+  cycleStatus: CropCycleStatus
+  harvestStartDate: string
+  harvestEndDate: string
+  estimatedProductionKg: number
+  previouslyReservedKg: number
+  remainingEstimateKg: number
+  consentStatus: ParticipationStatus
+  eligible: boolean
+  exclusionReasons: AllocationExclusionReason[]
+  warnings: AllocationWarning[]
+  proposedAllocationKg: number
+}
+
+export interface Allocation {
+  candidateId: string
+  farmerId: string
+  plotId: string
+  cropCycleId: string
+  proposedQuantityKg: number
+  adjustedQuantityKg: number
+  included: boolean
+  overrideReason: string
+}
+
+export interface ManualOverride {
+  candidateId: string
+  originalQuantityKg: number
+  adjustedQuantityKg: number
+  reason: string
+  changedAt: string
+  changedBy: string
+}
+
+export interface ReservationHistoryEntry {
+  status: 'active' | 'released'
+  changedAt: string
+  changedBy: string
+  reason: string
+}
+
+export interface Reservation {
+  id: string
+  planId: string
+  orderId: string
+  farmerId: string
+  plotId: string
+  cropCycleId: string
+  quantityKg: number
+  status: 'active' | 'released'
+  createdAt: string
+  releasedAt: string | null
+  releaseReason: string
+  history: ReservationHistoryEntry[]
+}
+
+export interface SupplyPlan {
+  id: string
+  orderId: string
+  programmeId: string
+  status: SupplyPlanStatus
+  orderQuantityKg: number
+  sourceFingerprint: string
+  candidates: SupplyCandidate[]
+  allocations: Allocation[]
+  overrides: ManualOverride[]
+  warnings: AllocationWarning[]
+  assumptions: string[]
+  createdAt: string
+  updatedAt: string
+  createdBy: string
+  confirmedAt: string | null
+  confirmedBy: string | null
+  cancelledAt: string | null
+  cancelledBy: string | null
+  cancellationReason: string
+}

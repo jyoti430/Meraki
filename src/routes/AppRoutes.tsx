@@ -16,6 +16,9 @@ import PlotForm from '../pages/PlotForm'
 import PlotDetails from '../pages/PlotDetails'
 import CropCycleForm from '../pages/CropCycleForm'
 import CropCycleDetails from '../pages/CropCycleDetails'
+import SupplyPlanCreate from '../pages/SupplyPlanCreate'
+import SupplyPlanPreview from '../pages/SupplyPlanPreview'
+import SupplyPlanDetails from '../pages/SupplyPlanDetails'
 
 export default function AppRoutes() {
   return <Routes>
@@ -35,6 +38,9 @@ export default function AppRoutes() {
     <Route path="/crop-cycles/:cycleId/edit" element={<CropCycleForm />} />
     <Route path="/crop-cycles/:cycleId" element={<CropCycleDetails />} />
     <Route path="/supply-planning" element={<SupplyPlanning />} />
+    <Route path="/supply-planning/new" element={<SupplyPlanCreate />} />
+    <Route path="/supply-planning/preview" element={<SupplyPlanPreview />} />
+    <Route path="/supply-planning/:planId" element={<SupplyPlanDetails />} />
     <Route path="/lots-inspection" element={<LotsInspection />} />
     <Route path="/lab-release-review" element={<LabReleaseReview />} />
     <Route path="/crates-shipments" element={<CratesShipments />} />
