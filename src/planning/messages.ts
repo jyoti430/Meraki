@@ -32,7 +32,7 @@ const L = {
   Marathi: { hi: (n: string) => `नमस्कार ${n}! 👋`, intro: (crops: string, upd: boolean) => `${upd ? 'नियोजनात बदल: ' : ''}या हंगामात ${FPO_NAME} च्या नियोजनानुसार ${crops} लागवड करा.`, area: 'क्षेत्र', acre: 'एकर', window: 'लागवडीचा काळ', seed: 'बियाणे', rec: '(शिफारस)', harvest: 'काढणी', reply: 'उत्तर द्या:', r1: '1 – होय, लागवड करेन', r2: '2 – या हंगामात नाही', r3: '3 – अडचण (जमीन / पाणी / वेळ)', and: ' आणि ' },
 }
 
-export function composeInstruction(firstName: string, allocations: Allocation[], plans: CropPlan[], language: Language, channel: Channel, isUpdate: boolean): string {
+export function composeInstruction(firstName: string, allocations: Allocation[], _plans: CropPlan[], language: Language, channel: Channel, isUpdate: boolean): string {
   const t = L[language]
   const rich = channel === 'WhatsApp'
   const tick = rich ? '✅ ' : '- '
@@ -40,8 +40,9 @@ export function composeInstruction(firstName: string, allocations: Allocation[],
   const cropName = (c: string) => (language === 'English' ? c : cropNames[c]?.[language] ?? c)
   const names = [...new Set(allocations.map((a) => cropName(a.crop)))].join(t.and)
   const blocks = allocations.map((a) => {
-    const plan = plans.find((p) => p.crop.name === a.crop)!
-    const variety = plan.varieties[0] ?? plan.crop.defaultVariety
+    // Dates and variety come from the specific buyer order this area is planted for.
+    const plan = { sowFrom: a.sowFrom, sowBy: a.sowBy, harvestStart: a.harvestStart }
+    const variety = a.variety
     return [
       allocations.length > 1 ? `${rich ? '🌱 ' : ''}${cropName(a.crop)} – ${a.plotName}` : '',
       `${tick}${t.area}: ${acres(a.acres)} ${t.acre}${allocations.length > 1 ? '' : ` (${a.plotName})`}`,

@@ -7,8 +7,8 @@ import { findCrop } from '../data/crops'
 import { marketSignals } from '../data/marketSignals'
 import type { BuyerOrder } from '../types'
 import { PLANNING_DATE } from '../planning/engine'
-import { addDays, daysBetween, fmtDay, fmtPct, fmtRange, maxDate } from '../planning/format'
-import { InfoTip, StatCard } from '../components/ui'
+import { addDays, daysBetween, fmtDay, fmtRange, maxDate } from '../planning/format'
+import { InfoTip, StatCard, lineStatusLabel, orderTypeLabel } from '../components/ui'
 import PageHeader from '../components/layout/PageHeader'
 import { fmtT } from './Overview'
 
@@ -23,7 +23,7 @@ function PlantingImpact({ order }: { order: BuyerOrder }) {
   const plan = result.plans.find((p) => p.crop.name === crop?.name)
   const qty = Number(order.product.requiredQuantityKg) || 0
   const confirmOrder = () => {
-    if (!window.confirm(`Mark ${order.buyer.name}'s ${order.product.crop.toLowerCase()} order as confirmed?`)) return
+    if (!window.confirm(`Mark ${order.buyer.name}'s ${order.product.crop.toLowerCase()} order as buyer-committed?`)) return
     const { id: _i, createdAt: _c, updatedAt: _u, specificationHistory: _h, specificationVersion: _v, status: _s, ...input } = order
     updateOrder(order.id, { ...input, product: { ...order.product, orderType: 'Confirmed' } })
   }
@@ -34,21 +34,22 @@ function PlantingImpact({ order }: { order: BuyerOrder }) {
   const missed = sowBy !== '' && sowBy < PLANNING_DATE
   const harvestStart = order.product.deliveryStartDate
   const harvestEnd = harvestStart ? addDays(harvestStart, crop.harvestSpanDays) : ''
-  const cover = plan && plan.targetKg ? Math.min(1, plan.expectedKg / plan.targetKg) : 0
+  const line = plan?.lines.find((l) => l.order.id === order.id)
   const variety = order.product.variety || crop.defaultVariety
 
   let reco: string
   if (crop.perennial) reco = `${crop.name} is an orchard crop – no new planting. Existing orchards can supply about ${fmtT(plan?.existingKg ?? 0)} of ${fmtT(qty)}${plan && plan.gapKg > 0 ? '; agree a smaller volume or later window with the buyer' : ''}.`
   else if (missed) reco = `Too late to sow for delivery from ${fmtDay(order.product.deliveryStartDate)} (needed by ${fmtDay(sowBy)}). Ask the buyer for a later window.`
   else if (order.product.orderType === 'Indicative') reco = `Confirm this order before farmers sow. If confirmed, plan ~${acres.toFixed(1)} ac of ${crop.name} (${variety}). It is only planted in scenarios that include indicative demand.`
-  else reco = `Include ~${acres.toFixed(1)} ac of ${crop.name} (${variety}) in your planting plan to meet the confirmed demand of ${fmtT(qty)}. The current plan covers ${fmtPct(cover)} of the ${crop.name.toLowerCase()} target.`
+  else reco = `Include ~${acres.toFixed(1)} ac of ${crop.name} (${variety}) for this committed order of ${fmtT(qty)}. The plan currently expects ${fmtT(line?.expectedKg ?? 0)} for it${line && line.farmerConfirmedKg ? `, ${fmtT(line.farmerConfirmedKg)} farmer-confirmed` : ' – none farmer-confirmed yet'}.`
 
   return <>
     <div className="m-impact-head">
       <span className="e" aria-hidden="true">{crop.emoji}</span>
       <div style={{ flex: 1, minWidth: 0 }}><strong>{crop.name} demand</strong> <span className="m-small">(Selected)</span><div className="m-small">{order.buyer.name} · {marketOf(order)}</div></div>
-      <span className={`m-dotstatus ${order.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{order.product.orderType}</span>
+      <span className={`m-dotstatus ${order.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{orderTypeLabel(order.product.orderType)}</span>
     </div>
+    {line && <div className="m-impact-row"><span><Sprout size={20} />Planned for this order</span><strong>{fmtT(line.expectedKg)} <span className={`m-feas ${lineStatusLabel[line.status].cls}`} style={{ marginLeft: 6 }}><span>{lineStatusLabel[line.status].label}</span></span></strong></div>}
     <div className="m-impact-row"><span><Wheat size={20} />Recommended area <InfoTip text="Quantity ÷ expected yield per acre (indicative)" /></span><strong>{crop.perennial ? 'Orchard' : `~${acres.toFixed(1)} ac`}</strong></div>
     <div className="m-impact-row"><span><Sprout size={20} />Seed requirement <InfoTip text="Indicative seed rate × area. Nursery seed for transplanted crops." /></span><strong>{crop.perennial ? '—' : `~${(acres * crop.seedKgPerAcre).toFixed(acres * crop.seedKgPerAcre < 1 ? 2 : 1)} kg`}</strong></div>
     <div className="m-impact-row"><span><CalendarDays size={20} />Sowing window</span><strong style={{ color: missed ? 'var(--bad)' : undefined }}>{crop.perennial ? 'No new planting' : missed ? `Passed (${fmtDay(sowBy)})` : sowBy ? `${fmtDay(sowFrom)} – ${fmtDay(sowBy)}` : 'Add delivery dates'}</strong></div>
@@ -57,7 +58,7 @@ function PlantingImpact({ order }: { order: BuyerOrder }) {
     <div className="m-reco"><Info size={20} color="var(--forest)" style={{ flex: 'none', marginTop: 2 }} /><div><strong>Planting recommendation</strong><p>{reco}</p></div></div>
     <div className="m-row" style={{ marginTop: 14 }}>
       {plan && <Link to={`/plan#${plan.crop.id}`} className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}>Open in plan <ArrowRight size={15} /></Link>}
-      {order.product.orderType === 'Indicative' && <button type="button" className="m-btn m-btn-secondary m-btn-sm" style={{ borderRadius: 10 }} onClick={confirmOrder}><BadgeCheck size={15} />Mark confirmed</button>}
+      {order.product.orderType === 'Indicative' && <button type="button" className="m-btn m-btn-secondary m-btn-sm" style={{ borderRadius: 10 }} onClick={confirmOrder}><BadgeCheck size={15} />Mark committed</button>}
       <Link to={`/buyer-orders/${order.id}/edit`} className="m-btn m-btn-ghost m-btn-sm"><FileEdit size={15} />Edit</Link>
     </div>
   </>
@@ -84,7 +85,7 @@ export default function BuyerOrders() {
     <section className="m-panel" aria-labelledby="dov-title">
       <h2 className="m-panel-title sm" id="dov-title" style={{ marginBottom: 16 }}>Demand overview <small>(Rabi season)</small> <InfoTip text="Active orders only. Drafts and past orders are excluded." /></h2>
       <div className="m-stats three">
-        <StatCard icon={<CheckCircle2 size={24} />} label="Confirmed demand" tip="Buyer has committed to quantity, window and price" value={fmtT(sum(confirmed))} sub={<>{confirmed.length} orders · always planned first</>} />
+        <StatCard icon={<CheckCircle2 size={24} />} label="Committed demand" tip="Buyer has committed to quantity, window and price" value={fmtT(sum(confirmed))} sub={<>{confirmed.length} orders · always planned first</>} />
         <StatCard icon={<Sprout size={24} />} label="Indicative demand" tip="Buyer interest that isn't committed yet" value={fmtT(sum(indicative))} sub={<>{indicative.length} orders · confirm before sowing</>} />
         <StatCard icon={<BarChart3 size={24} />} tone="amber" label="Market signals" tip="Synthetic forecast scenarios – not guaranteed" value={signalWord} sub={<>Higher demand for {higher.map((s) => s.crop).filter((c, i, a) => a.indexOf(c) === i).slice(0, 3).join(', ') || '—'}</>} />
       </div>
@@ -97,7 +98,7 @@ export default function BuyerOrders() {
           <div className="m-seg2" role="group" aria-label="Market">{(['All', 'India', 'Singapore'] as MarketFilter[]).map((m) => <button key={m} type="button" aria-pressed={market === m} onClick={() => setMarket(m)}>{m}</button>)}</div>
         </div>
         <div className="m-dt-scroll"><table className="m-dt">
-          <thead><tr><th>Crop</th><th>Buyer &amp; market</th><th>Quantity</th><th>Delivery</th><th>Status <InfoTip text="Confirmed = committed; Indicative = interest only" /></th><th>Price</th></tr></thead>
+          <thead><tr><th>Crop</th><th>Buyer &amp; market</th><th>Quantity</th><th>Delivery</th><th>Status <InfoTip text="Committed = buyer has committed; Indicative = interest only" /></th><th>Price</th></tr></thead>
           <tbody>{visible.map((o) => {
             const crop = findCrop(o.product.crop)
             return <tr key={o.id} className={`click ${selected?.id === o.id ? 'sel' : ''}`} onClick={() => setSelectedId(o.id)} aria-selected={selected?.id === o.id}>
@@ -105,7 +106,7 @@ export default function BuyerOrders() {
               <td style={{ minWidth: 130 }}>{o.buyer.name}<small><span className={`m-mkt sm ${marketOf(o) === 'Singapore' ? 'sg' : ''}`}>{marketOf(o)}</span></small></td>
               <td className="num"><strong>{fmtT(Number(o.product.requiredQuantityKg))}</strong></td>
               <td className="nowrap">{fmtRange(o.product.deliveryStartDate, o.product.deliveryEndDate)}</td>
-              <td><span className={`m-dotstatus ${o.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{o.product.orderType}</span></td>
+              <td><span className={`m-dotstatus ${o.product.orderType === 'Confirmed' ? '' : 'ind'}`}>{orderTypeLabel(o.product.orderType)}</span></td>
               <td className="num">{price(o)}</td>
             </tr>
           })}{!visible.length && <tr><td colSpan={6}><span className="m-small">No active {market === 'All' ? '' : `${market} `}demand.</span></td></tr>}</tbody>

@@ -36,10 +36,10 @@ export const CropIcon = ({ emoji, label }: { emoji: string; label: string }) => 
 
 export type SourceKind = 'order' | 'indicative' | 'forecast' | 'plan' | 'farm' | 'timing'
 const sourceMeta: Record<SourceKind, { label: string; cls: string; icon: ReactNode }> = {
-  order: { label: 'Buyer order', cls: 'm-tag-order', icon: <Handshake size={13} /> },
+  order: { label: 'Buyer-committed', cls: 'm-tag-order', icon: <Handshake size={13} /> },
   indicative: { label: 'Indicative', cls: 'm-tag-indicative', icon: <Handshake size={13} /> },
   forecast: { label: 'Forecast', cls: 'm-tag-forecast', icon: <LineChart size={13} /> },
-  plan: { label: 'Our plan', cls: 'm-tag-plan', icon: <Sprout size={13} /> },
+  plan: { label: 'Planned', cls: 'm-tag-plan', icon: <Sprout size={13} /> },
   farm: { label: 'Farms', cls: 'm-tag-neutral', icon: <Droplets size={13} /> },
   timing: { label: 'Timing', cls: 'm-tag-marigold', icon: <Clock3 size={13} /> },
 }
@@ -50,10 +50,10 @@ export function SourceTag({ kind, children }: { kind: SourceKind; children?: Rea
 
 export function SourceLegend() {
   return <div className="m-legend" aria-label="How to read this page">
-    <span><SourceTag kind="order" /> committed by a buyer</span>
+    <span><SourceTag kind="order" /> buyer has committed</span>
     <span><SourceTag kind="indicative" /> buyer interest, not committed</span>
     <span><SourceTag kind="forecast" /> synthetic estimate – not guaranteed</span>
-    <span><SourceTag kind="plan" /> Meraki’s recommendation</span>
+    <span><SourceTag kind="plan" /> Meraki’s plan – not yet farmer-confirmed</span>
   </div>
 }
 
@@ -89,17 +89,17 @@ export function SupplyMeter({ plan, showLegend = false }: { plan: CropPlan; show
     {showLegend && <div className="m-meter-legend">
       {plan.existingKg > 0 && <span><i className="m-swatch m-seg-existing" /> Already growing {fmtKg(plan.existingKg)}</span>}
       <span><i className="m-swatch m-seg-confirmed" /> Farmer-confirmed {fmtKg(confirmedNew)}</span>
-      <span><i className="m-swatch m-seg-planned" /> Planned, awaiting reply {fmtKg(awaiting)}</span>
+      <span><i className="m-swatch m-seg-planned" /> Planned, not farmer-confirmed {fmtKg(awaiting)}</span>
       {plan.gapKg > 0 && <span><i className="m-swatch m-seg-gap" /> Gap {fmtKg(plan.gapKg)}</span>}
-      {plan.confirmedKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--ink)', width: 3 }} /> Confirmed demand</span>}
+      {plan.confirmedKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--ink)', width: 3 }} /> Committed demand</span>}
       {plan.indicativeKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--order)', width: 3 }} /> + indicative</span>}
     </div>}
   </div>
 }
 
 export const statusLabel: Record<CropPlan['status'], { label: string; cls: string }> = {
-  covered: { label: 'Demand covered', cls: 'm-tag-good' },
-  partial: { label: 'Partly covered', cls: 'm-tag-warn' },
+  covered: { label: 'Planned to cover', cls: 'm-tag-good' },
+  partial: { label: 'Partly planned', cls: 'm-tag-warn' },
   gap: { label: 'Supply gap', cls: 'm-tag-bad' },
   'not-plantable': { label: 'Cannot plant in time', cls: 'm-tag-neutral' },
   'not-in-scenario': { label: 'Not in this scenario', cls: 'm-tag-neutral' },
@@ -109,9 +109,9 @@ export const PlanStatus = ({ plan }: { plan: CropPlan }) => <span className={`m-
 
 export type ReplyState = ResponseStatus | 'needs-update'
 const replyMeta: Record<ReplyState, { label: string; cls: string; icon: ReactNode }> = {
-  'not-sent': { label: 'Not messaged', cls: 'm-tag-neutral', icon: <CircleDashed size={13} /> },
-  sent: { label: 'Awaiting reply', cls: 'm-tag-marigold', icon: <Clock3 size={13} /> },
-  confirmed: { label: 'Confirmed', cls: 'm-tag-good', icon: <CheckCircle2 size={13} /> },
+  'not-sent': { label: 'Draft – not sent', cls: 'm-tag-neutral', icon: <CircleDashed size={13} /> },
+  sent: { label: 'Sent – awaiting reply', cls: 'm-tag-marigold', icon: <Clock3 size={13} /> },
+  confirmed: { label: 'Farmer-confirmed', cls: 'm-tag-good', icon: <CheckCircle2 size={13} /> },
   declined: { label: 'Declined', cls: 'm-tag-bad', icon: <X size={13} /> },
   constraint: { label: 'Problem reported', cls: 'm-tag-warn', icon: <AlertTriangle size={13} /> },
   'needs-update': { label: 'Plan changed – resend', cls: 'm-tag-warn', icon: <AlertTriangle size={13} /> },
@@ -119,3 +119,15 @@ const replyMeta: Record<ReplyState, { label: string; cls: string; icon: ReactNod
 export const ReplyBadge = ({ state }: { state: ReplyState }) => <span className={`m-tag ${replyMeta[state].cls}`}>{replyMeta[state].icon}{replyMeta[state].label}</span>
 
 export const initials = (name: string) => name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
+
+/** Buyer order type as shown everywhere: "Committed" (buyer has committed) vs "Indicative" (interest only). */
+export const orderTypeLabel = (t: string) => (t === 'Confirmed' ? 'Committed' : 'Indicative')
+
+/** Order-line status, worded as a plan – never as guaranteed fulfilment. */
+export const lineStatusLabel: Record<string, { label: string; cls: string }> = {
+  covered: { label: 'Planned to cover', cls: 'high' },
+  partial: { label: 'Partly planned', cls: 'medium' },
+  gap: { label: 'Supply gap', cls: 'low' },
+  'not-plantable': { label: 'Too late to sow', cls: 'low' },
+  'not-in-scenario': { label: 'Not in scenario', cls: 'medium' },
+}

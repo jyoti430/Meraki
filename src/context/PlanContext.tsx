@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react'
 import { useBuyerOrders } from './BuyerOrdersContext'
 import { useFarmers } from './FarmersContext'
-import { assignmentSignature, exclusionKey, runPlan, scenarioPresets } from '../planning/engine'
+import { assignmentSignature, exclusionKey, planSignature, runPlan, scenarioPresets } from '../planning/engine'
 import type { ConstraintKind, FarmerResponse, PlanResult, Scenario } from '../planning/engine'
 import type { Channel, Language } from '../planning/messages'
 import type { FarmersData } from '../services/FarmersService'
@@ -18,9 +18,15 @@ interface PlanState {
   exclusions: string[]
   messages: MessageEntry[]
   changes: PlanChange[]
+  /** Plots a farmer reported a problem on – excluded until a coordinator verifies them. Farm records are not changed. */
+  flaggedPlots: Record<string, PlotFlag>
+  /** Set when the manager finalizes the plan; compared with the live plan to detect later changes. */
+  finalized: { at: string; signature: string } | null
 }
 
-export type ReplyInput = { status: 'confirmed' | 'declined' } | { status: 'constraint'; kind: ConstraintKind; note: string; availableAcres?: number }
+export interface PlotFlag { reason: string; farmerId: string; reportedAt: string; channel: Channel }
+
+export type ReplyInput = { status: 'confirmed' | 'declined' } | { status: 'constraint'; kind: ConstraintKind; note: string; availableAcres?: number; availableFrom?: string }
 
 interface PlanContextValue extends PlanState {
   result: PlanResult
@@ -29,11 +35,14 @@ interface PlanContextValue extends PlanState {
   sendInstructions: (farmerIds: { farmerId: string; text: string; channel: Channel; language: Language }[]) => void
   recordReply: (farmerId: string, reply: ReplyInput, replyText: string, channel: Channel, language: Language) => PlanChange | null
   dismissChange: (id: string) => void
+  verifyPlot: (plotId: string, water?: Plot['waterAvailability']) => void
+  finalizePlan: () => void
+  planState: 'draft' | 'finalized' | 'changed'
 }
 
-const STORAGE_KEY = 'meraki-plan-v1'
+const STORAGE_KEY = 'meraki-plan-v2'
 const PlanContext = createContext<PlanContextValue | null>(null)
-const initialState = (): PlanState => ({ scenario: scenarioPresets[1].scenario, responses: {}, exclusions: [], messages: [], changes: [] })
+const initialState = (): PlanState => ({ scenario: scenarioPresets[1].scenario, responses: {}, exclusions: [], messages: [], changes: [], flaggedPlots: {}, finalized: null })
 
 function loadState(): PlanState {
   try {
@@ -68,10 +77,6 @@ export function describeDiff(before: PlanResult, after: PlanResult): string[] {
   return details.length ? details : ['No change to crop totals.']
 }
 
-function degradeWater(plot: Plot): Plot['waterAvailability'] {
-  return plot.waterAvailability === 'Available' ? 'Limited' : plot.waterAvailability === 'Limited' ? 'None' : plot.waterAvailability === 'Unknown' ? 'Limited' : 'None'
-}
-
 export function PlanProvider({ children }: { children: ReactNode }) {
   const { orders } = useBuyerOrders()
   const { data, editPlot } = useFarmers()
@@ -81,7 +86,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch { /* in-memory only */ }
   }, [state])
 
-  const compute = useCallback((s: PlanState, d: FarmersData) => runPlan({ orders, data: d, scenario: s.scenario, responses: s.responses, exclusions: s.exclusions }), [orders])
+  const compute = useCallback((s: PlanState, d: FarmersData) => runPlan({ orders, data: d, scenario: s.scenario, responses: s.responses, exclusions: s.exclusions, flaggedPlots: s.flaggedPlots }), [orders])
   const result = useMemo(() => compute(state, data), [compute, state, data])
 
   const logChange = useCallback((title: string, before: PlanResult, after: PlanResult): PlanChange => ({ id: uid(), at: now(), title, details: describeDiff(before, after) }), [])
@@ -115,33 +120,51 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     const farmer = data.farmers.find((f) => f.id === farmerId)
     const prev = state.responses[farmerId]
     const response: FarmerResponse = reply.status === 'constraint'
-      ? { farmerId, status: 'constraint', sentSignature: prev?.sentSignature, sentAt: prev?.sentAt, constraint: { kind: reply.kind, note: reply.note, availableAcres: reply.availableAcres }, updatedAt: now() }
+      ? { farmerId, status: 'constraint', sentSignature: prev?.sentSignature, sentAt: prev?.sentAt, constraint: { kind: reply.kind, note: reply.note, availableAcres: reply.availableAcres, availableFrom: reply.availableFrom }, updatedAt: now() }
       : { farmerId, status: reply.status, sentSignature: prev?.sentSignature, sentAt: prev?.sentAt, updatedAt: now() }
     const next: PlanState = { ...state, responses: { ...state.responses, [farmerId]: response }, messages: [...state.messages, { id: uid(), farmerId, direction: 'in', channel, language, text, at: now() }] }
 
-    // A reported water problem updates the farm record itself, so every crop recommendation sees it.
-    let nextData = data
+    // A farmer report is not a verified fact: flag the affected plots for a coordinator to check,
+    // and keep them out of the plan until then. Farm records stay unchanged.
     if (reply.status === 'constraint' && reply.kind === 'water') {
-      const affected = new Set(result.allocations.filter((a) => a.farmerId === farmerId).map((a) => a.plotId))
-      nextData = { ...data, plots: data.plots.map((p) => affected.has(p.id) ? { ...p, waterAvailability: degradeWater(p), notes: `${p.notes ? `${p.notes} ` : ''}Farmer reported a water problem by ${channel} (${new Date().toLocaleDateString('en-IN')}).`.trim() } : p) }
-      for (const plot of nextData.plots.filter((p) => affected.has(p.id))) {
-        const { id: _id, createdAt: _c, updatedAt: _u, ...input } = plot
-        editPlot(plot.id, input)
-      }
+      const flags = { ...next.flaggedPlots }
+      for (const a of result.allocations.filter((x) => x.farmerId === farmerId)) flags[a.plotId] = { reason: `Farmer reported a water problem${reply.note ? ` (“${reply.note}”)` : ''}`, farmerId, reportedAt: now(), channel }
+      next.flaggedPlots = flags
     }
     if (reply.status === 'confirmed') {
       setState({ ...next })
       return null
     }
-    const label = reply.status !== 'constraint' ? 'declined this season' : reply.kind === 'land' ? `has only ${reply.availableAcres ?? 0} acres available` : reply.kind === 'water' ? 'reported a water problem' : reply.kind === 'timing' ? 'cannot sow in time' : 'reported a problem'
-    const change = logChange(`${farmer?.name ?? farmerId} ${label}`, result, compute(next, nextData))
+    const label = reply.status !== 'constraint' ? 'declined this season' : reply.kind === 'land' ? `has only ${reply.availableAcres ?? 0} acres available` : reply.kind === 'water' ? 'reported a water problem – plots flagged for verification' : reply.kind === 'timing' ? (reply.availableFrom ? `can sow only from ${reply.availableFrom}` : 'cannot sow in time') : 'reported a problem'
+    const change = logChange(`${farmer?.name ?? farmerId} ${label}`, result, compute(next, data))
     setState({ ...next, changes: [change, ...state.changes].slice(0, 30) })
     return change
-  }, [state, data, result, compute, logChange, editPlot])
+  }, [state, data, result, compute, logChange])
 
   const dismissChange = useCallback((id: string) => setState((s) => ({ ...s, changes: s.changes.filter((c) => c.id !== id) })), [])
 
-  const value = useMemo<PlanContextValue>(() => ({ ...state, result, setScenario, toggleExclusion, sendInstructions, recordReply, dismissChange }), [state, result, setScenario, toggleExclusion, sendInstructions, recordReply, dismissChange])
+  /** Coordinator checked a flagged plot: optionally record the verified water level, then release it back into planning. */
+  const verifyPlot = useCallback((plotId: string, water?: Plot['waterAvailability']) => {
+    const plot = data.plots.find((p) => p.id === plotId)
+    const nextFlags = { ...state.flaggedPlots }
+    delete nextFlags[plotId]
+    let nextData = data
+    if (plot && water && water !== plot.waterAvailability) {
+      const updated = { ...plot, waterAvailability: water, notes: `${plot.notes ? `${plot.notes} ` : ''}Water verified as ${water.toLowerCase()} by coordinator (${new Date().toLocaleDateString('en-IN')}).` }
+      nextData = { ...data, plots: data.plots.map((p) => (p.id === plotId ? updated : p)) }
+      const { id: _id, createdAt: _c, updatedAt: _u, ...input } = updated
+      editPlot(plotId, input)
+    }
+    const next = { ...state, flaggedPlots: nextFlags }
+    const change = logChange(`${plot?.name ?? plotId} verified${water ? ` – water ${water.toLowerCase()}` : ' – no change'}`, result, compute(next, nextData))
+    setState({ ...next, changes: [change, ...state.changes].slice(0, 30) })
+  }, [state, data, result, compute, logChange, editPlot])
+
+  const currentSignature = planSignature(result.allocations, state.scenario)
+  const planState: PlanContextValue['planState'] = !state.finalized ? 'draft' : state.finalized.signature === currentSignature ? 'finalized' : 'changed'
+  const finalizePlan = useCallback(() => setState((s) => ({ ...s, finalized: { at: now(), signature: currentSignature } })), [currentSignature])
+
+  const value = useMemo<PlanContextValue>(() => ({ ...state, result, setScenario, toggleExclusion, sendInstructions, recordReply, dismissChange, verifyPlot, finalizePlan, planState }), [state, result, setScenario, toggleExclusion, sendInstructions, recordReply, dismissChange, verifyPlot, finalizePlan, planState])
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>
 }
 
@@ -152,7 +175,7 @@ export function usePlan() {
 }
 
 export function resetDemoData() {
-  for (const key of ['meraki-plan-v1', 'meraki-buyer-orders-v1', 'meraki-farmers-v1', 'meraki-supply-plans-v1']) {
+  for (const key of ['meraki-plan-v1', 'meraki-plan-v2', 'meraki-buyer-orders-v1', 'meraki-farmers-v1', 'meraki-supply-plans-v1']) {
     try { localStorage.removeItem(key) } catch { /* ignore */ }
   }
   window.location.assign('/')

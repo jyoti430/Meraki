@@ -51,7 +51,7 @@ export default function Overview() {
   const demandKg = result.plans.reduce((s, p) => s + p.confirmedKg + p.indicativeKg, 0)
   const confirmedKg = result.plans.reduce((s, p) => s + p.confirmedKg, 0)
   const supplyKg = result.plans.reduce((s, p) => s + p.expectedKg, 0)
-  const gapKg = inScope.reduce((s, p) => s + p.gapKg, 0)
+  const gapKg = inScope.reduce((s, p) => s + p.shortfallKg, 0)
   const eligible = data.farmers.filter((f) => !farmerEligibility(f, responses[f.id]))
   const villages = new Set(eligible.map((f) => f.village)).size
   const maxDemand = Math.max(1, ...result.opportunities.map((o) => (o.plan ? o.plan.confirmedKg + o.plan.indicativeKg : 0)))
@@ -64,7 +64,7 @@ export default function Overview() {
 
   const watchouts = [
     ...result.plans.filter((p) => p.window === 'urgent' && p.allocations.length).map((p) => ({ icon: <Clock3 size={20} />, tone: 'bad', title: `Sow ${p.crop.name.toLowerCase()} by ${fmtDay(p.sowBy)}`, text: `${daysBetween(PLANNING_DATE, p.sowBy)} days left to meet the buyer's ${fmtDay(p.deliveryStart)} start.` })),
-    ...inScope.filter((p) => p.gapKg > 0).map((p) => ({ icon: <Sprout size={20} />, tone: 'warn', title: `${p.crop.name} supply short by ${fmtT(p.gapKg)}`, text: p.crop.perennial ? 'Orchard crop – agree a smaller volume or later window.' : 'Increase area or mobilise more farmers.' })),
+    ...inScope.filter((p) => p.shortfallKg > 0).map((p) => ({ icon: <Sprout size={20} />, tone: 'warn', title: `${p.crop.name} supply short by ${fmtT(p.shortfallKg || p.gapKg)}`, text: p.crop.perennial ? 'Orchard crop – agree a smaller volume or later window.' : 'Increase area or mobilise more farmers.' })),
     ...result.opportunities.filter((o) => o.signals.some((s) => s.regionalSupply === 'Oversupply risk')).map((o) => ({ icon: <TrendingDown size={20} />, tone: 'warn', title: `${o.crop.name}: oversupply risk forecast`, text: `Prices may fall to ₹${o.signals[0].priceBandInr[0]}–${o.signals[0].priceBandInr[1]}/kg. Avoid adding area without a buyer.` })),
     { icon: <CloudRain size={20} />, tone: '', title: 'Weather is not yet modelled', text: 'Yields use indicative ranges. Add a buffer in Planting Plans for weather risk.' },
   ].slice(0, 4)
@@ -73,9 +73,9 @@ export default function Overview() {
     <PageHeader title="Crop forecast overview" subtitle="Turn buyer demand into a collective planting plan for your FPO." />
 
     <section className="m-stats" aria-label="Season summary">
-      <StatCard icon={<ShoppingBag size={24} />} label="Buyer demand" tip="All active buyer orders, confirmed and indicative" value={fmtT(demandKg)} sub={<>{fmtT(confirmedKg)} confirmed</>} />
+      <StatCard icon={<ShoppingBag size={24} />} label="Buyer demand" tip="All active buyer orders, committed and indicative" value={fmtT(demandKg)} sub={<>{fmtT(confirmedKg)} buyer-committed</>} />
       <StatCard icon={<Sprout size={24} />} label="Expected supply" tip="Planned planting at the scenario's yield assumption plus crops already growing" value={fmtT(supplyKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
-      <StatCard icon={<AlertTriangle size={24} />} tone="warn" label="Supply gaps" tip="Shortfall against the plan target, including the safety buffer" value={fmtT(gapKg)} sub={<>≈ {fmtPct(demandKg ? gapKg / demandKg : 0)} of demand</>} />
+      <StatCard icon={<AlertTriangle size={24} />} tone="warn" label="Supply gaps" tip="Buyer quantity not met by expected supply, checked order by order" value={fmtT(gapKg)} sub={<>≈ {fmtPct(demandKg ? gapKg / demandKg : 0)} of demand</>} />
       <StatCard icon={<UsersRound size={24} />} label="Participating farms" value={eligible.length} sub={<>across {villages} villages</>} />
     </section>
 
@@ -84,22 +84,22 @@ export default function Overview() {
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="opp-title">Top crop opportunities</h2><p className="m-panel-sub">Buyer demand, projected supply and recommended actions for this season.</p></div>
           <div className="m-legend2">
-            <span><i style={{ background: '#2e7d32' }} />Confirmed demand <InfoTip text="Committed by a buyer" /></span>
-            <span><i style={{ background: '#9ccc65' }} />Indicative demand <InfoTip text="Buyer interest, not committed" /></span>
+            <span><i style={{ background: '#2e7d32' }} />Committed <InfoTip text="Buyer has committed to quantity, window and price" /></span>
+            <span><i style={{ background: '#9ccc65' }} />Indicative <InfoTip text="Buyer interest, not committed" /></span>
             <span><i style={{ border: '1.5px dashed #9ccc65' }} />Forecast <InfoTip text="Synthetic market signal – not guaranteed" /></span>
           </div>
         </div>
         <div className="m-dt-scroll"><table className="m-dt">
-          <thead><tr><th>Crop</th><th>Demand <InfoTip text="Active buyer orders: confirmed, indicative and forecast" /></th><th>Supply <InfoTip text="Expected harvest from the current plan" /></th><th>Feasibility <InfoTip text="Can participating farms grow it in time, with their water and soil?" /></th><th>Recommended action</th><th><span className="sr-only">Details</span></th></tr></thead>
+          <thead><tr><th>Crop <InfoTip text="Feasibility: can participating farms grow it in time, with their water and soil?" /></th><th>Buyer demand</th><th>Expected supply <InfoTip text="Planned harvest plus eligible crops already growing – not yet guaranteed" /></th><th>Gap <InfoTip text="Buyer quantity not met, checked order by order" /></th><th>Recommended action</th><th><span className="sr-only">Details</span></th></tr></thead>
           <tbody>{result.opportunities.map((o) => {
             const a = actionFor(o)
             const isOpen = open === o.crop.id
             return <Fragment key={o.crop.id}>
               <tr className="click" onClick={() => setOpen(isOpen ? null : o.crop.id)} aria-expanded={isOpen}>
-                <td><span className="m-crop"><span className="e" aria-hidden="true">{o.crop.emoji}</span>{o.crop.name}</span></td>
+                <td><span className="m-crop"><span className="e" aria-hidden="true">{o.crop.emoji}</span><span>{o.crop.name}<small style={{ marginTop: 4 }}><Feasibility level={feasibilityOf(o)} /></small></span></span></td>
                 <td><strong>{o.plan ? fmtT(o.plan.confirmedKg + o.plan.indicativeKg) : '—'}</strong><DemandBar o={o} max={maxDemand} /></td>
                 <td><strong>{o.plan && o.plan.status !== 'not-in-scenario' ? fmtT(o.plan.expectedKg) : '—'}</strong></td>
-                <td><Feasibility level={feasibilityOf(o)} /></td>
+                <td className="num">{!o.plan ? <span className="m-small">—</span> : o.plan.status === 'not-in-scenario' ? <span className="m-small">Indicative only</span> : o.plan.shortfallKg > 0 ? <strong style={{ color: 'var(--bad)' }}>−{fmtT(o.plan.shortfallKg)}</strong> : <span className="m-small" style={{ color: 'var(--good)' }}>None</span>}</td>
                 <td><Link to={a.to} className={`m-action-btn ${a.tone}`} onClick={(e) => e.stopPropagation()}>{a.label}<ArrowRight size={16} /></Link></td>
                 <td><ChevronDown size={18} style={{ transform: isOpen ? 'rotate(180deg)' : undefined, transition: 'transform .2s', color: 'var(--mute)' }} /></td>
               </tr>

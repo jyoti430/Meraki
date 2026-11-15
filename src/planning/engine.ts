@@ -41,7 +41,8 @@ export interface FarmerResponse {
   /** Signature of the farmer's assignments when the last message was sent. */
   sentSignature?: string
   sentAt?: string
-  constraint?: { kind: ConstraintKind; note: string; availableAcres?: number }
+  /** availableAcres for 'land'; availableFrom (ISO date) for 'timing' – when the farmer can start sowing. */
+  constraint?: { kind: ConstraintKind; note: string; availableAcres?: number; availableFrom?: string }
   updatedAt: string
 }
 
@@ -53,6 +54,14 @@ export type WindowStatus = 'open' | 'urgent' | 'missed' | 'perennial' | 'no-date
 
 export interface Allocation {
   crop: string
+  /** The buyer order this area is planted for. */
+  orderId: string
+  buyerName: string
+  variety: string
+  sowFrom: string
+  sowBy: string
+  harvestStart: string
+  harvestEnd: string
   farmerId: string
   farmerName: string
   plotId: string
@@ -67,11 +76,43 @@ export interface Allocation {
 
 export interface UnusedPlot { farmerId: string; farmerName: string; plotId: string; plotName: string; acres: number; reasons: Reason[] }
 
-export interface ExistingSupply { cycle: CropCycle; plot: Plot; farmer?: Farmer; kg: number }
+export interface ExistingSupply { cycle: CropCycle; plot: Plot; farmer?: Farmer; kg: number; orderId: string; windowStart: string; windowEnd: string }
+export interface UncountedSupply { cycle: CropCycle; plot?: Plot; farmer?: Farmer; reason: string }
+
+export type LineStatus = 'covered' | 'partial' | 'gap' | 'not-plantable' | 'not-in-scenario'
+/** One buyer order, planned on its own variety, quantity and delivery window. */
+export interface OrderLine {
+  order: BuyerOrder
+  committed: boolean
+  inScenario: boolean
+  variety: string
+  qtyKg: number
+  targetKg: number
+  deliveryStart: string
+  deliveryEnd: string
+  window: WindowStatus
+  sowFrom: string
+  sowBy: string
+  harvestStart: string
+  harvestEnd: string
+  existing: ExistingSupply[]
+  existingKg: number
+  allocations: Allocation[]
+  plannedKg: number
+  expectedKg: number
+  farmerConfirmedKg: number
+  gapKg: number
+  /** Buyer quantity not met by expected supply (ignores the safety buffer). */
+  shortfallKg: number
+  status: LineStatus
+}
 
 export interface CropPlan {
   crop: CropProfile
   orders: BuyerOrder[]
+  /** Order-level plans. Crop-level numbers below are sums; a surplus on one order never covers another. */
+  lines: OrderLine[]
+  uncounted: UncountedSupply[]
   confirmedKg: number
   indicativeKg: number
   varieties: string[]
@@ -94,7 +135,8 @@ export interface CropPlan {
   expectedKg: number
   farmerConfirmedKg: number
   gapKg: number
-  status: 'covered' | 'partial' | 'gap' | 'not-plantable' | 'not-in-scenario'
+  shortfallKg: number
+  status: LineStatus
   unused: UnusedPlot[]
   suitableAcres: number
 }
@@ -128,7 +170,10 @@ export interface PlanResult {
   ineligible: { farmer: Farmer; reason: string }[]
   actions: NextAction[]
   unmappedOrders: BuyerOrder[]
+  risk: Risk
 }
+
+export interface Risk { level: 'Low' | 'Medium' | 'High'; score: number; factors: string[] }
 
 export interface EngineInput {
   orders: BuyerOrder[]
@@ -136,6 +181,8 @@ export interface EngineInput {
   scenario: Scenario
   responses: Record<string, FarmerResponse>
   exclusions: string[]
+  /** Plots a farmer reported a problem on; excluded until a coordinator verifies them. */
+  flaggedPlots?: Record<string, { reason: string }>
 }
 
 // ---------- Helpers ----------
@@ -188,8 +235,9 @@ function soilReasons(crop: CropProfile, plot: Plot): Reason[] {
   return out
 }
 
-export function assessPlot(crop: CropProfile, plot: Plot, data: FarmersData, sowBy: string, response?: FarmerResponse): { fit: Fit; reasons: Reason[] } {
+export function assessPlot(crop: CropProfile, plot: Plot, data: FarmersData, sowBy: string, response?: FarmerResponse, flag?: { reason: string }): { fit: Fit; reasons: Reason[] } {
   const reasons: Reason[] = []
+  if (flag) reasons.push({ tone: 'block', text: `${flag.reason} – verify before planning` })
   const busy = plotBusyUntil(data, plot.id)
   if (busy) {
     const freeFrom = addDays(busy.until, PLOT_PREP_DAYS)
@@ -198,9 +246,13 @@ export function assessPlot(crop: CropProfile, plot: Plot, data: FarmersData, sow
   } else reasons.push({ tone: 'good', text: 'Plot free now' })
   reasons.push(waterReason(crop, plot))
   reasons.push(...soilReasons(crop, plot))
-  if (response?.status === 'constraint' && response.constraint && (response.constraint.kind === 'timing' || response.constraint.kind === 'other')) {
-    reasons.push({ tone: 'caution', text: `Farmer reported: ${response.constraint.note || response.constraint.kind}` })
+  const c = response?.status === 'constraint' ? response.constraint : undefined
+  if (c?.kind === 'timing') {
+    // A farmer who cannot sow in time is not plannable for this window unless they gave a date that still works.
+    if (c.availableFrom && c.availableFrom <= sowBy) reasons.push({ tone: 'caution', text: `Farmer can sow only from ${shortDate(c.availableFrom)}` })
+    else reasons.push({ tone: 'block', text: c.availableFrom ? `Farmer can sow only from ${shortDate(c.availableFrom)} – after the sow-by date` : 'Farmer reported they cannot sow in time' })
   }
+  if (c?.kind === 'other') reasons.push({ tone: 'caution', text: `Farmer reported: ${c.note || 'a problem'} – needs follow-up` })
   const fit: Fit = reasons.some((r) => r.tone === 'block') ? 'unsuitable' : reasons.some((r) => r.tone === 'caution') ? 'caution' : 'good'
   return { fit, reasons }
 }
@@ -218,16 +270,18 @@ function windowFor(crop: CropProfile, deliveryStart: string): { window: WindowSt
 }
 
 /** Assignments signature – used to detect when a farmer's instructions changed after a message was sent. */
-export const assignmentSignature = (allocations: Allocation[]) => allocations.map((a) => `${a.crop}:${a.plotId}:${a.acres.toFixed(2)}`).sort().join('|')
+/** Includes order, variety, area and dates, so a changed delivery date also makes sent instructions stale. */
+export const assignmentSignature = (allocations: Allocation[]) => allocations.map((a) => [a.crop, a.orderId, a.variety, a.plotId, a.acres.toFixed(2), a.sowFrom, a.sowBy, a.harvestStart].join(':')).sort().join('|')
+export const planSignature = (allocations: Allocation[], scenario: Scenario) => `${scenario.basis}/${scenario.yieldCase}/${scenario.bufferPct}#${assignmentSignature(allocations)}`
 
 // ---------- Main ----------
-export function runPlan({ orders, data, scenario, responses, exclusions }: EngineInput): PlanResult {
+export function runPlan({ orders, data, scenario, responses, exclusions, flaggedPlots = {} }: EngineInput): PlanResult {
   const excluded = new Set(exclusions)
   const farmersById = new Map(data.farmers.map((f) => [f.id, f]))
   const yieldIdx = scenario.yieldCase === 'conservative' ? 0 : 1
   const buffer = 1 + scenario.bufferPct / 100
 
-  // 1. Demand by crop (active orders only)
+  // 1. Active demand, grouped by crop for display – but every order keeps its own line.
   const active = orders.filter((o) => o.status === 'Active' && Number(o.product.requiredQuantityKg) > 0)
   const unmappedOrders = active.filter((o) => !findCrop(o.product.crop))
   const byCrop = new Map<string, BuyerOrder[]>()
@@ -237,7 +291,7 @@ export function runPlan({ orders, data, scenario, responses, exclusions }: Engin
     byCrop.set(crop.name, [...(byCrop.get(crop.name) ?? []), o])
   }
 
-  // 2. Eligible farmers and plots
+  // 2. Eligible farmers and plot capacity
   const ineligible: { farmer: Farmer; reason: string }[] = []
   const eligibleIds = new Set<string>()
   for (const f of data.farmers) {
@@ -251,58 +305,85 @@ export function runPlan({ orders, data, scenario, responses, exclusions }: Engin
     const c = responses[f.id]?.constraint
     farmerCap.set(f.id, responses[f.id]?.status === 'constraint' && c?.kind === 'land' && c.availableAcres != null ? c.availableAcres : Infinity)
   }
+  const assess = (crop: CropProfile, plot: Plot, sowBy: string) => assessPlot(crop, plot, data, sowBy, responses[plot.farmerId], flaggedPlots[plot.id])
 
-  // 3. Build crop plans
+  // 3. Order lines, with existing crops assigned once (committed orders first, earliest delivery first)
   const plans: CropPlan[] = [...byCrop.entries()].map(([name, list]) => {
     const crop = findCrop(name)!
-    const confirmedKg = list.filter((o) => o.product.orderType === 'Confirmed').reduce((s, o) => s + Number(o.product.requiredQuantityKg), 0)
-    const indicativeKg = list.filter((o) => o.product.orderType === 'Indicative').reduce((s, o) => s + Number(o.product.requiredQuantityKg), 0)
-    const dated = list.filter((o) => o.product.deliveryStartDate && o.product.deliveryEndDate)
-    const deliveryStart = dated.reduce((d, o) => (d ? minDate(d, o.product.deliveryStartDate) : o.product.deliveryStartDate), '')
-    const deliveryEnd = dated.reduce((d, o) => (d ? maxDate(d, o.product.deliveryEndDate) : o.product.deliveryEndDate), '')
-    const priced = list.filter((o) => o.commercial.currency === 'INR' && Number(o.commercial.agreedPricePerKg) > 0)
-    const priceWeight = priced.reduce((s, o) => s + Number(o.product.requiredQuantityKg), 0)
-    const avgPriceInr = priceWeight ? priced.reduce((s, o) => s + Number(o.commercial.agreedPricePerKg) * Number(o.product.requiredQuantityKg), 0) / priceWeight : null
-    const varieties = [...new Set(list.map((o) => o.product.variety).filter(Boolean))]
-    const markets = [...new Set(list.map((o) => (o.buyer.destinationCountry.toLowerCase() === 'singapore' ? 'Singapore' : 'India') as Market))]
-    const w = windowFor(crop, deliveryStart)
+    const lines: OrderLine[] = list.map((o) => {
+      const committed = o.product.orderType === 'Confirmed'
+      const inScenario = committed || scenario.basis === 'all'
+      const qtyKg = Number(o.product.requiredQuantityKg)
+      const w = windowFor(crop, o.product.deliveryStartDate)
+      return {
+        order: o, committed, inScenario, variety: o.product.variety || crop.defaultVariety, qtyKg, targetKg: inScenario ? Math.round(qtyKg * buffer) : 0,
+        deliveryStart: o.product.deliveryStartDate, deliveryEnd: o.product.deliveryEndDate || o.product.deliveryStartDate, ...w,
+        existing: [], existingKg: 0, allocations: [], plannedKg: 0, expectedKg: 0, farmerConfirmedKg: 0, gapKg: 0, shortfallKg: 0, status: 'gap' as LineStatus,
+      }
+    }).sort((a, b) => Number(b.committed) - Number(a.committed) || (a.deliveryStart || 'z').localeCompare(b.deliveryStart || 'z'))
 
-    const existing: ExistingSupply[] = []
-    if (deliveryStart) {
-      for (const cycle of data.cropCycles) {
-        if (!ACTIVE.has(cycle.status) || cycle.crop.toLowerCase() !== crop.name.toLowerCase()) continue
-        if (varieties.length && !varieties.some((v) => v.toLowerCase() === cycle.variety.toLowerCase())) continue
-        const s = maxDate(cycle.expectedHarvestStartDate, deliveryStart)
-        const e = minDate(cycle.expectedHarvestEndDate, deliveryEnd)
+    const uncounted: UncountedSupply[] = []
+    const cycleLeft = new Map<string, number>()
+    for (const cycle of data.cropCycles) {
+      if (!ACTIVE.has(cycle.status) || cycle.crop.toLowerCase() !== crop.name.toLowerCase()) continue
+      const plot = data.plots.find((p) => p.id === cycle.plotId)
+      const farmer = plot ? farmersById.get(plot.farmerId) : undefined
+      const reason = !plot || !farmer ? 'Plot or farmer record missing' : farmerEligibility(farmer, responses[farmer.id])
+      if (reason) { uncounted.push({ cycle, plot, farmer, reason: `Not counted – ${reason.toLowerCase()}` }); continue }
+      if (flaggedPlots[plot!.id]) { uncounted.push({ cycle, plot, farmer, reason: 'Not counted – plot needs verification' }); continue }
+      cycleLeft.set(cycle.id, cycle.estimatedProductionKg)
+      let used = false
+      for (const line of lines) {
+        if (!line.deliveryStart) continue
+        if (line.variety.toLowerCase() !== cycle.variety.toLowerCase()) continue
+        const s = maxDate(cycle.expectedHarvestStartDate, line.deliveryStart)
+        const e = minDate(cycle.expectedHarvestEndDate, line.deliveryEnd)
         if (s > e) continue
         const span = Math.max(1, daysBetween(cycle.expectedHarvestStartDate, cycle.expectedHarvestEndDate))
-        const plot = data.plots.find((p) => p.id === cycle.plotId)
-        if (!plot) continue
-        existing.push({ cycle, plot, farmer: farmersById.get(plot.farmerId), kg: Math.round(cycle.estimatedProductionKg * Math.min(1, (daysBetween(s, e) + 1) / span)) })
+        const inWindow = cycle.estimatedProductionKg * Math.min(1, (daysBetween(s, e) + 1) / span)
+        const need = Math.max(0, (line.targetKg || line.qtyKg) - line.existingKg)
+        const kg = Math.round(Math.min(inWindow, cycleLeft.get(cycle.id)!, need))
+        if (kg <= 0) continue
+        cycleLeft.set(cycle.id, cycleLeft.get(cycle.id)! - kg)
+        line.existing.push({ cycle, plot: plot!, farmer, kg, orderId: line.order.id, windowStart: s, windowEnd: e })
+        line.existingKg += kg
+        used = true
       }
+      if (!used) uncounted.push({ cycle, plot, farmer, reason: 'Not counted – variety or harvest dates don’t match any order' })
     }
-    const existingKg = existing.reduce((s, e) => s + e.kg, 0)
-    const targetKg = Math.round((confirmedKg + (scenario.basis === 'all' ? indicativeKg : 0)) * buffer)
+
+    const confirmedKg = lines.filter((l) => l.committed).reduce((s, l) => s + l.qtyKg, 0)
+    const indicativeKg = lines.filter((l) => !l.committed).reduce((s, l) => s + l.qtyKg, 0)
+    const dated = lines.filter((l) => l.deliveryStart)
+    const priced = list.filter((o) => o.commercial.currency === 'INR' && Number(o.commercial.agreedPricePerKg) > 0)
+    const priceWeight = priced.reduce((s, o) => s + Number(o.product.requiredQuantityKg), 0)
     return {
-      crop, orders: list, confirmedKg, indicativeKg, varieties, markets, deliveryStart, deliveryEnd, avgPriceInr, ...w,
-      targetKg, existing, existingKg, allocations: [], plannedAcres: 0, plannedKg: 0, plannedRange: [0, 0], expectedKg: 0, farmerConfirmedKg: 0, gapKg: 0,
+      crop, orders: list, lines, uncounted, confirmedKg, indicativeKg,
+      varieties: [...new Set(lines.map((l) => l.variety))],
+      markets: [...new Set(list.map((o) => (o.buyer.destinationCountry.toLowerCase() === 'singapore' ? 'Singapore' : 'India') as Market))],
+      deliveryStart: dated.reduce((d, l) => (d ? minDate(d, l.deliveryStart) : l.deliveryStart), ''),
+      deliveryEnd: dated.reduce((d, l) => (d ? maxDate(d, l.deliveryEnd) : l.deliveryEnd), ''),
+      avgPriceInr: priceWeight ? priced.reduce((s, o) => s + Number(o.commercial.agreedPricePerKg) * Number(o.product.requiredQuantityKg), 0) / priceWeight : null,
+      window: 'no-dates', sowFrom: '', sowBy: '', harvestStart: '', harvestEnd: '',
+      targetKg: 0, existing: [], existingKg: 0, allocations: [], plannedAcres: 0, plannedKg: 0, plannedRange: [0, 0], expectedKg: 0, farmerConfirmedKg: 0, gapKg: 0, shortfallKg: 0,
       status: 'gap', unused: [], suitableAcres: 0,
     } satisfies CropPlan
   })
 
-  const plantable = plans.filter((p) => p.window === 'open' || p.window === 'urgent').sort((a, b) => a.sowBy.localeCompare(b.sowBy))
+  const plantableLines = plans.flatMap((p) => p.lines.filter((l) => l.inScenario && (l.window === 'open' || l.window === 'urgent')).map((l) => ({ plan: p, line: l })))
 
   // Flexibility: how many plantable crops a plot is a good fit for (use least flexible land first).
   const flexibility = new Map<string, number>()
   for (const plot of data.plots) {
-    flexibility.set(plot.id, plantable.filter((p) => assessPlot(p.crop, plot, data, p.sowBy).fit === 'good').length)
+    const crops = new Set(plantableLines.filter(({ plan, line }) => assess(plan.crop, plot, line.sowBy).fit === 'good').map(({ plan }) => plan.crop.id))
+    flexibility.set(plot.id, crops.size)
   }
 
-  function allocate(plan: CropPlan, needKg: number, phase: Allocation['phase']) {
+  function allocate(plan: CropPlan, line: OrderLine, needKg: number) {
     const yieldPerAcre = plan.crop.yieldPerAcre[yieldIdx]
     const candidates = data.plots
       .filter((p) => eligibleIds.has(p.farmerId) && !excluded.has(exclusionKey(p.id, plan.crop.name)))
-      .map((plot) => ({ plot, ...assessPlot(plan.crop, plot, data, plan.sowBy, responses[plot.farmerId]) }))
+      .map((plot) => ({ plot, ...assess(plan.crop, plot, line.sowBy) }))
       .filter((c) => c.fit !== 'unsuitable')
       .sort((a, b) => (a.fit === b.fit ? 0 : a.fit === 'good' ? -1 : 1) || (flexibility.get(a.plot.id)! - flexibility.get(b.plot.id)!) || remainingPlot.get(b.plot.id)! - remainingPlot.get(a.plot.id)!)
     for (const c of candidates) {
@@ -314,42 +395,61 @@ export function runPlan({ orders, data, scenario, responses, exclusions }: Engin
       remainingPlot.set(c.plot.id, remainingPlot.get(c.plot.id)! - acres)
       farmerCap.set(c.plot.farmerId, farmerCap.get(c.plot.farmerId)! - acres)
       needKg -= acres * yieldPerAcre
-      const existingAlloc = plan.allocations.find((a) => a.plotId === c.plot.id)
-      if (existingAlloc) existingAlloc.acres += acres
-      else plan.allocations.push({ crop: plan.crop.name, farmerId: c.plot.farmerId, farmerName: farmersById.get(c.plot.farmerId)?.name ?? c.plot.farmerId, plotId: c.plot.id, plotName: c.plot.name, acres, kg: 0, kgRange: [0, 0], fit: c.fit, reasons: c.reasons, phase })
+      const same = line.allocations.find((a) => a.plotId === c.plot.id)
+      if (same) same.acres += acres
+      else line.allocations.push({
+        crop: plan.crop.name, orderId: line.order.id, buyerName: line.order.buyer.name, variety: line.variety,
+        sowFrom: line.sowFrom, sowBy: line.sowBy, harvestStart: line.harvestStart, harvestEnd: line.harvestEnd,
+        farmerId: c.plot.farmerId, farmerName: farmersById.get(c.plot.farmerId)?.name ?? c.plot.farmerId, plotId: c.plot.id, plotName: c.plot.name,
+        acres, kg: 0, kgRange: [0, 0], fit: c.fit, reasons: c.reasons, phase: line.committed ? 'confirmed' : 'indicative',
+      })
     }
   }
 
-  // Pass 1 – confirmed demand for every crop; pass 2 – indicative demand.
-  for (const plan of plantable) allocate(plan, plan.confirmedKg * buffer - plan.existingKg, 'confirmed')
-  if (scenario.basis === 'all') {
-    for (const plan of plantable) {
-      const plannedSoFar = plan.allocations.reduce((sum, a) => sum + a.acres * plan.crop.yieldPerAcre[yieldIdx], 0)
-      allocate(plan, (plan.confirmedKg + plan.indicativeKg) * buffer - plan.existingKg - plannedSoFar, 'indicative')
-    }
-  }
+  // Pass 1 – committed orders (earliest sowing first); pass 2 – indicative orders.
+  const bySow = (a: { line: OrderLine }, b: { line: OrderLine }) => a.line.sowBy.localeCompare(b.line.sowBy)
+  for (const { plan, line } of plantableLines.filter((x) => x.line.committed).sort(bySow)) allocate(plan, line, line.targetKg - line.existingKg)
+  for (const { plan, line } of plantableLines.filter((x) => !x.line.committed).sort(bySow)) allocate(plan, line, line.targetKg - line.existingKg)
 
-  // 4. Finalise numbers, unused plots and suitability
+  // 4. Order-line results, then crop-level sums
   for (const plan of plans) {
     const y = plan.crop.yieldPerAcre
-    for (const a of plan.allocations) {
-      a.kg = Math.round(a.acres * y[yieldIdx])
-      a.kgRange = [Math.round(a.acres * y[0]), Math.round(a.acres * y[2])]
+    for (const line of plan.lines) {
+      for (const a of line.allocations) {
+        a.kg = Math.round(a.acres * y[yieldIdx])
+        a.kgRange = [Math.round(a.acres * y[0]), Math.round(a.acres * y[2])]
+      }
+      line.plannedKg = line.allocations.reduce((s, a) => s + a.kg, 0)
+      line.expectedKg = line.plannedKg + line.existingKg
+      line.gapKg = line.inScenario ? Math.max(0, line.targetKg - line.expectedKg) : 0
+      line.shortfallKg = line.inScenario ? Math.max(0, line.qtyKg - line.expectedKg) : 0
+      const plantable = line.window === 'open' || line.window === 'urgent' || (line.window === 'perennial' && line.existingKg > 0)
+      line.status = !line.inScenario ? 'not-in-scenario' : line.expectedKg >= line.targetKg * 0.98 ? 'covered' : !plantable && line.expectedKg === 0 ? 'not-plantable' : line.expectedKg >= line.targetKg * 0.5 ? 'partial' : 'gap'
     }
+    const scope = plan.lines.filter((l) => l.inScenario)
+    plan.allocations = plan.lines.flatMap((l) => l.allocations)
+    plan.existing = plan.lines.flatMap((l) => l.existing)
+    plan.existingKg = plan.existing.reduce((s, e) => s + e.kg, 0)
+    plan.targetKg = scope.reduce((s, l) => s + l.targetKg, 0)
     plan.plannedAcres = plan.allocations.reduce((s, a) => s + a.acres, 0)
     plan.plannedKg = plan.allocations.reduce((s, a) => s + a.kg, 0)
     plan.plannedRange = [plan.allocations.reduce((s, a) => s + a.kgRange[0], 0), plan.allocations.reduce((s, a) => s + a.kgRange[1], 0)]
     plan.expectedKg = plan.plannedKg + plan.existingKg
-    plan.gapKg = Math.max(0, plan.targetKg - plan.expectedKg)
-    const notPlantable = plan.window === 'missed' || plan.window === 'no-dates' || (plan.window === 'perennial' && plan.existingKg === 0)
-    plan.status = plan.targetKg === 0 ? 'not-in-scenario' : plan.expectedKg >= plan.targetKg * 0.98 ? 'covered' : notPlantable && plan.window !== 'perennial' ? 'not-plantable' : plan.expectedKg >= plan.targetKg * 0.5 ? 'partial' : 'gap'
+    plan.gapKg = scope.reduce((s, l) => s + l.gapKg, 0)
+    plan.shortfallKg = scope.reduce((s, l) => s + l.shortfallKg, 0)
+    plan.status = !scope.length ? 'not-in-scenario' : scope.every((l) => l.status === 'covered') ? 'covered' : scope.every((l) => l.status === 'not-plantable') ? 'not-plantable' : plan.expectedKg >= plan.targetKg * 0.5 ? 'partial' : 'gap'
+    // Crop-level window = the most urgent plantable order; otherwise the earliest order.
+    const pick = [...plan.lines].filter((l) => l.window === 'urgent' || l.window === 'open').sort((a, b) => a.sowBy.localeCompare(b.sowBy))[0]
+      ?? [...plan.lines].sort((a, b) => (a.deliveryStart || 'z').localeCompare(b.deliveryStart || 'z'))[0]
+    plan.window = plan.lines.some((l) => l.window === 'urgent') ? 'urgent' : plan.lines.some((l) => l.window === 'open') ? 'open' : pick.window
+    Object.assign(plan, { sowFrom: pick.sowFrom, sowBy: pick.sowBy, harvestStart: pick.harvestStart, harvestEnd: plan.lines.reduce((m, l) => (l.harvestEnd > m ? l.harvestEnd : m), pick.harvestEnd) })
 
     const sowBy = plan.sowBy || addDays(PLANNING_DATE, 21)
     const used = new Set(plan.allocations.map((a) => a.plotId))
     for (const plot of data.plots) {
       const farmer = farmersById.get(plot.farmerId)
       const reason = farmer ? farmerEligibility(farmer, responses[farmer.id]) : 'Unknown farmer'
-      const { fit, reasons } = assessPlot(plan.crop, plot, data, sowBy, responses[plot.farmerId])
+      const { fit, reasons } = assess(plan.crop, plot, sowBy)
       if (!reason && fit !== 'unsuitable') plan.suitableAcres += plotAcres(plot)
       if (used.has(plot.id)) continue
       let why: Reason[]
@@ -367,37 +467,63 @@ export function runPlan({ orders, data, scenario, responses, exclusions }: Engin
   // 5. Opportunities for every crop with demand or a market signal
   const opportunities: Opportunity[] = crops
     .filter((crop) => byCrop.has(crop.name) || marketSignals.some((s) => s.crop === crop.name))
-    .map((crop) => buildOpportunity(crop, plans.find((p) => p.crop.id === crop.id), data, responses, yieldIdx))
+    .map((crop) => buildOpportunity(crop, plans.find((p) => p.crop.id === crop.id), data, responses, yieldIdx, flaggedPlots))
     .sort((a, b) => verdictRank[a.verdict] - verdictRank[b.verdict] || (b.plan?.confirmedKg ?? 0) - (a.plan?.confirmedKg ?? 0))
 
   const allocations = plans.flatMap((p) => p.allocations)
-  // Supply is only "confirmed by farmers" when the farmer accepted the instructions that match the current plan.
-  const confirmedFarmers = new Set([...new Set(allocations.map((a) => a.farmerId))].filter((id) => {
-    const r = responses[id]
-    return r?.status === 'confirmed' && r.sentSignature === assignmentSignature(allocations.filter((a) => a.farmerId === id))
-  }))
-  for (const plan of plans) plan.farmerConfirmedKg = plan.existingKg + plan.allocations.filter((a) => confirmedFarmers.has(a.farmerId)).reduce((sum, a) => sum + a.kg, 0)
+  // "Farmer-confirmed" only when the farmer accepted instructions that match the current plan (area, order and dates).
+  const confirmedFarmers = new Set([...new Set(allocations.map((a) => a.farmerId))].filter((id) => replyStateFor(id, responses, allocations) === 'confirmed'))
+  for (const plan of plans) {
+    for (const line of plan.lines) line.farmerConfirmedKg = line.allocations.filter((a) => confirmedFarmers.has(a.farmerId)).reduce((s, a) => s + a.kg, 0)
+    plan.farmerConfirmedKg = plan.existingKg + plan.lines.reduce((s, l) => s + l.farmerConfirmedKg, 0)
+  }
+  const allLines = plans.flatMap((p) => p.lines)
   const farmersInvolved = [...new Set(allocations.map((a) => a.farmerId))]
-  const confirmedDemandKg = plans.reduce((s, p) => s + p.confirmedKg, 0)
-  const confirmedCoveredKg = plans.reduce((s, p) => s + Math.min(p.confirmedKg, p.expectedKg), 0)
-  const allDemandKg = plans.reduce((s, p) => s + p.confirmedKg + p.indicativeKg, 0)
-  const allCoveredKg = plans.reduce((s, p) => s + Math.min(p.confirmedKg + p.indicativeKg, p.expectedKg), 0)
+  const confirmedDemandKg = allLines.filter((l) => l.committed).reduce((s, l) => s + l.qtyKg, 0)
+  const confirmedCoveredKg = allLines.filter((l) => l.committed).reduce((s, l) => s + Math.min(l.qtyKg, l.expectedKg), 0)
+  const allDemandKg = allLines.reduce((s, l) => s + l.qtyKg, 0)
+  const allCoveredKg = allLines.reduce((s, l) => s + Math.min(l.qtyKg, l.expectedKg), 0)
 
   const result: PlanResult = {
     scenario, plans: plans.sort((a, b) => (a.sowBy || 'z').localeCompare(b.sowBy || 'z')), opportunities, allocations, farmersInvolved,
     totalAcres: allocations.reduce((s, a) => s + a.acres, 0), confirmedDemandKg, confirmedCoveredKg, allDemandKg, allCoveredKg, ineligible, actions: [], unmappedOrders,
+    risk: { level: 'Low', score: 0, factors: [] },
   }
-  result.actions = buildActions(result, data, responses, orders)
+  result.risk = assessRisk(result, responses)
+  result.actions = buildActions(result, data, responses, orders, flaggedPlots)
   return result
+}
+
+/** Plan risk from supply gaps, unconfirmed farmers, uncertain demand, timing and farm cautions. */
+export function assessRisk(result: PlanResult, responses: Record<string, FarmerResponse>): Risk {
+  const factors: { pts: number; text: string }[] = []
+  const lines = result.plans.flatMap((p) => p.lines)
+  const committedShort = lines.filter((l) => l.committed && l.status !== 'covered')
+  if (committedShort.length) factors.push({ pts: 2, text: `${committedShort.length} committed order${committedShort.length > 1 ? 's' : ''} not fully planned` })
+  const target = lines.reduce((s, l) => s + l.targetKg, 0)
+  const expected = lines.filter((l) => l.inScenario).reduce((s, l) => s + Math.min(l.expectedKg, l.targetKg), 0)
+  if (target && expected / target < 0.85) factors.push({ pts: 2, text: `Only ${Math.round((expected / target) * 100)}% of the target is planned` })
+  else if (target && expected / target < 0.98) factors.push({ pts: 1, text: `${Math.round((expected / target) * 100)}% of the target is planned` })
+  const planned = result.allocations.reduce((s, a) => s + a.kg, 0)
+  const confirmed = result.allocations.filter((a) => replyStateFor(a.farmerId, responses, result.allocations) === 'confirmed').reduce((s, a) => s + a.kg, 0)
+  if (planned && confirmed / planned < 0.5) factors.push({ pts: 1, text: `${Math.round((1 - confirmed / planned) * 100)}% of planned supply not yet farmer-confirmed` })
+  const urgentUnconfirmed = lines.filter((l) => l.window === 'urgent' && l.allocations.some((a) => replyStateFor(a.farmerId, responses, result.allocations) !== 'confirmed'))
+  if (urgentUnconfirmed.length) factors.push({ pts: 1, text: 'Sowing deadline within 10 days with unconfirmed farmers' })
+  const indicativeTarget = lines.filter((l) => l.inScenario && !l.committed).reduce((s, l) => s + l.targetKg, 0)
+  if (target && indicativeTarget / target > 0.3) factors.push({ pts: 1, text: `${Math.round((indicativeTarget / target) * 100)}% of the target is indicative demand` })
+  const caution = result.allocations.filter((a) => a.fit !== 'good').length
+  if (result.allocations.length && caution / result.allocations.length >= 0.25) factors.push({ pts: 1, text: `${caution} planned plot${caution > 1 ? 's have' : ' has'} farm cautions` })
+  const score = factors.reduce((s, f) => s + f.pts, 0)
+  return { level: score >= 5 ? 'High' : score >= 2 ? 'Medium' : 'Low', score, factors: factors.sort((a, b) => b.pts - a.pts).map((f) => f.text) }
 }
 
 const verdictRank: Record<Verdict, number> = { strong: 0, consider: 1, 'existing-only': 2, caution: 3, 'too-late': 4 }
 
-function buildOpportunity(crop: CropProfile, plan: CropPlan | undefined, data: FarmersData, responses: Record<string, FarmerResponse>, yieldIdx: number): Opportunity {
+function buildOpportunity(crop: CropProfile, plan: CropPlan | undefined, data: FarmersData, responses: Record<string, FarmerResponse>, yieldIdx: number, flaggedPlots: Record<string, { reason: string }>): Opportunity {
   const signals = marketSignals.filter((s) => s.crop === crop.name)
   const why: WhyPoint[] = []
   let score = 0
-  if (plan?.confirmedKg) { score += 2; why.push({ source: 'order', tone: 'good', text: `${fmt(plan.confirmedKg)} confirmed by buyers` }) }
+  if (plan?.confirmedKg) { score += 2; why.push({ source: 'order', tone: 'good', text: `${fmt(plan.confirmedKg)} committed by buyers` }) }
   if (plan?.indicativeKg) { score += 1; why.push({ source: 'order', tone: 'caution', text: `${fmt(plan.indicativeKg)} indicative – not yet committed` }) }
   if (!plan) why.push({ source: 'order', tone: 'caution', text: 'No buyer orders yet' })
   for (const s of signals) {
@@ -416,9 +542,11 @@ function buildOpportunity(crop: CropProfile, plan: CropPlan | undefined, data: F
   for (const plot of data.plots) {
     const farmer = data.farmers.find((f) => f.id === plot.farmerId)
     if (!farmer || farmerEligibility(farmer, responses[farmer.id])) continue
-    if (assessPlot(crop, plot, data, sowBy, responses[farmer.id]).fit !== 'unsuitable') { suitableAcres += plotAcres(plot); suitableFarmers.add(farmer.id) }
+    if (assessPlot(crop, plot, data, sowBy, responses[farmer.id], flaggedPlots[plot.id]).fit !== 'unsuitable') { suitableAcres += plotAcres(plot); suitableFarmers.add(farmer.id) }
   }
   const neededAcres = plan ? (plan.confirmedKg + plan.indicativeKg) / crop.yieldPerAcre[yieldIdx] : 0
+  const lateLines = plan?.lines.filter((l) => l.window === 'missed') ?? []
+  if (plan && lateLines.length && lateLines.length < plan.lines.length) why.unshift({ source: 'timing', tone: 'block', text: `${lateLines.length} order${lateLines.length > 1 ? 's are' : ' is'} too late to sow for` })
   if (!crop.perennial) {
     if (suitableAcres === 0) { score -= 2; why.push({ source: 'farm', tone: 'block', text: 'No participating plot suits this crop in time' }) }
     else if (suitableAcres >= neededAcres) { score += 1; why.push({ source: 'farm', tone: 'good', text: `${suitableFarmers.size} farms (${suitableAcres.toFixed(1)} ac) could grow it` }) }
@@ -446,25 +574,32 @@ function buildOpportunity(crop: CropProfile, plan: CropPlan | undefined, data: F
 
 const fmt = (kg: number) => (kg >= 10000 ? `${(kg / 1000).toFixed(1).replace(/\.0$/, '')} t` : `${Math.round(kg).toLocaleString('en-IN')} kg`)
 
-function buildActions(result: PlanResult, data: FarmersData, responses: Record<string, FarmerResponse>, orders: BuyerOrder[]): NextAction[] {
+function buildActions(result: PlanResult, data: FarmersData, responses: Record<string, FarmerResponse>, orders: BuyerOrder[], flaggedPlots: Record<string, { reason: string }>): NextAction[] {
   const actions: NextAction[] = []
   const byFarmer = new Map<string, Allocation[]>()
   for (const a of result.allocations) byFarmer.set(a.farmerId, [...(byFarmer.get(a.farmerId) ?? []), a])
 
   for (const p of result.plans.filter((x) => x.window === 'urgent' && x.allocations.length)) {
-    const waiting = p.allocations.filter((a) => (responses[a.farmerId]?.status ?? 'not-sent') !== 'confirmed').length
-    if (waiting) actions.push({ id: `urgent-${p.crop.id}`, tone: 'urgent', title: `Sow ${p.crop.name.toLowerCase()} by ${shortDate(p.sowBy)}`, detail: `${waiting} of ${p.allocations.length} farmers haven’t confirmed yet.`, to: '/messages', cta: 'Message farmers' })
+    const waiting = new Set(p.allocations.filter((a) => replyStateFor(a.farmerId, responses, result.allocations) !== 'confirmed').map((a) => a.farmerId)).size
+    if (waiting) actions.push({ id: `urgent-${p.crop.id}`, tone: 'urgent', title: `Sow ${p.crop.name.toLowerCase()} by ${shortDate(p.sowBy)}`, detail: `${waiting} of ${new Set(p.allocations.map((a) => a.farmerId)).size} farmers haven’t confirmed yet.`, to: '/messages', cta: 'Message farmers' })
   }
   const notSent = [...byFarmer.keys()].filter((id) => (responses[id]?.status ?? 'not-sent') === 'not-sent')
   if (notSent.length) actions.push({ id: 'send', tone: 'attention', title: `Send planting instructions to ${notSent.length} farmer${notSent.length > 1 ? 's' : ''}`, detail: 'Instructions are drafted in each farmer’s language.', to: '/messages', cta: 'Review messages' })
-  const changed = [...byFarmer.entries()].filter(([id, list]) => { const r = responses[id]; return r && r.status !== 'not-sent' && r.status !== 'declined' && r.sentSignature !== undefined && r.sentSignature !== assignmentSignature(list) })
+  const changed = [...byFarmer.keys()].filter((id) => replyStateFor(id, responses, result.allocations) === 'needs-update')
   if (changed.length) actions.push({ id: 'resend', tone: 'attention', title: `Plan changed for ${changed.length} farmer${changed.length > 1 ? 's' : ''}`, detail: 'Their instructions are out of date. Send an update.', to: '/messages', cta: 'Send updates' })
   const constraints = Object.values(responses).filter((r) => r.status === 'constraint')
   if (constraints.length) actions.push({ id: 'constraints', tone: 'attention', title: `${constraints.length} farmer${constraints.length > 1 ? 's' : ''} reported a problem`, detail: 'Review how it changed the plan.', to: '/messages', cta: 'Review replies' })
-  for (const p of result.plans.filter((x) => x.gapKg > 0 && (x.window === 'open' || x.window === 'urgent'))) {
-    actions.push({ id: `gap-${p.crop.id}`, tone: 'attention', title: `${p.crop.name}: short by about ${fmt(p.gapKg)}`, detail: 'Add farmers, check unknown farm details, or agree a lower volume with the buyer.', to: `/plan#${p.crop.id}`, cta: 'Open plan' })
+  const flagged = Object.keys(flaggedPlots).length
+  if (flagged) actions.push({ id: 'verify', tone: 'attention', title: `Verify ${flagged} plot${flagged > 1 ? 's' : ''} a farmer reported a problem on`, detail: 'Excluded from the plan until a coordinator checks them.', to: '/farmers', cta: 'Verify plots' })
+  for (const p of result.plans) {
+    for (const l of p.lines.filter((x) => x.gapKg > 0 && (x.window === 'open' || x.window === 'urgent'))) {
+      actions.push({ id: `gap-${l.order.id}`, tone: l.committed ? 'attention' : 'info', title: `${p.crop.name} for ${l.order.buyer.name}: short by about ${fmt(l.gapKg)}`, detail: 'Add farmers, check unknown farm details, or agree a lower volume with the buyer.', to: `/plan#${p.crop.id}`, cta: 'Open plan' })
+    }
+    for (const l of p.lines.filter((x) => x.committed && x.window === 'missed' && x.gapKg > 0)) {
+      actions.push({ id: `late-${l.order.id}`, tone: 'attention', title: `${p.crop.name} for ${l.order.buyer.name}: too late to sow`, detail: `Delivery from ${shortDate(l.deliveryStart)} needed sowing by ${shortDate(l.sowBy)}. Agree a later window.`, to: '/demand', cta: 'View demand' })
+    }
   }
-  for (const p of result.plans.filter((x) => x.window === 'perennial' && x.gapKg > 0)) {
+  for (const p of result.plans.filter((x) => x.crop.perennial && x.gapKg > 0)) {
     actions.push({ id: `perennial-${p.crop.id}`, tone: 'info', title: `${p.crop.name}: orchards cover ${fmt(p.existingKg)} of ${fmt(p.confirmedKg + p.indicativeKg)}`, detail: 'Discuss a smaller volume or a later window with the buyer.', to: '/demand', cta: 'View demand' })
   }
   const unknownPlots = data.plots.filter((pl) => { const f = data.farmers.find((x) => x.id === pl.farmerId); return f && !farmerEligibility(f, responses[f.id]) && (pl.waterAvailability === 'Unknown' || !pl.soilType) })

@@ -815,3 +815,10 @@ body { background: linear-gradient(180deg, #f7f9f4 0%, #f3f6ef 100%); }
 }
 @media (max-width: 1180px) { .m-cols, .m-cols-demand, .m-cols-msg { grid-template-columns: minmax(0, 1fr); } }
 .m-cols-demand { grid-template-columns: minmax(0, 1fr) 320px; } @media (max-width: 1180px) { .m-cols-demand { grid-template-columns: minmax(0, 1fr); } }
+/* Secondary planning sections: collapsed by default */
+.m-fold { padding: 4px 24px; border-top: 1px solid var(--line); }
+.m-fold > summary { padding: 16px 0; font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); color: var(--ink); gap: 10px; }
+.m-fold > summary .m-small { font-family: var(--font-body); font-weight: 400; }
+.m-fold[open] { padding-bottom: 20px; }
+.m-fold[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.m-panel-title .m-status { font-size: var(--fs-xs); font-weight: 600; padding: 3px 10px; }

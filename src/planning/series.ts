@@ -34,8 +34,9 @@ export function weeklySeries(plans: CropPlan[]): WeekPoint[] {
       spread(buckets, 'demand', qty, s, e)
       if (o.product.orderType === 'Confirmed') spread(buckets, 'confirmed', qty, s, e)
     }
-    for (const a of p.allocations) spread(buckets, 'supply', a.kg, p.harvestStart, p.harvestEnd)
-    for (const ex of p.existing) spread(buckets, 'supply', ex.kg, maxDate(ex.cycle.expectedHarvestStartDate, p.deliveryStart), minDate(ex.cycle.expectedHarvestEndDate, p.deliveryEnd))
+    // Each planted area harvests in its own order's window; existing crops only within the window they were counted for.
+    for (const a of p.allocations) spread(buckets, 'supply', a.kg, a.harvestStart, a.harvestEnd)
+    for (const ex of p.existing) spread(buckets, 'supply', ex.kg, ex.windowStart, ex.windowEnd)
   }
   return buckets
 }

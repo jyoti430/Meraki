@@ -21,9 +21,9 @@ import type { ReplyState } from '../components/ui'
 
 const constraintOptions: { id: ConstraintKind; label: string; hint: string }[] = [
   { id: 'land', label: 'Less land available', hint: 'Caps this farmer’s area; the rest is reassigned.' },
-  { id: 'water', label: 'Water problem', hint: 'Downgrades water on their plots in Farmers & farms.' },
-  { id: 'timing', label: 'Cannot sow in time', hint: 'Keeps the plot but flags it as a risk.' },
-  { id: 'other', label: 'Other problem', hint: 'Recorded and flagged for follow-up.' },
+  { id: 'water', label: 'Water problem', hint: 'Flags their planned plots for a coordinator to verify. Held out of the plan until then; farm records are not changed.' },
+  { id: 'timing', label: 'Cannot sow in time', hint: 'Not planned for windows they can’t meet. Add the date they can start, if known.' },
+  { id: 'other', label: 'Other problem', hint: 'Kept in the plan but marked “Needs review” for follow-up.' },
 ]
 
 const order: Record<ReplyState, number> = { 'needs-update': 0, 'not-sent': 1, constraint: 2, sent: 3, confirmed: 4, declined: 5 }
@@ -47,6 +47,7 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
   const [kind, setKind] = useState<ConstraintKind>('land')
   const [acres, setAcres] = useState('1')
   const [note, setNote] = useState('')
+  const [fromDate, setFromDate] = useState('')
   const [lastChange, setLastChange] = useState<PlanChange | null>(null)
   const threadRef = useRef<HTMLDivElement>(null)
 
@@ -123,14 +124,15 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
           <h2 className="m-h3">Simulate farmer reply</h2>
           <p className="m-sub" style={{ marginBottom: 14 }}>Pick what {firstName} replies. Meraki records it and rebalances the plan.</p>
           <div className="m-reply-grid">
-            <button type="button" className="m-reply-btn" onClick={() => reply({ status: 'confirmed' }, replyText.confirmed)}><strong><CheckCircle2 size={16} color="var(--good)" /> 1 · Will plant</strong><span>Counts as farmer-confirmed supply</span></button>
+            <button type="button" className="m-reply-btn" onClick={() => reply({ status: 'confirmed' }, replyText.confirmed)}><strong><CheckCircle2 size={16} color="var(--good)" /> 1 · Will plant</strong><span>Becomes farmer-confirmed supply</span></button>
             <button type="button" className="m-reply-btn" onClick={() => reply({ status: 'declined' }, replyText.declined)}><strong><X size={16} color="var(--bad)" /> 2 · Not this season</strong><span>Their land is reassigned to others</span></button>
             <button type="button" className="m-reply-btn" aria-pressed={replyMode === 'constraint'} onClick={() => setReplyMode(replyMode === 'constraint' ? 'none' : 'constraint')}><strong><AlertTriangle size={16} color="var(--warn)" /> 3 · Report a problem</strong><span>Land, water or timing</span></button>
           </div>
-          {replyMode === 'constraint' && <form className="m-stack" style={{ marginTop: 16 }} onSubmit={(e) => { e.preventDefault(); reply({ status: 'constraint', kind, note: note.trim() || constraintOptions.find((c) => c.id === kind)!.label, availableAcres: kind === 'land' ? Math.max(0, Number(acres) || 0) : undefined }, `${replyText[kind]}${note.trim() ? ` – ${note.trim()}` : ''}${kind === 'land' ? ` (${acres} acre)` : ''}`) }}>
+          {replyMode === 'constraint' && <form className="m-stack" style={{ marginTop: 16 }} onSubmit={(e) => { e.preventDefault(); reply({ status: 'constraint', kind, note: note.trim() || constraintOptions.find((c) => c.id === kind)!.label, availableAcres: kind === 'land' ? Math.max(0, Number(acres) || 0) : undefined, availableFrom: kind === 'timing' && fromDate ? fromDate : undefined }, `${replyText[kind]}${note.trim() ? ` – ${note.trim()}` : ''}${kind === 'land' ? ` (${acres} acre)` : ''}`) }}>
             <div className="m-form-grid">
               <label className="m-field">Problem<select className="m-select" value={kind} onChange={(e) => setKind(e.target.value as ConstraintKind)}>{constraintOptions.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select><small>{constraintOptions.find((c) => c.id === kind)!.hint}</small></label>
               {kind === 'land' ? <label className="m-field">Acres the farmer can still plant<input className="m-input" type="number" min={0} step={0.25} value={acres} onChange={(e) => setAcres(e.target.value)} /><small>Currently assigned: {fmtAcres(selected.allocations.reduce((s, a) => s + a.acres, 0))}</small></label>
+                : kind === 'timing' ? <label className="m-field">Can sow from (optional)<input className="m-input" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} /><small>Leave empty if the farmer can’t commit to a date.</small></label>
                 : <label className="m-field">Farmer’s note (optional)<input className="m-input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. well is drying up" /></label>}
             </div>
             <div><button type="submit" className="m-btn m-btn-primary m-btn-sm">Record reply</button></div>
@@ -146,7 +148,7 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
 type Bucket = 'confirmed' | 'follow-up' | 'constraint' | 'waiting'
 
 export default function Messages() {
-  const { result, responses, messages, sendInstructions, scenario, exclusions } = usePlan()
+  const { result, responses, messages, sendInstructions, scenario, exclusions, flaggedPlots, planState } = usePlan()
   const { data } = useFarmers()
   const { orders } = useBuyerOrders()
   const campaigns = result.plans.filter((p) => p.allocations.length)
@@ -166,7 +168,7 @@ export default function Messages() {
   const villages = new Set(contacted.map((id) => data.farmers.find((f) => f.id === id)?.village)).size
   const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0)
 
-  const before = useMemo(() => runPlan({ orders, data, scenario, responses: {}, exclusions }), [orders, data, scenario, exclusions])
+  const before = useMemo(() => runPlan({ orders, data, scenario, responses: {}, exclusions, flaggedPlots: {} }), [orders, data, scenario, exclusions])
 
   if (!camp) return <div className="m-page"><PageHeader title="Farmer messages" subtitle="Plan, send, and track planting updates with your farmers via SMS or WhatsApp." /><Link to="/plan" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>Open planting plan</Link></div>
 
@@ -174,7 +176,7 @@ export default function Messages() {
   const bucketOf = (id: string): Bucket => { const st = stateOf(id); return st === 'confirmed' ? 'confirmed' : st === 'constraint' ? 'constraint' : st === 'sent' ? 'waiting' : 'follow-up' }
   const counts: Record<Bucket, number> = { confirmed: 0, 'follow-up': 0, constraint: 0, waiting: 0 }
   campFarmers.forEach((id) => { counts[bucketOf(id)] += 1 })
-  const campStatus = (p: typeof camp) => { const ids = [...new Set(p.allocations.map((a) => a.farmerId))]; const st = ids.map(stateOf); return st.every((x) => x === 'not-sent') ? 'Draft' : st.some((x) => x === 'sent' || x === 'not-sent' || x === 'needs-update') ? 'Active' : 'Completed' }
+  const campStatus = (p: typeof camp) => { const ids = [...new Set(p.allocations.map((a) => a.farmerId))]; const st = ids.map(stateOf); return st.every((x) => x === 'not-sent') ? 'Draft' : st.some((x) => x === 'needs-update') ? 'Update due' : st.some((x) => x === 'sent' || x === 'not-sent') ? 'Sent' : 'Replied' }
   const lastSent = (p: typeof camp) => { const ids = new Set(p.allocations.map((a) => a.farmerId)); return messages.filter((m) => m.direction === 'out' && ids.has(m.farmerId)).sort((a, b) => b.at.localeCompare(a.at))[0] }
   const sample = data.farmers.find((f) => f.id === campFarmers[0])!
   const sampleText = composeInstruction(sample.name.split(' ')[0], result.allocations.filter((a) => a.farmerId === sample.id && a.crop === camp.crop.name), result.plans, language, channel, false)
@@ -191,10 +193,10 @@ export default function Messages() {
   const declined = [...bFarmers].filter((id) => responses[id]?.status === 'declined').length
   const confirmedKg = camp.allocations.filter((a) => stateOf(a.farmerId) === 'confirmed').reduce((s, a) => s + a.kg, 0)
   const rows: { id: Bucket; label: string; icon: JSX.Element; cls: string }[] = [
-    { id: 'confirmed', label: 'Confirmed', icon: <CheckCircle2 size={20} />, cls: '' },
-    { id: 'follow-up', label: 'Needs follow-up', icon: <Clock3 size={20} />, cls: 'warn' },
+    { id: 'confirmed', label: 'Farmer-confirmed', icon: <CheckCircle2 size={20} />, cls: '' },
+    { id: 'follow-up', label: 'Draft or out of date', icon: <Clock3 size={20} />, cls: 'warn' },
     { id: 'constraint', label: 'Constraint reported', icon: <AlertTriangle size={20} />, cls: 'bad' },
-    { id: 'waiting', label: 'No response yet', icon: <UsersRound size={20} />, cls: '' },
+    { id: 'waiting', label: 'Sent – no reply yet', icon: <UsersRound size={20} />, cls: '' },
   ]
 
   return <div className="m-page">
@@ -202,10 +204,12 @@ export default function Messages() {
 
     <section className="m-stats three" aria-label="Messaging summary">
       <StatCard icon={<UsersRound size={24} />} label="Farmers contacted" tip="Farmers who have received planting instructions" value={contacted.length} sub={<>of {involved.length} in the plan · {villages} villages</>} />
-      <StatCard icon={<Sprout size={24} />} label="Confirmed participation" tip="Farmers who replied 1 to the current plan" value={confirmedN} sub={<><span className="m-up">↗ {pct(confirmedN, contacted.length)}%</span> of contacted farmers</>} />
+      <StatCard icon={<Sprout size={24} />} label="Farmer-confirmed" tip="Farmers who replied 1 to their current instructions" value={confirmedN} sub={<><span className="m-up">↗ {pct(confirmedN, contacted.length)}%</span> of contacted farmers</>} />
       <StatCard icon={<AlertTriangle size={24} />} tone="warn" label="Pending responses" tip="Messaged farmers who haven't replied yet" value={waitingN} sub={<>≈ {pct(waitingN, contacted.length)}% of contacted farmers</>} />
     </section>
 
+    {planState !== 'finalized' && <div className="m-alert m-alert-warn"><AlertTriangle size={18} style={{ flex: 'none', marginTop: 2 }} /><span>{planState === 'changed' ? 'The plan changed after it was finalized.' : 'The planting plan is still a draft.'} You can send instructions now, but farmers may get updates later. <Link to="/plan" className="m-link">Review and finalize the plan</Link></span></div>}
+    {Object.keys(flaggedPlots).length > 0 && <div className="m-alert m-alert-info"><AlertTriangle size={18} style={{ flex: 'none', marginTop: 2 }} /><span>{Object.keys(flaggedPlots).length} plot{Object.keys(flaggedPlots).length > 1 ? 's are' : ' is'} held out of the plan until a coordinator verifies a farmer’s report. <Link to="/farmers" className="m-link">Verify in Farmers &amp; Farms</Link></span></div>}
     <div className="m-cols-even m-cols-msg">
       <section className="m-panel" aria-labelledby="camp-title">
         <div className="m-panel-head">
@@ -217,7 +221,7 @@ export default function Messages() {
           return <button type="button" key={p.crop.id} className="m-camp" aria-current={p.crop.id === camp.crop.id} onClick={() => { setCropId(p.crop.id); setBucket(null) }}>
             <span className="m-roundico" style={{ width: 44, height: 44 }}><Sprout size={22} /></span>
             <span style={{ minWidth: 0 }}><strong>{p.crop.name} planting plan</strong><span className="m-small">{last ? `Sent ${fmtDay(last.at.slice(0, 10))} · ${last.channel}` : `${new Set(p.allocations.map((a) => a.farmerId)).size} farmer${new Set(p.allocations.map((a) => a.farmerId)).size === 1 ? '' : 's'} · not sent yet`}</span></span>
-            <span className={`m-camp-pill ${st === 'Active' ? 'active' : st === 'Draft' ? 'draft' : ''}`}>{st}</span><ArrowRight size={18} />
+            <span className={`m-camp-pill ${st === 'Sent' ? 'active' : st === 'Draft' || st === 'Update due' ? 'draft' : ''}`}>{st}</span><ArrowRight size={18} />
           </button>
         })}</div>
       </section>
@@ -261,7 +265,7 @@ export default function Messages() {
         <div className="m-flowcard"><span className="m-roundico"><Sprout size={20} /></span><div><strong>Updated plan (after responses)</strong><strong className="big">{camp.crop.name}: {fmtT(camp.expectedKg)}</strong><span className="m-small">({campFarmers.length} farmer{campFarmers.length === 1 ? '' : 's'}, {camp.plannedAcres.toFixed(1)} acres)</span></div></div>
         <div><strong style={{ display: 'block', marginBottom: 8 }}>What changed</strong>
           <ul className="m-changed">
-            <li><CheckCircle2 size={17} color="var(--good)" />+{counts.confirmed} farmers confirmed ({fmtT(confirmedKg)})</li>
+            <li><CheckCircle2 size={17} color="var(--good)" />+{counts.confirmed} farmer-confirmed ({fmtT(confirmedKg)})</li>
             <li><AlertTriangle size={17} color="var(--bad)" />{counts.constraint} reported constraints{declined ? `, ${declined} declined` : ''} ({camp.expectedKg - (bPlan?.expectedKg ?? 0) >= 0 ? '+' : '−'}{fmtT(Math.abs(camp.expectedKg - (bPlan?.expectedKg ?? 0)))})</li>
             <li><Clock3 size={17} color="var(--warn)" />{counts['follow-up'] + counts.waiting} need follow-up (to confirm)</li>
             <li><Sprout size={17} color="var(--forest)" />{bFarmers.size !== campFarmers.length || Math.abs(camp.expectedKg - (bPlan?.expectedKg ?? 0)) > 0 ? 'Plan updated automatically' : 'No changes from responses yet'}</li>

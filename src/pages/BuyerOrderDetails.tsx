@@ -9,19 +9,19 @@ import { findCrop } from '../data/crops'
 import { fmtDay, fmtKg } from '../planning/format'
 import { PlanStatus, SourceTag, SupplyMeter } from '../components/ui'
 
-function PlanImpact({ crop, active, orderType }: { crop: string; active: boolean; orderType: string }) {
+function PlanImpact({ crop, active, orderType, orderId }: { crop: string; active: boolean; orderType: string; orderId: string }) {
   const { result } = usePlan()
   const profile = findCrop(crop)
   const plan = result.plans.find((p) => p.crop.name === profile?.name)
   return <section className="m-card" style={{ marginBottom: 14 }} aria-label="Planting plan impact">
     <div className="m-card-head" style={{ marginBottom: 12 }}>
-      <div><h3 className="m-h3">How this order shapes the planting plan</h3><p className="m-sub">{!active ? 'Only active orders are used for planning.' : !profile ? 'Meraki has no growing reference for this crop, so it can’t be planned automatically.' : orderType === 'Indicative' ? 'Indicative demand is planned only in scenarios that include it.' : 'Confirmed demand is always planned first.'}</p></div>
-      <SourceTag kind={orderType === 'Confirmed' ? 'order' : 'indicative'}>{orderType}</SourceTag>
+      <div><h3 className="m-h3">How this order shapes the planting plan</h3><p className="m-sub">{!active ? 'Only active orders are used for planning.' : !profile ? 'Meraki has no growing reference for this crop, so it can’t be planned automatically.' : orderType === 'Indicative' ? 'Indicative demand is planned only in scenarios that include it.' : 'Committed demand is always planned first, order by order.'}</p></div>
+      <SourceTag kind={orderType === 'Confirmed' ? 'order' : 'indicative'}>{orderType === 'Confirmed' ? 'Committed' : 'Indicative'}</SourceTag>
     </div>
     {active && plan && <>
       <SupplyMeter plan={plan} showLegend />
       <div className="m-row" style={{ marginTop: 14, justifyContent: 'space-between' }}>
-        <span className="m-small"><PlanStatus plan={plan} /> &nbsp;{plan.crop.name}: {fmtKg(plan.expectedKg)} expected for {fmtKg(plan.confirmedKg + plan.indicativeKg)} total demand · {plan.allocations.length} plots{plan.sowBy ? ` · sow by ${fmtDay(plan.sowBy)}` : ''}</span>
+        {(() => { const line = plan.lines.find((l) => l.order.id === orderId); return <span className="m-small"><PlanStatus plan={plan} /> &nbsp;This order: {line ? `${fmtKg(line.expectedKg)} planned of ${fmtKg(line.qtyKg)}${line.farmerConfirmedKg ? ` (${fmtKg(line.farmerConfirmedKg)} farmer-confirmed)` : ' – not yet farmer-confirmed'} · ${line.allocations.length} plots${line.sowBy ? ` · sow by ${fmtDay(line.sowBy)}` : ''}` : 'not planned'}</span> })()}
         <Link className="m-btn m-btn-primary m-btn-sm" to={`/plan#${plan.crop.id}`}>Open in plan</Link>
       </div>
     </>}
@@ -63,7 +63,7 @@ export default function BuyerOrderDetails() {
     {canEdit && <div className="order-lifecycle-bar"><div><strong>{order.status === 'Draft' ? 'This order is a draft.' : 'This order is active.'}</strong><span>{order.status === 'Draft' ? 'Complete the required information to activate it.' : 'Order requirements can be edited and specification changes are versioned.'}</span></div><div className="lifecycle-actions">{order.status === 'Draft' && <Link to={`/buyer-orders/${order.id}/edit`} className="secondary-button"><FileEdit size={14} /> Complete draft</Link>}{order.status === 'Active' && <button type="button" className="secondary-button" onClick={() => confirmStatus('Completed')}><CircleCheck size={14} /> Mark completed</button>}<button type="button" className="cancel-order-button" onClick={() => confirmStatus('Cancelled')}><Ban size={14} /> Cancel order</button></div></div>}
     {!canEdit && <div className={`order-readonly-notice ${order.status === 'Cancelled' ? 'cancelled-notice' : ''}`}><ShieldCheck size={16} /> This {order.status.toLowerCase()} order is read-only.</div>}
 
-    <PlanImpact crop={order.product.crop} active={order.status === 'Active'} orderType={order.product.orderType} />
+    <PlanImpact crop={order.product.crop} active={order.status === 'Active'} orderType={order.product.orderType} orderId={order.id} />
     <div className="order-detail-layout"><div className="order-detail-main">
       <DetailSection icon={<MapPin size={17} />} title="Buyer information" description="Buyer contact and destination for this order.">
         <div className="detail-values-grid"><Value label="Buyer name">{order.buyer.name}</Value><Value label="Contact person">{order.buyer.contactPerson}</Value><Value label="Email">{order.buyer.email}</Value><Value label="Phone">{order.buyer.phone}</Value><Value label="Destination country">{order.buyer.destinationCountry}</Value><Value label="Destination city / port">{order.buyer.destinationCityPort}</Value></div>

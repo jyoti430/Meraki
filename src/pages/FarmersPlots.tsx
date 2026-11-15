@@ -14,8 +14,19 @@ type Filter = 'all' | 'in-plan' | 'needs-details' | 'not-participating'
 const needsDetails = (p: Plot) => p.waterAvailability === 'Unknown' || !p.soilType.trim()
 const waterLevel: Record<Plot['waterAvailability'], 'high' | 'medium' | 'low'> = { Available: 'high', Limited: 'medium', None: 'low', Unknown: 'medium' }
 
+function VerifyControls({ plot }: { plot: Plot }) {
+  const { verifyPlot } = usePlan()
+  return <div className="m-row" style={{ gap: 6, marginTop: 6, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+    <button type="button" className="m-action-btn" style={{ minWidth: 0 }} onClick={() => verifyPlot(plot.id)}><Check size={14} />Water is OK</button>
+    <span className="m-chipdate" style={{ paddingRight: 4 }}>Verified as
+      <select className="m-feas-select" value="" onChange={(e) => e.target.value && verifyPlot(plot.id, e.target.value as Plot['waterAvailability'])} aria-label={`Verified water level for ${plot.name}`}><option value="">choose…</option><option>Available</option><option>Limited</option><option>None</option></select>
+    </span>
+  </div>
+}
+
 function PlotsTable({ farmer, inPlan }: { farmer: Farmer; inPlan: (plotId: string) => string[] }) {
   const { data, editPlot } = useFarmers()
+  const { flaggedPlots } = usePlan()
   const plots = data.plots.filter((p) => p.farmerId === farmer.id)
   const update = (plot: Plot, patch: Partial<Plot>) => {
     const { id: _id, createdAt: _c, updatedAt: _u, ...input } = { ...plot, ...patch }
@@ -31,7 +42,7 @@ function PlotsTable({ farmer, inPlan }: { farmer: Farmer; inPlan: (plotId: strin
       return <tr key={plot.id}>
         <td><Link to={`/plots/${plot.id}`} className="m-link">{plot.name}</Link><small>{plot.irrigationType ? `${plot.irrigationType} irrigation` : 'No irrigation recorded'}</small></td>
         <td style={{ whiteSpace: 'nowrap' }}><strong>{fmtAcres(plotAcres(plot))}</strong></td>
-        <td><span className={`m-feas ${waterLevel[plot.waterAvailability]}`} style={{ paddingRight: 4 }}>
+        <td>{flaggedPlots[plot.id] && <div style={{ marginBottom: 6 }}><span className="m-status review"><AlertTriangle size={14} />Needs verification</span><small style={{ display: 'block', marginTop: 4 }}>{flaggedPlots[plot.id].reason}</small><VerifyControls plot={plot} /></div>}<span className={`m-feas ${waterLevel[plot.waterAvailability]}`} style={{ paddingRight: 4 }}>
           <select className="m-feas-select" value={plot.waterAvailability} onChange={(e) => update(plot, { waterAvailability: e.target.value as Plot['waterAvailability'] })} aria-label={`Water availability for ${plot.name}`}><option>Available</option><option>Limited</option><option>None</option><option>Unknown</option></select>
         </span></td>
         <td><span className="m-chipdate" style={{ paddingRight: 4 }}>
@@ -59,7 +70,7 @@ function ParticipationCell({ farmer, reason }: { farmer: Farmer; reason: string 
 
 export default function FarmersPlots() {
   const { data } = useFarmers()
-  const { result, responses } = usePlan()
+  const { result, responses, flaggedPlots } = usePlan()
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState<string | null>(null)
@@ -77,7 +88,7 @@ export default function FarmersPlots() {
   const groups: Record<Filter, (f: Farmer) => boolean> = {
     all: () => true,
     'in-plan': (f) => result.farmersInvolved.includes(f.id),
-    'needs-details': (f) => detailFarmers.has(f.id),
+    'needs-details': (f) => detailFarmers.has(f.id) || data.plots.some((p) => p.farmerId === f.id && flaggedPlots[p.id]),
     'not-participating': (f) => !eligibleIds.has(f.id),
   }
   const visible = useMemo(() => data.farmers.filter((f) => groups[filter](f) && (!query.trim() || `${f.name} ${f.village} ${f.district}`.toLowerCase().includes(query.trim().toLowerCase())))
@@ -86,8 +97,8 @@ export default function FarmersPlots() {
   const replyStatus = (id: string) => {
     if (!result.farmersInvolved.includes(id)) return <span className="m-small">—</span>
     const s = replyStateFor(id, responses, result.allocations)
-    if (s === 'confirmed') return <span className="m-status"><CheckCircle2 size={15} />Confirmed</span>
-    if (s === 'sent') return <span className="m-status wait"><Clock3 size={15} />Awaiting reply</span>
+    if (s === 'confirmed') return <span className="m-status"><CheckCircle2 size={15} />Farmer-confirmed</span>
+    if (s === 'sent') return <span className="m-status wait"><Clock3 size={15} />Sent</span>
     if (s === 'constraint' || s === 'needs-update') return <span className="m-status review"><AlertTriangle size={15} />Needs review</span>
     return <span className="m-status"><Check size={15} />Planned</span>
   }
@@ -145,9 +156,10 @@ export default function FarmersPlots() {
           <h2 className="m-panel-title sm" id="attn-title"><AlertTriangle size={24} />Needs attention</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Details that would let more land into the plan.</p>
           <ul className="m-why2">
+            {Object.entries(flaggedPlots).map(([plotId, flag]) => { const p = data.plots.find((x) => x.id === plotId); const f = data.farmers.find((x) => x.id === flag.farmerId); return p && <li key={plotId}><span className="m-roundico bad"><Droplets size={19} /></span><div><strong>Verify {f?.name} – {p.name}</strong><span>{flag.reason} via {flag.channel}. Held out of the plan until checked; farm record unchanged.</span><VerifyControls plot={p} /></div></li> })}
             {notRecorded.map((f) => <li key={f.id}><span className="m-roundico warn"><UsersRound size={19} /></span><div><strong>Ask {f.name} about joining</strong><span>Participation not recorded, so their land isn’t used.</span><div style={{ marginTop: 8 }}><ParticipationCell farmer={f} reason={null} /></div></div></li>)}
             {detailPlots.map((p) => { const f = data.farmers.find((x) => x.id === p.farmerId); return <li key={p.id}><span className="m-roundico warn"><Droplets size={19} /></span><div><strong>{f?.name} – {p.name}</strong><span>{[p.waterAvailability === 'Unknown' ? 'water' : '', !p.soilType.trim() ? 'soil type' : ''].filter(Boolean).join(' and ')} not recorded.</span><div style={{ marginTop: 6 }}><button type="button" className="m-link" style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', font: 'inherit', fontSize: 14 }} onClick={() => { setFilter('all'); setOpen(p.farmerId) }}>Update details</button></div></div></li> })}
-            {!notRecorded.length && !detailPlots.length && <li><span className="m-roundico"><Check size={19} /></span><div><strong>All set</strong><span>Every participating plot has water and soil recorded.</span></div></li>}
+            {!notRecorded.length && !detailPlots.length && !Object.keys(flaggedPlots).length && <li><span className="m-roundico"><Check size={19} /></span><div><strong>All set</strong><span>Every participating plot has water and soil recorded.</span></div></li>}
           </ul>
         </section>
         <section className="m-panel" aria-labelledby="how-title">

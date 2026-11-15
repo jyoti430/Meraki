@@ -1,15 +1,14 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { AlertTriangle, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, Clock3, History, Info, MinusCircle, Pencil, PlusCircle, ShieldCheck, Sprout, UsersRound, UserX, Boxes, Zap } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { AlertTriangle, ArrowRight, BarChart3, Send, CalendarDays, Check, CheckCircle2, ChevronRight, Clock3, Info, MinusCircle, Pencil, PlusCircle, ShieldCheck, Sprout, UsersRound, Boxes, Zap } from 'lucide-react'
 import { usePlan } from '../context/PlanContext'
 import { useBuyerOrders } from '../context/BuyerOrdersContext'
 import { useFarmers } from '../context/FarmersContext'
 import { PLANNING_DATE, exclusionKey, presetFor, replyStateFor, runPlan, scenarioPresets } from '../planning/engine'
 import type { CropPlan, Scenario } from '../planning/engine'
-import { composeInstruction, languageFor } from '../planning/messages'
 import { daysBetween, fmtAcres, fmtDay, fmtPct, toDate } from '../planning/format'
 import { cumulative, weeklySeries } from '../planning/series'
-import { Feasibility, Reasons, StatCard, SupplyMeter } from '../components/ui'
+import { Feasibility, Reasons, StatCard, SupplyMeter, lineStatusLabel, orderTypeLabel } from '../components/ui'
 import LineChart from '../components/LineChart'
 import PageHeader from '../components/layout/PageHeader'
 import { fmtT } from './Overview'
@@ -26,8 +25,8 @@ function Calendar({ plans }: { plans: CropPlan[] }) {
   return <div className="m-cal" style={{ ['--months' as string]: CAL_MONTHS }}>
     <span />
     <div className="m-cal-months" style={{ gridTemplateColumns: `repeat(${CAL_MONTHS}, minmax(0, 1fr))` }}>{months.map((m) => <span key={m}>{m}</span>)}</div>
-    {plans.filter((p) => p.harvestStart).map((p) => <div key={p.crop.id} style={{ display: 'contents' }}>
-      <span className="m-cal-label">{p.crop.emoji} {p.crop.name}</span>
+    {plans.flatMap((pl) => pl.lines.filter((l) => l.harvestStart).map((l) => ({ ...l, crop: pl.crop }))).map((p) => <div key={p.order.id} style={{ display: 'contents' }}>
+      <span className="m-cal-label" title={`${p.crop.name} for ${p.order.buyer.name}`}>{p.crop.emoji} {p.crop.name} <span className="m-small" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>· {p.order.buyer.name.split(' ')[0]}</span></span>
       <div className="m-cal-track" role="img" aria-label={`${p.crop.name}: ${p.sowBy ? `sow ${fmtDay(p.sowFrom)} to ${fmtDay(p.sowBy)}, ` : ''}harvest ${fmtDay(p.harvestStart)} to ${fmtDay(p.harvestEnd)}, delivery ${fmtDay(p.deliveryStart)} to ${fmtDay(p.deliveryEnd)}`}>
         {p.sowBy && p.window !== 'missed' && <>
           <span className="m-cal-bar grow" style={{ left: pos(p.sowBy), width: width(p.sowBy, p.harvestStart) }} />
@@ -58,8 +57,8 @@ function ScenarioCompare() {
     return { preset: p, acres: r.totalAcres, farmers: r.farmersInvolved.length, confirmed: r.confirmedDemandKg ? r.confirmedCoveredKg / r.confirmedDemandKg : 0, all: r.allDemandKg ? r.allCoveredKg / r.allDemandKg : 0, gaps: r.plans.filter((x) => x.gapKg > 0 && x.status !== 'not-in-scenario').length }
   }), [orders, data, responses, exclusions])
   const set = (patch: Partial<Scenario>) => setScenario({ ...scenario, ...patch })
-  return <section className="m-panel" aria-labelledby="scen-title">
-    <div className="m-panel-head"><div><h2 className="m-panel-title sm" id="scen-title">Compare scenarios</h2><p className="m-panel-sub">Each scenario reruns the whole plan with the same farms and orders.</p></div>{!presetFor(scenario) && <span className="m-status review"><AlertTriangle size={15} />Custom assumptions</span>}</div>
+  return <section aria-label="Scenarios" style={{ marginTop: 12 }}>
+    <div className="m-panel-head"><p className="m-panel-sub" style={{ margin: 0 }}>Each scenario reruns the whole plan with the same farms and orders.</p>{!presetFor(scenario) && <span className="m-status review"><AlertTriangle size={15} />Custom assumptions</span>}</div>
     <div className="m-scenarios">
       {rows.map((c) => <button type="button" key={c.preset.id} className="m-scenario" aria-pressed={presetFor(scenario)?.id === c.preset.id} onClick={() => setScenario(c.preset.scenario)}>
         <span className="m-scenario-title">{c.preset.label}{presetFor(scenario)?.id === c.preset.id && <span className="m-tag m-tag-plan">Active</span>}</span>
@@ -85,10 +84,9 @@ function ScenarioCompare() {
 }
 
 export default function PlantingPlan() {
-  const { result, changes, responses, exclusions, toggleExclusion, scenario, setScenario, sendInstructions } = usePlan()
+  const { result, changes, responses, exclusions, toggleExclusion, scenario, setScenario, finalizePlan, planState, finalized } = usePlan()
   const { data } = useFarmers()
   const { hash } = useLocation()
-  const navigate = useNavigate()
   const plans = result.plans
   const [cropId, setCropId] = useState(() => plans.find((p) => `#${p.crop.id}` === hash)?.crop.id ?? [...plans].sort((a, b) => b.allocations.length - a.allocations.length)[0]?.crop.id)
   const [editing, setEditing] = useState(false)
@@ -99,22 +97,14 @@ export default function PlantingPlan() {
   const inScope = plans.filter((p) => p.status !== 'not-in-scenario')
   const targetKg = inScope.reduce((s, p) => s + p.targetKg, 0)
   const expectedKg = inScope.reduce((s, p) => s + p.expectedKg, 0)
-  const coverage = targetKg ? expectedKg / targetKg : 0
   const villages = new Set(result.farmersInvolved.map((id) => data.farmers.find((f) => f.id === id)?.village)).size
-  const cautionShare = result.allocations.length ? result.allocations.filter((a) => a.fit !== 'good').length / result.allocations.length : 0
-  const risk = coverage >= 0.98 && cautionShare < 0.25 ? 'Low' : coverage >= 0.85 ? 'Medium' : 'High'
-  const riskStyle = risk === 'Low' ? { background: '#e5f1de', color: '#1f6e26' } : risk === 'Medium' ? { background: '#fdf1dc', color: '#8a4b00' } : { background: '#fdece6', color: '#b0301f' }
+  const risk = result.risk
+  const riskStyle = risk.level === 'Low' ? { background: '#e5f1de', color: '#1f6e26' } : risk.level === 'Medium' ? { background: '#fdf1dc', color: '#8a4b00' } : { background: '#fdece6', color: '#b0301f' }
   const pending = result.farmersInvolved.filter((id) => { const s = replyStateFor(id, responses, result.allocations); return s === 'not-sent' || s === 'needs-update' })
 
   function finalize() {
-    if (pending.length && window.confirm(`Finalize the plan and send planting instructions to ${pending.length} farmer${pending.length > 1 ? 's' : ''}? (Simulated – nothing is sent to real phones.)`)) {
-      sendInstructions(pending.map((id) => {
-        const f = data.farmers.find((x) => x.id === id)!
-        const lang = languageFor(f.preferredLanguage)
-        return { farmerId: id, channel: 'WhatsApp', language: lang, text: composeInstruction(f.name.split(' ')[0], result.allocations.filter((a) => a.farmerId === id), plans, lang, 'WhatsApp', replyStateFor(id, responses, result.allocations) === 'needs-update') }
-      }))
-    }
-    navigate('/messages')
+    // Finalizing saves the current plan as the agreed version; sending instructions is a separate, explicit step.
+    if (window.confirm(`Finalize this ${presetFor(scenario)?.label.toLowerCase() ?? 'custom'} plan (${result.totalAcres.toFixed(1)} ac across ${result.farmersInvolved.length} farmers)? You can still change it later – Meraki will flag that it changed.`)) finalizePlan()
   }
 
   if (!plan) return <div className="m-page"><PageHeader title="Collective planting plan" subtitle="Add active buyer demand to generate a planting plan." /><Link to="/buyer-orders/new" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>Add buyer demand</Link></div>
@@ -127,40 +117,51 @@ export default function PlantingPlan() {
   const farmerCount = new Set(plan.allocations.map((a) => a.farmerId)).size
   const cautions = [...new Set(plan.allocations.flatMap((a) => a.reasons.filter((r) => r.tone === 'caution').map((r) => r.text)))]
   const why = [
-    plan.status === 'covered' ? { ok: true, title: 'Meets buyer demand', text: `${fmtT(plan.expectedKg)} expected vs ${fmtT(plan.targetKg)} target (${fmtPct(plan.targetKg ? plan.expectedKg / plan.targetKg : 0)} coverage, incl. ${scenario.bufferPct}% buffer).` }
+    plan.status === 'covered' ? { ok: true, title: 'Planned to meet buyer demand', text: `${fmtT(plan.expectedKg)} expected vs ${fmtT(plan.targetKg)} target (${fmtPct(plan.targetKg ? plan.expectedKg / plan.targetKg : 0)} coverage, incl. ${scenario.bufferPct}% buffer).` }
       : plan.status === 'not-in-scenario' ? { ok: false, title: 'Indicative demand only', text: 'Not planted in this scenario. Confirm the order or switch to Balanced.' }
-        : { ok: false, title: `Short by ${fmtT(plan.gapKg)}`, text: `${fmtT(plan.expectedKg)} expected vs ${fmtT(plan.targetKg)} target. Add farmers, complete farm details or agree a lower volume.` },
+        : { ok: false, title: `Short by ${fmtT(plan.shortfallKg || plan.gapKg)}`, text: `${fmtT(plan.expectedKg)} expected vs ${fmtT(plan.targetKg)} target. Add farmers, complete farm details or agree a lower volume.` },
     plan.allocations.length ? { ok: goodPlots === plan.allocations.length, title: goodPlots === plan.allocations.length ? 'High feasibility' : 'Mostly feasible', text: `${goodPlots} of ${plan.allocations.length} plots are high feasibility (free in time, water and soil suit the crop).${cautions.length ? ` Check: ${cautions.slice(0, 2).join('; ').toLowerCase()}.` : ''}` } : null,
     plan.sowBy ? { ok: plan.window === 'open', title: plan.window === 'missed' ? 'Sowing window has passed' : plan.window === 'urgent' ? 'Sow this week' : 'Timed to the buyer window', text: plan.window === 'missed' ? `Needed sowing by ${fmtDay(plan.sowBy)}.` : `Sow ${fmtDay(plan.sowFrom)} – ${fmtDay(plan.sowBy)} so first harvest (${fmtDay(plan.harvestStart)}) matches delivery from ${fmtDay(plan.deliveryStart)}.` } : null,
     farmerCount > 1 ? { ok: true, title: 'Spread across farmers', text: `${farmerCount} farmers share the area, so one farm’s problem doesn’t break the order.` } : null,
-    plan.existingKg > 0 ? { ok: true, title: 'Uses crops already growing', text: `${fmtT(plan.existingKg)} comes from crops already in the ground.` } : null,
+    plan.lines.length > 1 ? { ok: plan.lines.filter((l) => l.inScenario).every((l) => l.status === 'covered'), title: 'Checked order by order', text: `${plan.lines.length} buyer orders are planned separately – each with its own variety, quantity and sowing window – so a surplus on one never hides a shortfall on another.` } : null,
+    plan.existingKg > 0 ? { ok: true, title: 'Uses crops already growing', text: `${fmtT(plan.existingKg)} from participating farmers’ crops already in the ground, counted once and only for matching varieties and dates.` } : null,
   ].filter(Boolean) as { ok: boolean; title: string; text: string }[]
 
   const statusOf = (farmerId: string, fit: string) => {
     const s = replyStateFor(farmerId, responses, result.allocations)
     if (fit !== 'good' || s === 'constraint' || s === 'needs-update') return <span className="m-status review"><AlertTriangle size={15} />Needs review</span>
-    if (s === 'confirmed') return <span className="m-status"><CheckCircle2 size={15} />Confirmed</span>
-    if (s === 'sent') return <span className="m-status wait"><Clock3 size={15} />Awaiting reply</span>
+    if (s === 'confirmed') return <span className="m-status"><CheckCircle2 size={15} />Farmer-confirmed</span>
+    if (s === 'sent') return <span className="m-status wait"><Clock3 size={15} />Sent</span>
     return <span className="m-status"><Check size={15} />Planned</span>
   }
   const removed = plan.unused.filter((u) => exclusions.includes(exclusionKey(u.plotId, plan.crop.name)))
+  const cropOrderIds = new Set(plan.lines.map((l) => l.order.id))
+  const nextStep = result.actions.find((a) => a.id.endsWith(plan.crop.id) || [...cropOrderIds].some((id) => a.id.endsWith(id)))
+    ?? (planState !== 'finalized' ? { title: planState === 'changed' ? 'Re-finalize the changed plan' : 'Finalize the plan', detail: 'Review the allocation, then finalize it before sending farmers their instructions.', to: '#alloc-title', cta: 'Review' }
+      : result.actions.find((a) => a.id === 'send' || a.id === 'resend' || a.id === 'constraints'))
 
   return <div className="m-page">
     <PageHeader title="Collective planting plan" subtitle="Turn buyer demand into a coordinated crop plan across your farmers." />
 
     <section className="m-stats" aria-label="Plan summary">
       <StatCard icon={<Sprout size={24} />} label="Demand target" tip="Demand in this scenario plus the safety buffer" value={fmtT(targetKg)} sub={<>incl. {scenario.bufferPct}% buffer · {presetFor(scenario)?.label ?? 'Custom'}</>} />
-      <StatCard icon={<Boxes size={24} />} label="Planned production" tip="Expected harvest at the scenario's yield assumption" value={fmtT(expectedKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
+      <StatCard icon={<Boxes size={24} />} label="Planned production" tip="Expected harvest at the scenario's yield assumption – planned, not guaranteed" value={fmtT(expectedKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
       <StatCard icon={<UsersRound size={24} />} label="Participating farms" value={result.farmersInvolved.length} sub={<>across {villages} villages</>} />
-      <StatCard icon={<ShieldCheck size={24} />} label="Risk level" tip="Based on coverage of the target and how many plots carry cautions" value={<span className="m-pillbig" style={riskStyle}>{risk}</span>} sub={<>{cautionShare < 0.25 ? 'High' : 'Mixed'} feasibility, {fmtPct(coverage)} coverage</>} />
+      <StatCard icon={<ShieldCheck size={24} />} label="Risk level" tip={risk.factors.length ? `Why: ${risk.factors.join('; ')}.` : 'No major risks found.'} value={<span className="m-pillbig" style={riskStyle}>{risk.level}</span>} sub={<>{risk.factors[0] ?? 'Planned, farmer-confirmed and committed'}{risk.factors.length > 1 ? ` · +${risk.factors.length - 1} more` : ''}</>} />
     </section>
 
     <section className="m-panel" id={plan.crop.id} aria-labelledby="alloc-title" style={{ scrollMarginTop: 16 }}>
       <div className="m-panel-head">
-        <div><h2 className="m-panel-title" id="alloc-title">Crop allocation &amp; farmer plan</h2><p className="m-panel-sub">Recommended crop allocation across farmers to meet buyer demand.</p></div>
+        <div><h2 className="m-panel-title" id="alloc-title">Crop allocation &amp; farmer plan
+          {planState === 'draft' && <span className="m-status wait" style={{ fontFamily: 'var(--font-body)', letterSpacing: 0 }}>Draft plan</span>}
+          {planState === 'finalized' && finalized && <span className="m-status" style={{ fontFamily: 'var(--font-body)', letterSpacing: 0 }}><CheckCircle2 size={14} />Finalized {fmtDay(finalized.at.slice(0, 10))}</span>}
+          {planState === 'changed' && <span className="m-status review" style={{ fontFamily: 'var(--font-body)', letterSpacing: 0 }}><AlertTriangle size={14} />Changed since finalized</span>}
+        </h2><p className="m-panel-sub">Recommended crop allocation across farmers, checked against each buyer order.</p></div>
         <div className="m-row">
           <button type="button" className="m-btn m-btn-tertiary m-btn-sm" style={{ borderColor: 'var(--line-strong)', borderRadius: 10 }} aria-pressed={editing} onClick={() => setEditing((v) => !v)}><Pencil size={16} />{editing ? 'Done editing' : 'Edit plan'}</button>
-          <button type="button" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }} onClick={finalize}><Check size={17} />Finalize planting plan</button>
+          {planState === 'finalized'
+            ? <Link to="/messages" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}><Send size={16} />{pending.length ? `Send instructions (${pending.length})` : 'View messages'}</Link>
+            : <button type="button" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }} onClick={finalize}><Check size={17} />{planState === 'changed' ? 'Re-finalize plan' : 'Finalize planting plan'}</button>}
         </div>
       </div>
       <div className="m-row" style={{ marginBottom: 14 }}>
@@ -176,25 +177,41 @@ export default function PlantingPlan() {
       {plan.status === 'not-in-scenario' && <div className="m-alert m-alert-info" style={{ marginBottom: 12 }}><Info size={18} style={{ flex: 'none' }} />{plan.crop.name} has only indicative demand, so this scenario doesn’t plant it. Switch to “Balanced” or confirm the order.</div>}
       {plan.window === 'missed' && <div className="m-alert m-alert-warn" style={{ marginBottom: 12 }}><Info size={18} style={{ flex: 'none' }} />To deliver from {fmtDay(plan.deliveryStart)}, {plan.crop.name.toLowerCase()} needed sowing by {fmtDay(plan.sowBy)}. Only crops already in the ground can contribute.</div>}
 
+      <h3 className="m-h3" style={{ margin: '4px 0 6px' }}>Buyer orders <span className="m-small" style={{ fontWeight: 400 }}>– each planned on its own variety, quantity and window</span></h3>
+      <div className="m-dt-scroll" style={{ marginBottom: 18 }}><table className="m-dt">
+        <thead><tr><th>Buyer</th><th>Variety</th><th>Quantity</th><th>Delivery</th><th>Sow by</th><th>Expected</th><th>Status</th></tr></thead>
+        <tbody>{plan.lines.map((l) => <tr key={l.order.id}>
+          <td><Link to={`/buyer-orders/${l.order.id}`} style={{ fontWeight: 600, textDecoration: 'none' }}>{l.order.buyer.name}</Link><small><span className={`m-dotstatus ${l.committed ? '' : 'ind'}`} style={{ padding: '0 8px', fontSize: 12, marginTop: 4 }}>{orderTypeLabel(l.order.product.orderType)}</span></small></td>
+          <td>{l.variety}</td>
+          <td className="num"><strong>{fmtT(l.qtyKg)}</strong>{l.inScenario && l.targetKg !== l.qtyKg && <small>target {fmtT(l.targetKg)}</small>}</td>
+          <td className="nowrap">{fmtDay(l.deliveryStart)} – {fmtDay(l.deliveryEnd)}</td>
+          <td className="nowrap">{l.window === 'perennial' ? 'Orchard' : l.window === 'missed' ? <span style={{ color: 'var(--bad)' }}>Passed ({fmtDay(l.sowBy)})</span> : fmtDay(l.sowBy)}</td>
+          <td className="num"><strong>{fmtT(l.expectedKg)}</strong><small>{l.existingKg ? `${fmtT(l.existingKg)} already growing` : `${l.allocations.length} plot${l.allocations.length === 1 ? '' : 's'}`}{l.farmerConfirmedKg ? ` · ${fmtT(l.farmerConfirmedKg)} farmer-confirmed` : ''}</small></td>
+          <td><span className={`m-feas ${lineStatusLabel[l.status].cls}`}><span>{lineStatusLabel[l.status].label}</span></span>{l.shortfallKg > 0 && <small style={{ color: 'var(--bad)' }}>short {fmtT(l.shortfallKg)}</small>}</td>
+        </tr>)}</tbody>
+      </table></div>
+
+      <h3 className="m-h3" style={{ margin: '0 0 6px' }}>Farmers and plots</h3>
       <div className="m-dt-scroll"><table className="m-dt">
         <thead><tr><th>Farmer / Plot</th><th>Suggested planting window <InfoTipInline /></th><th>Expected harvest window</th><th>Quantity</th><th>Feasibility</th><th>Status</th>{editing && <th><span className="sr-only">Edit</span></th>}</tr></thead>
         <tbody>
-          {plan.existing.map((e) => <tr key={e.cycle.id}>
-            <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{e.farmer?.name}</strong><small>{e.plot.name} · {e.farmer?.village}</small></span></span></td>
+          {plan.existing.map((e) => <tr key={`${e.cycle.id}-${e.orderId}`}>
+            <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{e.farmer?.name}</strong><small>{e.plot.name} · for {plan.lines.find((l) => l.order.id === e.orderId)?.order.buyer.name}</small></span></span></td>
             <td><span className="m-chipdate">Already planted</span></td>
-            <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(e.cycle.expectedHarvestStartDate)} – {fmtDay(e.cycle.expectedHarvestEndDate)}</span></td>
+            <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(e.windowStart)} – {fmtDay(e.windowEnd)}</span></td>
             <td><strong>{fmtT(e.kg)}</strong><small>in window</small></td>
             <td><Feasibility level="high" /></td>
             <td><span className="m-status"><Sprout size={15} />Growing</span></td>
             {editing && <td />}
           </tr>)}
           {plan.allocations.map((a) => {
-            const isOpen = open === a.plotId
-            return <Fragment key={a.plotId}>
-              <tr className="click" onClick={() => setOpen(isOpen ? null : a.plotId)} aria-expanded={isOpen}>
-                <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{a.farmerName}</strong><small>{a.plotName} · {fmtAcres(a.acres)} · {data.farmers.find((f) => f.id === a.farmerId)?.village}</small></span></span></td>
-                    <td><span className="m-chipdate"><CalendarDays size={16} />{fmtDay(plan.sowFrom)} – {fmtDay(plan.sowBy)}</span></td>
-                <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(plan.harvestStart)} – {fmtDay(plan.harvestEnd)}</span></td>
+            const key = `${a.orderId}-${a.plotId}`
+            const isOpen = open === key
+            return <Fragment key={key}>
+              <tr className="click" onClick={() => setOpen(isOpen ? null : key)} aria-expanded={isOpen}>
+                <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{a.farmerName}</strong><small>{a.plotName} · {fmtAcres(a.acres)} · for {a.buyerName}{plan.varieties.length > 1 ? ` (${a.variety})` : ''}</small></span></span></td>
+                <td><span className="m-chipdate"><CalendarDays size={16} />{fmtDay(a.sowFrom)} – {fmtDay(a.sowBy)}</span></td>
+                <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(a.harvestStart)} – {fmtDay(a.harvestEnd)}</span></td>
                 <td><strong>{fmtT(a.kg)}</strong><small>{fmtT(a.kgRange[0])}–{fmtT(a.kgRange[1])}</small></td>
                 <td><Feasibility level={a.fit === 'good' ? 'high' : 'medium'} /></td>
                 <td>{statusOf(a.farmerId, a.fit)}</td>
@@ -206,6 +223,8 @@ export default function PlantingPlan() {
           {!plan.allocations.length && !plan.existing.length && <tr><td colSpan={6}><span className="m-small">No farmers assigned to {plan.crop.name.toLowerCase()} in this scenario.</span></td></tr>}
         </tbody>
       </table></div>
+      {plan.uncounted.length > 0 && <p className="m-small" style={{ margin: '10px 0 0' }}><Info size={14} style={{ verticalAlign: '-2px' }} /> Not counted as supply: {plan.uncounted.map((u) => `${u.farmer?.name ?? 'Unknown'} – ${u.cycle.variety} (${u.reason.replace('Not counted – ', '')})`).join('; ')}.</p>}
+      {nextStep && <Link to={nextStep.to} className="m-reco" style={{ textDecoration: 'none', color: 'inherit', alignItems: 'center' }}><Zap size={20} color="var(--forest)" style={{ flex: 'none' }} /><div style={{ flex: 1 }}><strong>Next step: {nextStep.title}</strong><p>{nextStep.detail}</p></div><span className="m-action-btn">{nextStep.cta}<ArrowRight size={15} /></span></Link>}
 
       {(editing || removed.length > 0) && !plan.crop.perennial && <details className="m-details" open={editing} style={{ marginTop: 12 }}>
         <summary><ChevronRight className="m-chev" size={16} />Other farms and why they aren’t growing {plan.crop.name.toLowerCase()} ({plan.unused.length}){removed.length ? ` · ${removed.length} removed by you` : ''}</summary>
@@ -240,22 +259,24 @@ export default function PlantingPlan() {
       </section>
     </div>
 
-    <ScenarioCompare />
+    <h2 className="m-h3" style={{ margin: '8px 0 -8px', color: 'var(--mute)', fontWeight: 600 }}>More planning detail</h2>
+    <details className="m-panel m-details m-fold">
+      <summary><ChevronRight className="m-chev" size={18} />Compare scenarios <span className="m-small">· {presetFor(scenario)?.label ?? 'Custom'} active</span></summary>
+      <ScenarioCompare />
+    </details>
 
-    <section className="m-panel" aria-labelledby="cal-title">
-      <h2 className="m-panel-title sm" id="cal-title">Season calendar</h2>
-      <p className="m-panel-sub" style={{ marginBottom: 14 }}>Sowing dates are worked back from each buyer’s delivery window and the crop’s days to harvest.</p>
+    <details className="m-panel m-details m-fold">
+      <summary><ChevronRight className="m-chev" size={18} />Season calendar <span className="m-small">· sowing, harvest and delivery for every order</span></summary>
       <Calendar plans={plans} />
-    </section>
+    </details>
 
-    <div className="m-cols-even">
-      <section className="m-panel" id="history" aria-labelledby="history-title" style={{ scrollMarginTop: 16 }}>
-        <h2 className="m-panel-title sm" id="history-title"><History size={22} />Plan updates</h2>
+    <details className="m-panel m-details m-fold" id="history" style={{ scrollMarginTop: 16 }} open={hash === '#history'}>
+      <summary><ChevronRight className="m-chev" size={18} />Plan updates <span className="m-small">· {changes.length} change{changes.length === 1 ? '' : 's'}</span></summary>
         <div style={{ marginTop: 12 }}>{changes.length ? changes.map((c) => <div className="m-change" key={c.id}><strong>{c.title}</strong> <span className="m-small">· {new Date(c.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span><ul>{c.details.map((d) => <li key={d}>{d}</li>)}</ul></div>)
           : <p className="m-small" style={{ margin: 0 }}>No changes yet. When farmers decline, report a problem, or you remove a plot, Meraki rebalances the plan and records what changed here.</p>}</div>
-      </section>
-      <section className="m-panel" aria-labelledby="out-title">
-        <h2 className="m-panel-title sm" id="out-title"><UserX size={22} />Farmers not in this plan</h2>
+    </details>
+    <details className="m-panel m-details m-fold">
+      <summary><ChevronRight className="m-chev" size={18} />Farmers not in this plan <span className="m-small">· {result.ineligible.length}</span></summary>
         <div className="m-stack" style={{ gap: 8, marginTop: 12 }}>
           {result.ineligible.map(({ farmer, reason }) => <div key={farmer.id} className="m-row" style={{ justifyContent: 'space-between' }}><Link className="m-link" to={`/farmers-plots/${farmer.id}`}>{farmer.name}</Link><span className="m-tag m-tag-neutral">{reason}</span></div>)}
           {!result.ineligible.length && <p className="m-small" style={{ margin: 0 }}>Every member is participating.</p>}
@@ -264,14 +285,15 @@ export default function PlantingPlan() {
           <span className="m-small">Reserve crops already growing against one order</span>
           <Link to="/supply-planning" className="m-link" id="reserve-title">Order reservations <ChevronRight size={15} /></Link>
         </div>
-      </section>
-    </div>
+    </details>
 
-    <details className="m-panel m-details">
-      <summary style={{ paddingTop: 0 }}><Info size={16} />How Meraki builds this plan</summary>
+    <details className="m-panel m-details m-fold">
+      <summary><ChevronRight className="m-chev" size={18} />How Meraki builds this plan</summary>
       <ol className="m-small" style={{ lineHeight: 1.7, paddingLeft: 20, margin: '10px 0 0' }}>
-        <li>Adds up active buyer orders per crop. Confirmed orders are planned first; indicative demand only if the scenario includes it.</li>
-        <li>Works back the sow-by date from the earliest delivery date and the crop’s days to first harvest.</li>
+        <li>Plans every active buyer order separately – its own variety, quantity and delivery window. Committed orders are planned first; indicative orders only if the scenario includes them.</li>
+        <li>Works back each order’s sow-by date from its delivery start and the crop’s days to first harvest.</li>
+        <li>Counts crops already growing only for participating farmers, matching varieties and overlapping harvest dates – each crop counted once.</li>
+        <li>Farmer reports are not treated as facts: a plot with a reported water problem is held out until a coordinator verifies it, and a farmer who can’t sow in time is not planned for that window.</li>
         <li>Checks each participating farmer’s plots: free in time, enough water, suitable soil. No water or a busy plot rules a plot out; soil and unknowns only add caution – soil alone never decides.</li>
         <li>Assigns land in quarter-acre blocks, using plots with fewer alternative uses first so well-watered land stays available for thirsty crops.</li>
         <li>Expected supply = area × indicative yield. Farmer replies, removed plots and edited farm details rerun the plan instantly.</li>
