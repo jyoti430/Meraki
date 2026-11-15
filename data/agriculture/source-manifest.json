@@ -1,0 +1,116 @@
+{
+  "datasetId": "nhb-maharashtra-horticulture-2018",
+  "title": "Horticultural Statistics at a Glance 2018",
+  "publisher": "National Horticulture Board, Government of India",
+  "sourceUrl": "https://nhb.gov.in/statistics/Publication/Horticulture%20Statistics%20at%20a%20Glance-2018.pdf",
+  "accessedOn": "2026-11-15",
+  "publicationYear": 2018,
+  "coverage": {
+    "country": "India",
+    "state": "Maharashtra",
+    "administrativeLevel": "state",
+    "years": [
+      "2015-16",
+      "2016-17",
+      "2017-18"
+    ],
+    "season": null,
+    "crops": [
+      {
+        "cropId": "green-chilli",
+        "name": "Green chilli",
+        "sourceNames": [
+          "Chillies (Green)",
+          "Green chilli",
+          "Green chillies"
+        ],
+        "table": "7.3.25",
+        "printedPage": 194
+      },
+      {
+        "cropId": "okra",
+        "name": "Okra",
+        "sourceNames": [
+          "Okra",
+          "Okra/Ladyfinger",
+          "Lady's finger",
+          "Lady finger"
+        ],
+        "table": "7.3.27",
+        "printedPage": 195
+      },
+      {
+        "cropId": "tomato",
+        "name": "Tomato",
+        "sourceNames": [
+          "Tomato",
+          "Tomatoes"
+        ],
+        "table": "7.3.34",
+        "printedPage": 203
+      }
+    ]
+  },
+  "reportedUnits": {
+    "area": "thousand hectares",
+    "production": "thousand metric tonnes"
+  },
+  "estimateStatus": "The state tables do not specify whether each annual value is final or advance.",
+  "licenseAndReuse": "The report footer states copyright National Horticulture Board. No separate open-data license or reuse terms were located. This repository includes a small attributed factual extract; confirm source terms before broader redistribution or commercial use.",
+  "cleaning": [
+    "Trim whitespace and parse numeric fields with comma separators supported.",
+    "Treat blank cells, hyphens, em dashes, and common null markers as missing; do not fill them.",
+    "Map source crop labels to stable Meraki IDs: Chillies (Green) to green-chilli, Okra to okra, Tomato to tomato.",
+    "Convert thousand hectares to hectares and acres; convert thousand metric tonnes to tonnes and kilograms.",
+    "Derive annual yield only when both area and production are present and area is greater than zero.",
+    "Preserve crop year and source table/page; season remains null because these tables do not provide a season split."
+  ],
+  "limitations": [
+    "The source values are state-level official statistics; the table does not disclose its estimate status.",
+    "This publication is old and only contains three consecutive crop years for this extract.",
+    "No district, season, variety, farm, irrigation, soil, weather, grade, loss, or buyer-demand observations are included.",
+    "Missing source observations remain null and are excluded from the baseline sample."
+  ],
+  "dataProvider": "Horticulture Statistics Division, Department of Agriculture, Cooperation and Farmers Welfare, Government of India (as credited in the source tables)",
+  "agronomicReference": {
+    "datasetId": "fao-ecocrop",
+    "title": "FAO ECOCROP crop data sheets",
+    "publisher": "Food and Agriculture Organization of the United Nations (FAO)",
+    "sourceUrl": "https://www.fao.org/geospatial/data-and-tools/data-portals/ecocrop/en",
+    "accessedOn": "2026-11-15",
+    "geographicCoverage": "Global species-level ecological envelopes; not Maharashtra-specific.",
+    "cropCoverage": [
+      {
+        "cropId": "okra",
+        "scientificName": "Abelmoschus esculentus",
+        "ecocropCode": 289,
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=289"
+      },
+      {
+        "cropId": "tomato",
+        "scientificName": "Lycopersicon esculentum",
+        "ecocropCode": 1379,
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=1379"
+      },
+      {
+        "cropId": "green-chilli",
+        "scientificName": "Capsicum annuum",
+        "ecocropCode": 618,
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=618"
+      }
+    ],
+    "reportedUnits": {
+      "temperature": "degrees Celsius",
+      "annualRainfall": "millimetres per year",
+      "soilPh": "pH units",
+      "cropCycle": "days"
+    },
+    "licenseAndReuse": "FAO website terms state that content may be copied for private study, research, teaching, and non-commercial products or services with appropriate acknowledgement. Commercial use, adaptation, or resale requires permission. No ECOCROP-specific open-data license was identified; review FAO terms before broader or commercial reuse.",
+    "limitations": [
+      "FAO reports that the original ECOCROP database was discontinued around 2015 and is now accessible through the GAEZ platform.",
+      "Optimal and absolute ecological ranges are global species-level descriptors, not Maharashtra-specific recommendations or cultivar guarantees.",
+      "Annual rainfall is not irrigation demand; the source does not provide crop irrigation requirements in these sheets.",
+      "These values are screening references only and do not estimate yield, profitability, or economic suitability."
+    ]
+  }
+}

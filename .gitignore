@@ -2,3 +2,5 @@ node_modules/
 dist/
 .npm-cache/
 *.tsbuildinfo
+__pycache__/
+*.py[cod]

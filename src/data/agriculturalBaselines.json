@@ -1,0 +1,721 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "nhb-maharashtra-horticulture-2018",
+  "title": "Horticultural Statistics at a Glance 2018",
+  "region": {
+    "country": "India",
+    "state": "Maharashtra",
+    "administrativeLevel": "state"
+  },
+  "coverage": {
+    "years": [
+      "2015-16",
+      "2016-17",
+      "2017-18"
+    ],
+    "crops": [
+      "green-chilli",
+      "okra",
+      "tomato"
+    ],
+    "season": null
+  },
+  "units": {
+    "area": "hectares",
+    "areaAlternate": "acres",
+    "production": "metric_tonnes",
+    "productionAlternate": "kilograms",
+    "yield": "kilograms_per_hectare",
+    "yieldAlternate": "kilograms_per_acre"
+  },
+  "source": {
+    "publisher": "National Horticulture Board, Government of India",
+    "dataProvider": "Horticulture Statistics Division, Department of Agriculture, Cooperation and Farmers Welfare, Government of India (as credited in the source tables)",
+    "title": "Horticultural Statistics at a Glance 2018",
+    "sourceUrl": "https://nhb.gov.in/statistics/Publication/Horticulture%20Statistics%20at%20a%20Glance-2018.pdf",
+    "accessedOn": "2026-11-15",
+    "publicationYear": 2018,
+    "estimateStatus": "The state tables do not specify whether each annual value is final or advance.",
+    "licenseAndReuse": "The report footer states copyright National Horticulture Board. No separate open-data license or reuse terms were located. This repository includes a small attributed factual extract; confirm source terms before broader redistribution or commercial use.",
+    "transformations": [
+      "Trim whitespace and parse numeric fields with comma separators supported.",
+      "Treat blank cells, hyphens, em dashes, and common null markers as missing; do not fill them.",
+      "Map source crop labels to stable Meraki IDs: Chillies (Green) to green-chilli, Okra to okra, Tomato to tomato.",
+      "Convert thousand hectares to hectares and acres; convert thousand metric tonnes to tonnes and kilograms.",
+      "Derive annual yield only when both area and production are present and area is greater than zero.",
+      "Preserve crop year and source table/page; season remains null because these tables do not provide a season split."
+    ],
+    "limitations": [
+      "The source values are state-level official statistics; the table does not disclose its estimate status.",
+      "This publication is old and only contains three consecutive crop years for this extract.",
+      "No district, season, variety, farm, irrigation, soil, weather, grade, loss, or buyer-demand observations are included.",
+      "Missing source observations remain null and are excluded from the baseline sample."
+    ],
+    "crops": [
+      {
+        "cropId": "green-chilli",
+        "table": "7.3.25",
+        "printedPage": 194
+      },
+      {
+        "cropId": "okra",
+        "table": "7.3.27",
+        "printedPage": 195
+      },
+      {
+        "cropId": "tomato",
+        "table": "7.3.34",
+        "printedPage": 203
+      }
+    ]
+  },
+  "quality": {
+    "sourceRecords": 9,
+    "completeYieldRecords": 9,
+    "incompleteYieldRecords": 0,
+    "suitabilityReferenceRecords": 3,
+    "warnings": []
+  },
+  "agronomicReferenceSource": {
+    "datasetId": "fao-ecocrop",
+    "title": "FAO ECOCROP crop data sheets",
+    "publisher": "Food and Agriculture Organization of the United Nations (FAO)",
+    "sourceUrl": "https://www.fao.org/geospatial/data-and-tools/data-portals/ecocrop/en",
+    "accessedOn": "2026-11-15",
+    "geographicCoverage": "Global species-level ecological envelopes; not Maharashtra-specific.",
+    "cropCoverage": [
+      {
+        "cropId": "okra",
+        "scientificName": "Abelmoschus esculentus",
+        "ecocropCode": 289,
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=289"
+      },
+      {
+        "cropId": "tomato",
+        "scientificName": "Lycopersicon esculentum",
+        "ecocropCode": 1379,
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=1379"
+      },
+      {
+        "cropId": "green-chilli",
+        "scientificName": "Capsicum annuum",
+        "ecocropCode": 618,
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=618"
+      }
+    ],
+    "reportedUnits": {
+      "temperature": "degrees Celsius",
+      "annualRainfall": "millimetres per year",
+      "soilPh": "pH units",
+      "cropCycle": "days"
+    },
+    "licenseAndReuse": "FAO website terms state that content may be copied for private study, research, teaching, and non-commercial products or services with appropriate acknowledgement. Commercial use, adaptation, or resale requires permission. No ECOCROP-specific open-data license was identified; review FAO terms before broader or commercial reuse.",
+    "limitations": [
+      "FAO reports that the original ECOCROP database was discontinued around 2015 and is now accessible through the GAEZ platform.",
+      "Optimal and absolute ecological ranges are global species-level descriptors, not Maharashtra-specific recommendations or cultivar guarantees.",
+      "Annual rainfall is not irrigation demand; the source does not provide crop irrigation requirements in these sheets.",
+      "These values are screening references only and do not estimate yield, profitability, or economic suitability."
+    ]
+  },
+  "cropSuitabilityReferences": [
+    {
+      "cropId": "green-chilli",
+      "cropName": "Green chilli",
+      "scientificName": "Capsicum annuum",
+      "scientificSynonyms": [
+        "Capsicum annuum L."
+      ],
+      "scope": "global_species_reference",
+      "environment": {
+        "temperatureC": {
+          "optimal": [
+            17.0,
+            30.0
+          ],
+          "absolute": [
+            8.0,
+            35.0
+          ]
+        },
+        "annualRainfallMm": {
+          "optimal": [
+            600.0,
+            1250.0
+          ],
+          "absolute": [
+            500.0,
+            1700.0
+          ]
+        },
+        "soilPh": {
+          "optimal": [
+            5.5,
+            6.8
+          ],
+          "absolute": [
+            4.5,
+            7.0
+          ]
+        },
+        "soilTexture": {
+          "optimal": [
+            "medium",
+            "organic"
+          ],
+          "absolute": [
+            "medium",
+            "light"
+          ]
+        },
+        "soilDrainage": "well (dry spells)",
+        "soilDepth": "medium (50-150 cm)",
+        "cropCycleDays": [
+          60.0,
+          180.0
+        ],
+        "irrigationRequirement": null,
+        "plantingSeasons": null
+      },
+      "missingFields": [
+        "irrigationRequirement"
+      ],
+      "limitations": [
+        "FAO reports that the original ECOCROP database was discontinued around 2015 and is now accessible through the GAEZ platform.",
+        "Optimal and absolute ecological ranges are global species-level descriptors, not Maharashtra-specific recommendations or cultivar guarantees.",
+        "Annual rainfall is not irrigation demand; the source does not provide crop irrigation requirements in these sheets.",
+        "These values are screening references only and do not estimate yield, profitability, or economic suitability."
+      ],
+      "source": {
+        "datasetId": "fao-ecocrop",
+        "publisher": "Food and Agriculture Organization of the United Nations (FAO)",
+        "title": "FAO ECOCROP crop data sheets",
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=618",
+        "accessedOn": "2026-11-15",
+        "ecocropCode": 618
+      }
+    },
+    {
+      "cropId": "okra",
+      "cropName": "Okra",
+      "scientificName": "Abelmoschus esculentus",
+      "scientificSynonyms": [
+        "Abelmoschus esculentus (L.) Moench"
+      ],
+      "scope": "global_species_reference",
+      "environment": {
+        "temperatureC": {
+          "optimal": [
+            20.0,
+            30.0
+          ],
+          "absolute": [
+            12.0,
+            35.0
+          ]
+        },
+        "annualRainfallMm": {
+          "optimal": [
+            600.0,
+            1200.0
+          ],
+          "absolute": [
+            300.0,
+            2500.0
+          ]
+        },
+        "soilPh": {
+          "optimal": [
+            5.5,
+            7.0
+          ],
+          "absolute": [
+            4.5,
+            8.7
+          ]
+        },
+        "soilTexture": {
+          "optimal": [
+            "heavy",
+            "medium",
+            "light",
+            "organic"
+          ],
+          "absolute": [
+            "heavy",
+            "medium",
+            "light"
+          ]
+        },
+        "soilDrainage": "well (dry spells)",
+        "soilDepth": "shallow (20-50 cm)",
+        "cropCycleDays": [
+          50.0,
+          180.0
+        ],
+        "irrigationRequirement": null,
+        "plantingSeasons": null
+      },
+      "missingFields": [
+        "irrigationRequirement"
+      ],
+      "limitations": [
+        "FAO reports that the original ECOCROP database was discontinued around 2015 and is now accessible through the GAEZ platform.",
+        "Optimal and absolute ecological ranges are global species-level descriptors, not Maharashtra-specific recommendations or cultivar guarantees.",
+        "Annual rainfall is not irrigation demand; the source does not provide crop irrigation requirements in these sheets.",
+        "These values are screening references only and do not estimate yield, profitability, or economic suitability."
+      ],
+      "source": {
+        "datasetId": "fao-ecocrop",
+        "publisher": "Food and Agriculture Organization of the United Nations (FAO)",
+        "title": "FAO ECOCROP crop data sheets",
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=289",
+        "accessedOn": "2026-11-15",
+        "ecocropCode": 289
+      }
+    },
+    {
+      "cropId": "tomato",
+      "cropName": "Tomato",
+      "scientificName": "Lycopersicon esculentum",
+      "scientificSynonyms": [
+        "Solanum lycopersicum L."
+      ],
+      "scope": "global_species_reference",
+      "environment": {
+        "temperatureC": {
+          "optimal": [
+            20.0,
+            27.0
+          ],
+          "absolute": [
+            7.0,
+            35.0
+          ]
+        },
+        "annualRainfallMm": {
+          "optimal": [
+            600.0,
+            1300.0
+          ],
+          "absolute": [
+            400.0,
+            1800.0
+          ]
+        },
+        "soilPh": {
+          "optimal": [
+            5.5,
+            6.8
+          ],
+          "absolute": [
+            5.0,
+            7.5
+          ]
+        },
+        "soilTexture": {
+          "optimal": [
+            "medium",
+            "organic"
+          ],
+          "absolute": [
+            "heavy",
+            "medium",
+            "light"
+          ]
+        },
+        "soilDrainage": "well (dry spells)",
+        "soilDepth": "shallow (20-50 cm)",
+        "cropCycleDays": [
+          70.0,
+          150.0
+        ],
+        "irrigationRequirement": null,
+        "plantingSeasons": null
+      },
+      "missingFields": [
+        "irrigationRequirement"
+      ],
+      "limitations": [
+        "FAO reports that the original ECOCROP database was discontinued around 2015 and is now accessible through the GAEZ platform.",
+        "Optimal and absolute ecological ranges are global species-level descriptors, not Maharashtra-specific recommendations or cultivar guarantees.",
+        "Annual rainfall is not irrigation demand; the source does not provide crop irrigation requirements in these sheets.",
+        "These values are screening references only and do not estimate yield, profitability, or economic suitability."
+      ],
+      "source": {
+        "datasetId": "fao-ecocrop",
+        "publisher": "Food and Agriculture Organization of the United Nations (FAO)",
+        "title": "FAO ECOCROP crop data sheets",
+        "sourceUrl": "https://ecocrop.apps.fao.org/ecocrop/srv/en/dataSheet?id=1379",
+        "accessedOn": "2026-11-15",
+        "ecocropCode": 1379
+      }
+    }
+  ],
+  "observations": [
+    {
+      "cropId": "green-chilli",
+      "cropName": "Green chilli",
+      "sourceCropName": "Chillies (Green)",
+      "year": "2015-16",
+      "season": null,
+      "areaHectares": 29050,
+      "areaAcres": 71784.11,
+      "productionTonnes": 288700,
+      "productionKg": 288700000,
+      "yieldKgPerHectare": 9938.04,
+      "yieldKgPerAcre": 4021.78,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.25",
+        "printedPage": 194
+      }
+    },
+    {
+      "cropId": "green-chilli",
+      "cropName": "Green chilli",
+      "sourceCropName": "Chillies (Green)",
+      "year": "2016-17",
+      "season": null,
+      "areaHectares": 32410,
+      "areaAcres": 80086.85,
+      "productionTonnes": 359790,
+      "productionKg": 359790000,
+      "yieldKgPerHectare": 11101.2,
+      "yieldKgPerAcre": 4492.5,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.25",
+        "printedPage": 194
+      }
+    },
+    {
+      "cropId": "green-chilli",
+      "cropName": "Green chilli",
+      "sourceCropName": "Chillies (Green)",
+      "year": "2017-18",
+      "season": null,
+      "areaHectares": 30590,
+      "areaAcres": 75589.54,
+      "productionTonnes": 342480,
+      "productionKg": 342480000,
+      "yieldKgPerHectare": 11195.82,
+      "yieldKgPerAcre": 4530.79,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.25",
+        "printedPage": 194
+      }
+    },
+    {
+      "cropId": "okra",
+      "cropName": "Okra",
+      "sourceCropName": "Okra",
+      "year": "2015-16",
+      "season": null,
+      "areaHectares": 12190,
+      "areaAcres": 30122.15,
+      "productionTonnes": 119090,
+      "productionKg": 119090000,
+      "yieldKgPerHectare": 9769.48,
+      "yieldKgPerAcre": 3953.57,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.27",
+        "printedPage": 195
+      }
+    },
+    {
+      "cropId": "okra",
+      "cropName": "Okra",
+      "sourceCropName": "Okra",
+      "year": "2016-17",
+      "season": null,
+      "areaHectares": 14960,
+      "areaAcres": 36966.97,
+      "productionTonnes": 139570,
+      "productionKg": 139570000,
+      "yieldKgPerHectare": 9329.55,
+      "yieldKgPerAcre": 3775.53,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.27",
+        "printedPage": 195
+      }
+    },
+    {
+      "cropId": "okra",
+      "cropName": "Okra",
+      "sourceCropName": "Okra",
+      "year": "2017-18",
+      "season": null,
+      "areaHectares": 13980,
+      "areaAcres": 34545.33,
+      "productionTonnes": 139400,
+      "productionKg": 139400000,
+      "yieldKgPerHectare": 9971.39,
+      "yieldKgPerAcre": 4035.28,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.27",
+        "printedPage": 195
+      }
+    },
+    {
+      "cropId": "tomato",
+      "cropName": "Tomato",
+      "sourceCropName": "Tomato",
+      "year": "2015-16",
+      "season": null,
+      "areaHectares": 44240,
+      "areaAcres": 109319.42,
+      "productionTonnes": 976580,
+      "productionKg": 976580000,
+      "yieldKgPerHectare": 22074.59,
+      "yieldKgPerAcre": 8933.27,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.34",
+        "printedPage": 203
+      }
+    },
+    {
+      "cropId": "tomato",
+      "cropName": "Tomato",
+      "sourceCropName": "Tomato",
+      "year": "2016-17",
+      "season": null,
+      "areaHectares": 50710,
+      "areaAcres": 125307.14,
+      "productionTonnes": 1124890,
+      "productionKg": 1124890000,
+      "yieldKgPerHectare": 22182.8,
+      "yieldKgPerAcre": 8977.06,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.34",
+        "printedPage": 203
+      }
+    },
+    {
+      "cropId": "tomato",
+      "cropName": "Tomato",
+      "sourceCropName": "Tomato",
+      "year": "2017-18",
+      "season": null,
+      "areaHectares": 45500,
+      "areaAcres": 112432.95,
+      "productionTonnes": 1086560,
+      "productionKg": 1086560000,
+      "yieldKgPerHectare": 23880.44,
+      "yieldKgPerAcre": 9664.07,
+      "recordKind": "source_reported_official_statistic",
+      "estimateStatus": "not_specified_in_source_table",
+      "source": {
+        "datasetId": "nhb-maharashtra-horticulture-2018",
+        "table": "7.3.34",
+        "printedPage": 203
+      }
+    }
+  ],
+  "baselines": [
+    {
+      "cropId": "green-chilli",
+      "cropName": "Green chilli",
+      "status": "available",
+      "sampleCount": 3,
+      "observedYears": [
+        "2015-16",
+        "2016-17",
+        "2017-18"
+      ],
+      "missingYears": [],
+      "annualYieldKgPerAcre": [
+        {
+          "year": "2015-16",
+          "value": 4021.78
+        },
+        {
+          "year": "2016-17",
+          "value": 4492.5
+        },
+        {
+          "year": "2017-18",
+          "value": 4530.79
+        }
+      ],
+      "summary": {
+        "minimumKgPerAcre": 4021.78,
+        "medianKgPerAcre": 4492.5,
+        "maximumKgPerAcre": 4530.79,
+        "meanKgPerAcre": 4348.36,
+        "coefficientOfVariationPct": 5.32,
+        "minimumKgPerHectare": 9938.04,
+        "medianKgPerHectare": 11101.2,
+        "maximumKgPerHectare": 11195.82,
+        "yearToYearChangesPct": [
+          {
+            "fromYear": "2015-16",
+            "toYear": "2016-17",
+            "percent": 11.7
+          },
+          {
+            "fromYear": "2016-17",
+            "toYear": "2017-18",
+            "percent": 0.85
+          }
+        ]
+      },
+      "planningScenarios": {
+        "conservativeKgPerAcre": 4021.78,
+        "expectedKgPerAcre": 4492.5,
+        "highestHistoricalKgPerAcre": 4530.79
+      },
+      "scenarioMethod": "Historical reference only: conservative is the minimum supported annual yield; expected is the median supported annual yield. The highest historical value is descriptive and is not a forecast.",
+      "dataQuality": {
+        "historyLength": "short",
+        "estimateStatus": "not_specified_in_source_table",
+        "season": "not_reported",
+        "geographicLevel": "state",
+        "farmLevelPrediction": false
+      }
+    },
+    {
+      "cropId": "okra",
+      "cropName": "Okra",
+      "status": "available",
+      "sampleCount": 3,
+      "observedYears": [
+        "2015-16",
+        "2016-17",
+        "2017-18"
+      ],
+      "missingYears": [],
+      "annualYieldKgPerAcre": [
+        {
+          "year": "2015-16",
+          "value": 3953.57
+        },
+        {
+          "year": "2016-17",
+          "value": 3775.53
+        },
+        {
+          "year": "2017-18",
+          "value": 4035.28
+        }
+      ],
+      "summary": {
+        "minimumKgPerAcre": 3775.53,
+        "medianKgPerAcre": 3953.57,
+        "maximumKgPerAcre": 4035.28,
+        "meanKgPerAcre": 3921.46,
+        "coefficientOfVariationPct": 2.77,
+        "minimumKgPerHectare": 9329.55,
+        "medianKgPerHectare": 9769.48,
+        "maximumKgPerHectare": 9971.39,
+        "yearToYearChangesPct": [
+          {
+            "fromYear": "2015-16",
+            "toYear": "2016-17",
+            "percent": -4.5
+          },
+          {
+            "fromYear": "2016-17",
+            "toYear": "2017-18",
+            "percent": 6.88
+          }
+        ]
+      },
+      "planningScenarios": {
+        "conservativeKgPerAcre": 3775.53,
+        "expectedKgPerAcre": 3953.57,
+        "highestHistoricalKgPerAcre": 4035.28
+      },
+      "scenarioMethod": "Historical reference only: conservative is the minimum supported annual yield; expected is the median supported annual yield. The highest historical value is descriptive and is not a forecast.",
+      "dataQuality": {
+        "historyLength": "short",
+        "estimateStatus": "not_specified_in_source_table",
+        "season": "not_reported",
+        "geographicLevel": "state",
+        "farmLevelPrediction": false
+      }
+    },
+    {
+      "cropId": "tomato",
+      "cropName": "Tomato",
+      "status": "available",
+      "sampleCount": 3,
+      "observedYears": [
+        "2015-16",
+        "2016-17",
+        "2017-18"
+      ],
+      "missingYears": [],
+      "annualYieldKgPerAcre": [
+        {
+          "year": "2015-16",
+          "value": 8933.27
+        },
+        {
+          "year": "2016-17",
+          "value": 8977.06
+        },
+        {
+          "year": "2017-18",
+          "value": 9664.07
+        }
+      ],
+      "summary": {
+        "minimumKgPerAcre": 8933.27,
+        "medianKgPerAcre": 8977.06,
+        "maximumKgPerAcre": 9664.07,
+        "meanKgPerAcre": 9191.47,
+        "coefficientOfVariationPct": 3.64,
+        "minimumKgPerHectare": 22074.59,
+        "medianKgPerHectare": 22182.8,
+        "maximumKgPerHectare": 23880.44,
+        "yearToYearChangesPct": [
+          {
+            "fromYear": "2015-16",
+            "toYear": "2016-17",
+            "percent": 0.49
+          },
+          {
+            "fromYear": "2016-17",
+            "toYear": "2017-18",
+            "percent": 7.65
+          }
+        ]
+      },
+      "planningScenarios": {
+        "conservativeKgPerAcre": 8933.27,
+        "expectedKgPerAcre": 8977.06,
+        "highestHistoricalKgPerAcre": 9664.07
+      },
+      "scenarioMethod": "Historical reference only: conservative is the minimum supported annual yield; expected is the median supported annual yield. The highest historical value is descriptive and is not a forecast.",
+      "dataQuality": {
+        "historyLength": "short",
+        "estimateStatus": "not_specified_in_source_table",
+        "season": "not_reported",
+        "geographicLevel": "state",
+        "farmLevelPrediction": false
+      }
+    }
+  ]
+}
