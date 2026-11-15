@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Activity, Archive, Gavel, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
+import { Activity, Archive, Gavel, Home, Layers, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
@@ -9,6 +9,7 @@ export const navigation = [
   { label: 'Planting Plans', short: 'Plans', to: '/plan', icon: Sprout },
   { label: 'Buyer Demand', short: 'Demand', to: '/demand', icon: ShoppingBag },
   { label: 'Farmers & Farms', short: 'Farmers', to: '/farmers', icon: UsersRound },
+  { label: 'Farm intelligence', short: 'Farm data', to: '/farm-intelligence', icon: Layers },
   { label: 'Messages', short: 'Messages', to: '/messages', icon: MessageSquareText },
   { label: 'Trade & fulfilment', short: 'Trade', to: '/trade', icon: Gavel },
   { label: 'Live sensor data', short: 'Sensors', to: '/sensors', icon: Activity },

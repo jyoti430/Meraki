@@ -57,6 +57,8 @@ For the trade workspace, first create a Python 3.12+ `.venv` and install `server
 
 Planning data persists in this browser's local storage with an in-memory fallback. It is not a shared database, an authentication boundary or a safe multi-user reservation ledger. Trade records persist separately in the API database. The demo reset clears planning records in that browser; it does not reset trade records. The planner uses a fixed synthetic scenario date of **16 November 2026**, not live time.
 
+The farm-data workspace at `/farm-intelligence` is part of the same browser-local prototype. Its soil, weather, water, cultivation and projection records are synthetic and stay in this browser; see [Part 1 farm data notes](docs/PART1_FARM_DATA.md) for the contract, invariants and remaining gates.
+
 ## Implemented versus unfinished
 
 | Capability | Verified evidence | Status and limit |
@@ -69,7 +71,8 @@ Planning data persists in this browser's local storage with an in-memory fallbac
 | Weekly charts | `src/planning/series.ts` | Uniform distribution over windows; not observed picking curves |
 | Existing-crop supply plans | `SupplyPlanningService.ts`, supply pages | Preview, adjustments, confirmation/cancellation and local reservations; no cross-client atomicity |
 | Soil record fields | `src/types/index.ts`, plot forms | Basic report/pH/moisture representation; no full SHC analyte/provenance pipeline |
-| Planning and trade regression tests | `src/planning/engine.test.ts`, `src/trade/*.test.ts`, `server/tests/`, `tests/part3_acceptance/` | 25 frontend and 69 SQLite API/acceptance tests pass locally; PostgreSQL results are recorded separately in the work log |
+| Farm data workspace | `src/farmdata/`, `src/pages/FarmIntelligence.tsx`, `/farm-intelligence` | Browser-local development slice: reviewed soil CSV import, weather/water evidence, planned versus actual cultivation, pre-sowing screen and versioned weekly projections. Synthetic fixtures; no live feeds or backend. See [Part 1 notes](docs/PART1_FARM_DATA.md) |
+| Planning, farm-data and trade regression tests | `src/planning/engine.test.ts`, `src/farmdata/farmdata.test.ts`, `src/trade/*.test.ts`, `server/tests/`, `tests/part3_acceptance/` | 44 frontend and 69 SQLite API/acceptance tests pass locally; PostgreSQL results are recorded separately in the work log |
 | Lots, lab review, shipments, claims, settlements | `src/trade/`, `server/`; legacy URLs redirect to trade routes | API-backed development workflows; partner/production gates remain |
 | Trade API, persistence and close/expiry worker | `server/`, `scripts/dev-trade.mjs` | Isolated Part 3 implementation; not the complete Part 2 identity/market backend |
 | Spot and forward procurement | `src/trade/`, `server/CONTRACT.md` | Whole-lot/request modes; live identity/capacity integration remains gated |

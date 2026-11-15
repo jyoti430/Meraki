@@ -4,6 +4,7 @@ import Overview from '../pages/Overview'
 import LiveSensors from '../pages/LiveSensors'
 import BuyerOrders from '../pages/BuyerOrders'
 import FarmersPlots from '../pages/FarmersPlots'
+import FarmIntelligence from '../pages/FarmIntelligence'
 import PlantingPlan from '../pages/PlantingPlan'
 import Messages from '../pages/Messages'
 import LaterModules from '../pages/LaterModules'
@@ -33,6 +34,7 @@ export default function AppRoutes() {
     <Route path="/demand" element={<BuyerOrders />} />
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
+    <Route path="/farm-intelligence" element={<FarmIntelligence />} />
     <Route path="/messages" element={<Messages />} />
     <Route path="/later" element={<LaterModules />} />
     <Route path="/trade/*" element={<Suspense fallback={<p className="m-page" role="status">Loading trade workspace…</p>}><TradeRoutes /></Suspense>} />

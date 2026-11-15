@@ -6,6 +6,8 @@ Last audited: 15 November 2026. Implementation baseline: `dddaa7cc4aab040802e879
 
 Part 3 update: `server/` and `src/trade/` now implement the T06/T07/T09/T10 development journey. Production acceptance remains **IN_PROGRESS / externally gated**, not TODO from scratch or fully DONE. The authoritative integration contract is `server/CONTRACT.md`; setup and limitations are in `docs/PART3_OPERATIONS.md`. See the latest work-log entry for actual test/review evidence and next steps. The original prototype baseline below remains historical evidence.
 
+Part 1 update (16 November 2026): `src/farmdata/` and `/farm-intelligence` implement a browser-local development slice of T01/T02/T03/T08 — reviewed soil imports, weather/water evidence, planned versus actual cultivation, an explainable pre-sowing screen and immutable versioned weekly projections. Details and gaps are in `docs/PART1_FARM_DATA.md`. Parent tasks remain unfinished: there is no backend, organisation scoping, shared persistence or real consented observation set, and agronomic rules are unreviewed synthetic assumptions.
+
 - `DONE`: stated acceptance passed with code and validation evidence.
 - `PROTOTYPE`: implemented browser/demo behaviour; production acceptance remains unfinished.
 - `TODO`: no accepted implementation established.
@@ -36,7 +38,7 @@ Remaining gates for those four tasks: verified Part 2 identity, linked-entity ve
 
 ## Ordered unfinished work and acceptance gates
 
-### T01 Evidence and planning contract — TODO
+### T01 Evidence and planning contract — PROTOTYPE (development slice)
 
 Dependencies: none. Keep synthetic demonstration usable while evidence is absent.
 
@@ -44,7 +46,9 @@ Deliver: source/access register, typed measurement/provenance contract, crop/clu
 
 Acceptance: a scenario with no real demand shows feasible capacity without an invented order; unknown soil/water has explicit effects; crop/variety/grade/location/week gaps remain separate. Rules and data sources have versions. Correct premature planting/coverage instructions identified in the plan.
 
-### T02 Soil environment and management records — TODO
+Part 1 slice (`src/farmdata/types.ts`, `evidence.ts`, `scenario.ts`): typed provenance/evidence contract with named versions, decision-date filtering, unknown-versus-zero handling, consent snapshot and immutable version history; the `/farm-intelligence` pre-sowing screen runs without buyer demand and does not invent an order. Still missing: source/access register, crop/cluster scope and no-orders analysis across the full journey.
+
+### T02 Soil environment and management records — PROTOTYPE (development slice)
 
 Dependencies: T01. Approved provider access is external; authorised imports are the fallback.
 
@@ -52,13 +56,17 @@ Deliver: plot-linked soil sample/analyte/method/units/depth/date records; review
 
 Acceptance: reject wrong-plot and incompatible-unit imports; preserve raw evidence; old/missing data stays flagged; map estimates never overwrite lab results; actual water access is distinct from regional level. Adapter failures are visible. No API is labelled live before a permitted retrieval/schema test. OCR is optional until needed.
 
-### T03 Crop alternatives and weekly marketable planning — TODO
+Part 1 slice (`src/farmdata/soil.ts`, `weather.ts`, `water.ts`, `cultivation.ts`): plot-linked CSV import with row-level rejection and raw-value preservation; measured-versus-mapped resolution; forecast issue/horizon metadata and visible adapter failure; farm water capacity separate from regional observations; planned/actual cultivation events with missing-input reporting. Still missing: PDF/OCR extraction and review, a permitted live provider adapter, and a persisted multi-user store. Development fixtures are synthetic.
+
+### T03 Crop alternatives and weekly marketable planning — PROTOTYPE (development slice)
 
 Dependencies: T01; use T02 data or labelled fixtures.
 
 Deliver: locally reviewed feasibility reasons, crop alternatives, water/resource/land constraints, proposed/accepted/planted distinctions, weekly picking curves and low/base/high marketable supply scenarios. Preserve and extend D04 tests rather than replacing rules with unsupported AI.
 
 Acceptance: farmer decline and overlapping plots prevent allocation; timing/grade/variety respected; gross versus accepted quantities reconcile; grade loss applied once; common water/weather shock exposes shortfalls; no future-data leakage. Labels say scenario rather than calibrated probability. Agronomic review remains an external gate for real advice.
+
+Part 1 slice (`src/farmdata/agronomy.ts`, `projections.ts`): explainable consent/timing/water/soil reasons, low/base/high weekly projections with grade loss applied once and additive columns, and decision-date filtering. Crop alternatives, accepted-versus-planted distinctions across the order journey and reviewed local agronomy remain unfinished; labels state that confidence is not calibrated.
 
 ### T04 Backend organisation access and ledger — TODO
 
@@ -92,13 +100,15 @@ Deliver: prequalification, reverse-price bidding or disclosed scoring, farmer-co
 
 Acceptance: lowest comparable eligible quote wins unless a prepublished score applies; infeasible/unsupported capacity cannot bind; no plot tranche is double-awarded; quantity/price/payment/acceptance/default terms are recorded; stale forecasts trigger review. Weather and cancellation risk are allocated, not guaranteed away. Live terms require qualified operating/legal review.
 
-### T08 Cultivation tracking and projection updates — TODO
+### T08 Cultivation tracking and projection updates — PROTOTYPE (development slice)
 
 Dependencies: T02–T03; T04 for shared operation.
 
 Deliver: seed/establishment/input/irrigation/scouting events, adviser review, milestone tasks, projection revisions and order-specific shortfall alerts.
 
 Acceptance: planned versus actual events remain separate; missing event is not zero application; new observations affect only appropriate forecast dates; affected orders and agreed backup/replan are visible. No automatic chemical prescriptions or unauthorised farmer messages.
+
+Part 1 slice (`src/farmdata/cultivation.ts`, `projections.ts`, `scenario.ts`): planned/actual seed, fertiliser, pesticide, irrigation and scouting records; validation flags; review flags; immutable projection versions and revisions that change only weeks on or after the effective date. Still missing: adviser-review workflow, milestone tasks and affected-order shortfall alerts. No chemical prescription or farmer message is generated.
 
 ### T09 Lots QC and logistics — IN_PROGRESS production integration gated
 
