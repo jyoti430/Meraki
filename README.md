@@ -140,3 +140,7 @@ Test buyer-funded planning subscriptions, disclosed fees on accepted volume and 
 Read [AGENTS.md](AGENTS.md), then select one ready acceptance task from [Agent.md](Agent.md). Record actual checks and checkpoint in [docs/WORK_LOG.md](docs/WORK_LOG.md). Passing frontend tests does not complete backend, field or commercial milestones. Instructions and checkpoints support resumption; they do not automatically run an agent after it is paused.
 
 The repository currently has no `LICENSE` file. Do not infer permission to reuse third-party code, data or model weights from public visibility; record applicable terms for each addition.
+
+## Live crate sensor checkpoint
+
+Run `npm run dev:sensors` for the separate live sensor tab and ESP upload gateway. See [LAN setup, API contract and ESP example](docs/LIVE_SENSORS.md). This is an optional final handling checkpoint after the exporter/FPO workflow; hardware connectivity and hosted deployment remain unverified.

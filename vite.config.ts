@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       proxy: {
+        '/api/sensors': { target: env.SENSOR_PROXY_TARGET || 'http://127.0.0.1:8001', changeOrigin: true },
         '/api/trade': { target: env.TRADE_PROXY_TARGET || 'http://127.0.0.1:8000', changeOrigin: true },
       },
     },

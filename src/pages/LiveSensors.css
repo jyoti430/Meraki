@@ -1,0 +1,20 @@
+.sensor-page { display: grid; gap: 20px; }
+.sensor-status, .sensor-heading { display: flex; align-items: center; gap: 14px; justify-content: space-between; }
+.sensor-status > div { flex: 1; }
+.sensor-status p { margin: 5px 0 0; }
+.sensor-devices { display: grid; gap: 18px; }
+.sensor-device h2 { margin: 0; }
+.sensor-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+.sensor-metrics > div { display: grid; gap: 8px; padding: 20px; border-radius: 16px; background: var(--forest-pale, #eef4ee); }
+.sensor-metrics strong { font-size: 36px; }
+.sensor-metrics small { font-size: 17px; }
+.sensor-alert, .sensor-warnings li { color: #8a390d; }
+.sensor-warnings { border-top: 1px solid var(--line); }
+.sensor-setup pre { overflow-x: auto; padding: 16px; background: #f2f4f0; border-radius: 12px; }
+.sensor-setup code { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .sensor-metrics { grid-template-columns: 1fr; }
+  .sensor-status { flex-wrap: wrap; }
+  .m-tabbar { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .m-tabbar a { font-size: 10px; }
+}

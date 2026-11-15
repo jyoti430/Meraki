@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Archive, Gavel, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
+import { Activity, Archive, Gavel, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
@@ -11,6 +11,7 @@ export const navigation = [
   { label: 'Farmers & Farms', short: 'Farmers', to: '/farmers', icon: UsersRound },
   { label: 'Messages', short: 'Messages', to: '/messages', icon: MessageSquareText },
   { label: 'Trade & fulfilment', short: 'Trade', to: '/trade', icon: Gavel },
+  { label: 'Live sensor data', short: 'Sensors', to: '/sensors', icon: Activity },
 ]
 
 export function useMessageBadge() {

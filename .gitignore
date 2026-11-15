@@ -16,3 +16,5 @@ __pycache__/
 server/runtime/
 playwright-report/
 test-results/
+
+server/runtime-sensor*

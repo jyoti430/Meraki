@@ -139,3 +139,7 @@ Each task update must include: ID/status, source paths, acceptance checklist, ex
 Resume order: inspect repository state → read latest `docs/WORK_LOG.md` → reconcile task ledger → choose highest-priority ready item in authorised scope → implement → validate → record → repeat. Follow `AGENTS.md` for stop, failure and pause behaviour.
 
 Product completion requires all applicable acceptance gates, not only green tests. Partner approvals, crop-cycle evidence and payments can remain honestly blocked while software work proceeds. Files do not automatically restart a paused process.
+
+## S01 — Optional live crate sensors (15 November 2026)
+
+Software implemented: `server/sensors.py`, `src/pages/LiveSensors.tsx`, LAN launcher, device upload example and `docs/LIVE_SENSORS.md`. POST/GET, polling, persistence, warning clearing and stale detection checked. 25 frontend and 71 API tests pass; production build passes. Browser received explicit test upload without reload. Hardware/firmware, deployed routing and lot association remain UNVERIFIED. No automatic release or actuation.

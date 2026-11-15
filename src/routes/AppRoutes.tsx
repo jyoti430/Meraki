@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Overview from '../pages/Overview'
+import LiveSensors from '../pages/LiveSensors'
 import BuyerOrders from '../pages/BuyerOrders'
 import FarmersPlots from '../pages/FarmersPlots'
 import PlantingPlan from '../pages/PlantingPlan'
@@ -28,6 +29,7 @@ const TradeRoutes = lazy(() => import('./TradeRoutes'))
 export default function AppRoutes() {
   return <Routes>
     <Route path="/" element={<Overview />} />
+    <Route path="/sensors" element={<LiveSensors />} />
     <Route path="/demand" element={<BuyerOrders />} />
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
