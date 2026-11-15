@@ -21,7 +21,7 @@ export default function FarmerForm() {
   const set = (key: keyof FarmerDraft, value: string) => setDraft((current) => ({ ...current, [key]: value }))
   const editing = Boolean(farmerId)
 
-  if (editing && !existing) return <div className="entity-not-found"><h2>Farmer not found</h2><p>This farmer record is not available in the current demo data.</p><Link className="secondary-button" to="/farmers-plots"><ArrowLeft size={15} /> Back to farmers</Link></div>
+  if (editing && !existing) return <div className="entity-not-found"><h2>Farmer not found</h2><p>This farmer record is not available in the current demo data.</p><Link className="secondary-button" to="/farmers"><ArrowLeft size={15} /> Back to farmers</Link></div>
 
   function submit() {
     const next: Errors = {}
@@ -55,7 +55,7 @@ export default function FarmerForm() {
   }
 
   return <div className="entity-page entity-form-page">
-    <div className="entity-page-top"><div><Link className="entity-back-link" to={existing ? `/farmers-plots/${existing.id}` : '/farmers-plots'}><ArrowLeft size={14} /> {existing ? 'Back to profile' : 'Farmer directory'}</Link><h2>{existing ? 'Edit farmer' : 'Register farmer'}</h2><p>Capture only the contact and FPO information needed to manage participation and farm records.</p></div><span className="entity-demo-label">Synthetic demo records</span></div>
+    <div className="entity-page-top"><div><Link className="entity-back-link" to={existing ? `/farmers-plots/${existing.id}` : '/farmers'}><ArrowLeft size={14} /> {existing ? 'Back to profile' : 'Farmers & farms'}</Link><h2>{existing ? 'Edit farmer' : 'Register farmer'}</h2><p>Capture only the contact and FPO information needed to manage participation and farm records.</p></div><span className="entity-demo-label">Synthetic demo records</span></div>
     {formError && <EntityAlert>{formError}</EntityAlert>}
     <div className="entity-form-layout"><div className="entity-form-main">
       <EntitySection number="01" title="Farmer information" description="Basic contact and location information for the FPO directory.">
@@ -71,6 +71,6 @@ export default function FarmerForm() {
         </div>
       </EntitySection>
     </div><aside className="entity-form-aside"><div className="entity-aside-icon"><Fingerprint size={19} /></div><h3>Farmer record ID</h3><strong className="generated-id">{existing?.id ?? nextFarmerId(data)}</strong><p>{existing ? 'Farmer IDs stay stable so plots and crop cycles remain linked to this record.' : 'A unique ID is generated when you save this record.'}</p><div className="entity-aside-separator" /><h4>Participation is separate</h4><p>FPO membership does not mean a farmer has consented to a supply programme. Record participation from the farmer profile.</p></aside></div>
-    <div className="entity-form-footer"><Link className="secondary-button" to={existing ? `/farmers-plots/${existing.id}` : '/farmers-plots'}>Cancel</Link><button className="primary-button" type="button" disabled={saving} onClick={submit}>{saving ? 'Saving…' : existing ? 'Save changes' : 'Register farmer'}</button></div>
+    <div className="entity-form-footer"><Link className="secondary-button" to={existing ? `/farmers-plots/${existing.id}` : '/farmers'}>Cancel</Link><button className="primary-button" type="button" disabled={saving} onClick={submit}>{saving ? 'Saving…' : existing ? 'Save changes' : 'Register farmer'}</button></div>
   </div>
 }

@@ -13,7 +13,7 @@ export type PlotInput = Omit<Plot, 'id' | 'createdAt' | 'updatedAt'>
 export type CropCycleInput = Omit<CropCycle, 'id' | 'createdAt' | 'updatedAt'>
 export type ParticipationInput = { farmerId: string; scope: ParticipationScope; scopeId: string | null; status: Exclude<ParticipationStatus, 'not-recorded'>; reason: string; notes: string }
 
-const STORAGE_KEY = 'nexus-supply-farmers-v1'
+const STORAGE_KEY = 'meraki-farmers-v1'
 const ACTIVE_CYCLE_STATUSES: CropCycleStatus[] = ['Planned', 'Growing', 'Harvest-ready']
 const timestamp = () => new Date().toISOString()
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T

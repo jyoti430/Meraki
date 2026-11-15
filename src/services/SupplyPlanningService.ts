@@ -35,7 +35,7 @@ export interface AdjustedAllocationResult {
   uncoveredDemandKg: number
 }
 
-const STORAGE_KEY = 'nexus-supply-supply-plans-v1'
+const STORAGE_KEY = 'meraki-supply-plans-v1'
 const STALE_ESTIMATE_DAYS = 90
 const STALE_SOIL_REPORT_DAYS = 365
 const now = () => new Date().toISOString()
