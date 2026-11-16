@@ -5,7 +5,7 @@ import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
 
 export const navigation = [
-  { label: 'Overview', short: 'Overview', to: '/', icon: Home },
+  { label: 'Overview', short: 'Overview', to: '/fpo', icon: Home },
   { label: 'Planting Plans', short: 'Plans', to: '/plan', icon: Sprout },
   { label: 'Buyer Demand', short: 'Demand', to: '/demand', icon: ShoppingBag },
   { label: 'Farmers & Farms', short: 'Farmers', to: '/farmers', icon: UsersRound },
@@ -22,7 +22,7 @@ export function useMessageBadge() {
 }
 
 export function isNavActive(to: string, pathname: string) {
-  if (to === '/') return pathname === '/'
+  if (to === '/fpo') return pathname === '/fpo'
   if (to === '/demand') return pathname.startsWith('/demand') || pathname.startsWith('/buyer-orders')
   if (to === '/plan') return pathname.startsWith('/plan') || pathname.startsWith('/supply-planning')
   if (to === '/farmers') return pathname.startsWith('/farmers') || pathname.startsWith('/plots') || pathname.startsWith('/crop-cycles')
@@ -32,7 +32,7 @@ export function isNavActive(to: string, pathname: string) {
 export default function Sidebar({ pathname }: { pathname: string }) {
   const badge = useMessageBadge()
   return <aside className="m-sidebar">
-    <NavLink to="/" className="m-brand" aria-label="Meraki home"><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
+    <NavLink to="/fpo" className="m-brand" aria-label="FPO workspace"><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
     <nav className="m-nav" aria-label="Main navigation">
       {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')} aria-current={isNavActive(to, pathname) ? 'page' : undefined}>
         <Icon size={21} strokeWidth={1.8} /><span>{label}</span>{to === '/messages' && badge > 0 && <span className="m-nav-step" aria-label={`${badge} farmers to message`}>{badge}</span>}
