@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 from uuid import uuid4
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from .models import AuditEvent, Capacity, ConsentEvent, IdempotencyRecord, Job, Listing, Projection, Reservation, ReservationEvent
 
@@ -25,6 +25,52 @@ def as_dict(row):
 def current_consent(db: Session, org_id: str, source_id: str, fallback: str):
     event = db.scalar(select(ConsentEvent).where(ConsentEvent.organisation_id == org_id, ConsentEvent.source_id == source_id).order_by(ConsentEvent.created_at.desc(), ConsentEvent.id.desc()).limit(1))
     return event.status if event else fallback
+
+
+SOURCE_FIELDS = ("crop", "variety", "grade", "week_start", "week_end")
+
+
+def projection_budget_used(db: Session, projection: Projection):
+    # Withheld rows still consume their declared slice: approving them later
+    # must not resurrect a second copy of the same quantity.
+    allocated = db.scalar(select(func.coalesce(func.sum(Capacity.quantity_g), 0)).where(
+        Capacity.source_type == "projection", Capacity.source_id == projection.id,
+        Capacity.organisation_id == projection.organisation_id))
+    older_ids = select(Projection.id).where(Projection.organisation_id == projection.organisation_id,
+        Projection.source_id == projection.source_id, Projection.id != projection.id)
+    committed = db.scalar(select(func.coalesce(func.sum(Capacity.committed_g), 0)).where(
+        Capacity.source_type == "projection", Capacity.source_id.in_(older_ids)))
+    return allocated + committed
+
+
+def require_capacity_source(db: Session, capacity: Capacity):
+    """The same source rules guard discovery, review, reservation and confirmation."""
+    if capacity.source_type == "harvested_lot":
+        raise HTTPException(409, "Verified Part 3 QC adapter is not configured; a text reference cannot release stock")
+    projection = db.get(Projection, capacity.source_id)
+    if not projection or projection.organisation_id != capacity.organisation_id:
+        raise HTTPException(409, "Owned source projection not found")
+    if any(getattr(capacity, field) != getattr(projection, field) for field in SOURCE_FIELDS):
+        raise HTTPException(409, "Capacity product and delivery week disagree with its source projection")
+    latest = db.scalar(select(Projection.version).where(Projection.organisation_id == projection.organisation_id,
+        Projection.source_id == projection.source_id).order_by(Projection.version.desc()).limit(1))
+    if latest != projection.version or projection.status != "current":
+        raise HTTPException(409, "Projection has been superseded")
+    if projection.stale_after and aware(projection.stale_after) <= utcnow():
+        raise HTTPException(409, "Projection has expired")
+    if capacity.consent_status != "opted-in" or current_consent(db, capacity.organisation_id, projection.source_id, projection.consent_status) != "opted-in":
+        raise HTTPException(409, "Farmer consent does not permit allocation")
+    if capacity.quantity_g > projection.quantity_g:
+        raise HTTPException(409, "Capacity exceeds its source projection")
+    if projection_budget_used(db, projection) > projection.quantity_g:
+        raise HTTPException(409, "Source budget is overallocated; reconcile existing capacity and commitments")
+    return projection
+
+
+def require_capacity_eligible(db: Session, capacity: Capacity):
+    if capacity.status != "available" or not capacity.reviewed or capacity.consent_status != "opted-in":
+        raise HTTPException(409, "Capacity is not available, consented and reviewed")
+    return require_capacity_source(db, capacity)
 
 
 def audit(db: Session, actor: dict, action: str, resource_type: str, resource_id: str, before=None, after=None, correlation_id=None):
@@ -62,6 +108,10 @@ def eligible_listings(db: Session, organisation_id: str | None = None):
             continue
         if listing.expires_at and aware(listing.expires_at) <= now:
             continue
+        try:
+            require_capacity_eligible(db, capacity)
+        except HTTPException:
+            continue
         if capacity.consent_status != "opted-in" or not capacity.reviewed:
             continue
         if capacity.source_type == "projection":
@@ -85,6 +135,7 @@ def reserve_capacity(db: Session, actor: dict, capacity_id: str, quantity_g: int
     capacity = db.scalar(select(Capacity).where(Capacity.id == capacity_id).with_for_update())
     if capacity is None or capacity.status != "available":
         raise HTTPException(404, "Capacity not found")
+    require_capacity_eligible(db, capacity)
     listing = db.scalar(select(Listing).where(Listing.capacity_id == capacity.id, Listing.status == "active",
         Listing.visible_to_members.is_(True)))
     if listing is None or listing.organisation_id == actor["organisation_id"]:
@@ -129,6 +180,8 @@ def transition_reservation(db: Session, actor: dict, reservation_id: str, expect
     if reservation.version != expected_version:
         raise HTTPException(409, "Reservation changed; refresh and retry")
     capacity = db.scalar(select(Capacity).where(Capacity.id == reservation.capacity_id).with_for_update())
+    if action == "confirm" and aware(reservation.expires_at) > utcnow():
+        require_capacity_eligible(db, capacity)
     target = {"confirm": "committed", "release": "released", "cancel": "cancelled"}[action]
     if reservation.status != "reserved":
         raise HTTPException(409, "Only a reserved allocation can transition")

@@ -29,7 +29,7 @@ function actionFor(o: Opportunity): { label: string; to: string; tone: '' | 'war
   if (p.status === 'not-in-scenario') return { label: 'Confirm buyer first', to: '/demand', tone: 'warn' }
   if (p.status === 'gap' || p.status === 'partial') return { label: 'Expand planting', to: `/plan#${o.crop.id}`, tone: 'warn' }
   if (p.confirmedKg === 0) return { label: 'Confirm buyer first', to: '/demand', tone: '' }
-  return { label: 'Proceed as planned', to: `/plan#${o.crop.id}`, tone: '' }
+  return { label: 'Review proposed plan', to: `/plan#${o.crop.id}`, tone: '' }
 }
 
 function DemandBar({ o, max }: { o: Opportunity; max: number }) {
@@ -65,7 +65,7 @@ export default function Overview() {
   const chartSupply = weeks.reduce((s, w) => s + w.supply, 0)
 
   const watchouts = [
-    ...result.plans.filter((p) => p.window === 'urgent' && p.allocations.length).map((p) => ({ icon: <Clock3 size={20} />, tone: 'bad', title: `Sow ${p.crop.name.toLowerCase()} by ${fmtDay(p.sowBy)}`, text: `${daysBetween(PLANNING_DATE, p.sowBy)} days left to meet the buyer's ${fmtDay(p.deliveryStart)} start.` })),
+    ...result.plans.filter((p) => p.window === 'urgent' && p.allocations.length).map((p) => ({ icon: <Clock3 size={20} />, tone: 'bad', title: `Review ${p.crop.name.toLowerCase()} sowing window by ${fmtDay(p.sowBy)}`, text: `${daysBetween(PLANNING_DATE, p.sowBy)} days left for the proposed window. Confirm buyer demand and farmer acceptance before planting.` })),
     ...inScope.filter((p) => p.shortfallKg > 0).map((p) => ({ icon: <Sprout size={20} />, tone: 'warn', title: `${p.crop.name} supply short by ${fmtT(p.shortfallKg || p.gapKg)}`, text: p.crop.perennial ? 'Orchard crop – agree a smaller volume or later window.' : 'Increase area or mobilise more farmers.' })),
     ...result.opportunities.filter((o) => o.signals.some((s) => s.regionalSupply === 'Oversupply risk')).map((o) => ({ icon: <TrendingDown size={20} />, tone: 'warn', title: `${o.crop.name}: oversupply risk forecast`, text: `Prices may fall to ₹${o.signals[0].priceBandInr[0]}–${o.signals[0].priceBandInr[1]}/kg. Avoid adding area without a buyer.` })),
     { icon: <CloudRain size={20} />, tone: '', title: 'Weather is not yet modelled', text: 'Yields use indicative ranges. Add a buffer in Planting Plans for weather risk.' },

@@ -2,6 +2,9 @@ from datetime import date, datetime
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+# Shared ledger columns are PostgreSQL INTEGER, unlike Part 3's JSON ledger.
+MAX_GRAMS = 2_147_483_647
+
 
 class DevSessionRequest(BaseModel):
     user_id: str = Field(min_length=1, max_length=80)
@@ -22,9 +25,9 @@ class ProjectionPublish(BaseModel):
     grade: str = Field(min_length=1, max_length=80)
     week_start: str
     week_end: str
-    quantity_g: int = Field(ge=0)
-    low_g: int | None = Field(default=None, ge=0)
-    high_g: int | None = Field(default=None, ge=0)
+    quantity_g: int = Field(ge=0, le=MAX_GRAMS, strict=True)
+    low_g: int | None = Field(default=None, ge=0, le=MAX_GRAMS, strict=True)
+    high_g: int | None = Field(default=None, ge=0, le=MAX_GRAMS, strict=True)
     consent_status: Literal["opted-in", "opted-out", "not-recorded", "unavailable"]
     consent_recorded_at: datetime | None = None
     evidence_refs: list[dict[str, Any]] = Field(default_factory=list)
@@ -57,6 +60,10 @@ class ProjectionPublish(BaseModel):
             raise ValueError("week_end must not precede week_start")
         if self.low_g is not None and self.high_g is not None and self.low_g > self.high_g:
             raise ValueError("low_g must not exceed high_g")
+        if self.low_g is not None and self.low_g > self.quantity_g or self.high_g is not None and self.high_g < self.quantity_g:
+            raise ValueError("low_g <= quantity_g <= high_g is required when bounds are supplied")
+        if self.stale_after is not None and self.stale_after <= self.as_of:
+            raise ValueError("stale_after must follow as_of")
         return self
 
 
@@ -68,7 +75,7 @@ class CapacityCreate(BaseModel):
     grade: str = Field(min_length=1, max_length=80)
     week_start: str
     week_end: str
-    quantity_g: int = Field(gt=0)
+    quantity_g: int = Field(gt=0, le=MAX_GRAMS, strict=True)
     consent_status: Literal["opted-in", "opted-out", "not-recorded", "unavailable"]
 
     @field_validator("week_start", "week_end")
@@ -109,7 +116,7 @@ class ListingCreate(BaseModel):
 
 class ReservationCreate(BaseModel):
     capacity_id: str
-    quantity_g: int = Field(gt=0)
+    quantity_g: int = Field(gt=0, le=MAX_GRAMS, strict=True)
     expires_at: datetime
 
     @field_validator("expires_at")

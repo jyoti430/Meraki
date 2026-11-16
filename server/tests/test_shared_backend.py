@@ -8,8 +8,100 @@ from sqlalchemy.orm import sessionmaker
 
 from server.meraki.app import create_app
 from server.meraki.database import make_engine
-from server.meraki.models import Base, Capacity, Job, Listing, Organization, Reservation, User
+from server.meraki.models import Base, Capacity, Job, Listing, Organization, Projection, Reservation, User
 from server.meraki.worker import run_once
+
+
+def make_capacity(client, seller, source, quantity=100000, key="capacity-check", **changes):
+    return client.post("/api/v1/capacities", headers={**seller, "Idempotency-Key": key}, json={
+        "source_type": "projection", "source_id": source, "crop": "okra", "variety": "local", "grade": "A",
+        "week_start": "2026-12-01", "week_end": "2026-12-07", "quantity_g": quantity,
+        "consent_status": "opted-in", **changes})
+
+
+@pytest.mark.parametrize("changes", [{"crop": "tomato"}, {"variety": "other"}, {"grade": "B"},
+                                     {"week_start": "2026-12-02"}, {"week_end": "2026-12-08"}])
+def test_capacity_cannot_relabel_source_projection(api, changes):
+    client, _ = api
+    seller = login(client, "source-owner")
+    source = client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "source"}, json=projection()).json()["projection"]["id"]
+    assert make_capacity(client, seller, source, **changes).status_code == 422
+
+
+def test_multiple_capacity_rows_cannot_multiply_one_forecast(api):
+    client, _ = api
+    seller = login(client, "source-owner")
+    source = client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "source"}, json=projection()).json()["projection"]["id"]
+    assert make_capacity(client, seller, source, 60000, "first").status_code == 201
+    assert make_capacity(client, seller, source, 50000, "second").status_code == 409
+    assert make_capacity(client, seller, source, 40000, "remaining").status_code == 201
+
+
+def reserve_from_projection(client, seller, buyer):
+    source = client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "p"}, json=projection()).json()["projection"]["id"]
+    cap = make_capacity(client, seller, source).json()["id"]
+    client.post(f"/api/v1/capacities/{cap}/review", headers={**seller, "Idempotency-Key": "review"}, json={"decision": "approve", "reason": "Synthetic fixture"})
+    client.post("/api/v1/listings", headers={**seller, "Idempotency-Key": "listing"}, json={"capacity_id": cap, "resource_type": "projection"})
+    response = client.post("/api/v1/reservations", headers={**buyer, "Idempotency-Key": "reserve"}, json={
+        "capacity_id": cap, "quantity_g": 60000, "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()})
+    assert response.status_code == 201, response.text
+    return source, cap, response.json()["reservation"]["id"]
+
+
+def test_confirmation_rechecks_source_after_listing_and_reservation(api):
+    client, app = api
+    seller, buyer = login(client, "seller"), login(client, "buyer")
+    source, cap, reservation = reserve_from_projection(client, seller, buyer)
+    sessions = sessionmaker(bind=app.state.engine)
+    with sessions.begin() as db:
+        db.get(Projection, source).stale_after = datetime.now(timezone.utc) - timedelta(seconds=1)
+    assert client.get("/api/v1/market/listings", headers=buyer).json()["items"] == []
+    response = client.post(f"/api/v1/reservations/{reservation}/transition", headers={**buyer, "Idempotency-Key": "confirm"}, json={"expected_version": 1, "action": "confirm"})
+    assert response.status_code == 409
+    with sessions() as db:
+        assert db.get(Capacity, cap).committed_g == 0
+
+
+def test_projection_revision_cannot_repromise_old_committed_quantity(api):
+    client, _ = api
+    seller, buyer = login(client, "seller"), login(client, "buyer")
+    _, _, reservation = reserve_from_projection(client, seller, buyer)
+    result = client.post(f"/api/v1/reservations/{reservation}/transition", headers={**buyer, "Idempotency-Key": "confirm"}, json={"expected_version": 1, "action": "confirm"})
+    assert result.status_code == 200 and result.json()["status"] == "committed"
+    source = client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "new-version"}, json=projection(version=2)).json()["projection"]["id"]
+    assert make_capacity(client, seller, source, 100000, "too-much").status_code == 409
+    assert make_capacity(client, seller, source, 40000, "remaining").status_code == 201
+
+
+def test_idempotency_key_cannot_replay_a_different_resource_action(api):
+    client, _ = api
+    seller = login(client, "owner")
+    source = client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "source"}, json=projection()).json()["projection"]["id"]
+    first = make_capacity(client, seller, source, 50000, "first").json()["id"]
+    second = make_capacity(client, seller, source, 50000, "second").json()["id"]
+    body = {"decision": "approve", "reason": "Synthetic fixture"}
+    headers = {**seller, "Idempotency-Key": "same-review-key"}
+    assert client.post(f"/api/v1/capacities/{first}/review", headers=headers, json=body).status_code == 200
+    assert client.post(f"/api/v1/capacities/{second}/review", headers=headers, json=body).status_code == 409
+
+
+def test_arbitrary_qc_reference_cannot_release_harvested_capacity(api):
+    client, _ = api
+    seller = login(client, "source-owner")
+    capacity = make_capacity(client, seller, "invented-lot", source_type="harvested_lot")
+    assert capacity.status_code == 201
+    response = client.post(f"/api/v1/capacities/{capacity.json()['id']}/review",
+        headers={**seller, "Idempotency-Key": "forged-release"},
+        json={"decision": "approve", "reason": "Test fake linkage", "evidence_reference": "I-say-it-is-released"})
+    assert response.status_code == 409
+
+
+@pytest.mark.parametrize("changes", [{"quantity_g": True}, {"quantity_g": "100000"}, {"quantity_g": 2147483648},
+                                     {"low_g": 110000}, {"high_g": 90000}])
+def test_shared_projection_rejects_coercion_overflow_and_inconsistent_range(api, changes):
+    client, _ = api
+    seller = login(client, "source-owner")
+    assert client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "bad"}, json={**projection(), **changes}).status_code == 422
 
 
 @pytest.fixture
@@ -253,10 +345,14 @@ def test_postgresql_concurrent_reservations_do_not_oversell():
         db.add_all([Organization(id=org_owner, name="synthetic owner"), Organization(id=org_buyer, name="synthetic buyer")])
         db.add(User(id=f"pg-user-{suffix}", email=f"pg-{suffix}@example.test", display_name="Synthetic PostgreSQL test user"))
         db.flush()
-        db.add(Capacity(id=f"cap-{suffix}", organisation_id=org_owner, source_type="harvested_lot", source_id=f"lot-{suffix}", crop="okra", variety="v", grade="A",
+        from server.meraki.schemas import ProjectionPublish
+        source = ProjectionPublish(**{**projection(source=f"source-{suffix}"), "quantity_g": 100, "low_g": 80, "high_g": 120}).model_dump()
+        db.add(Projection(id=f"projection-{suffix}", organisation_id=org_owner, created_by=f"pg-user-{suffix}", **source))
+        db.flush()
+        db.add(Capacity(id=f"cap-{suffix}", organisation_id=org_owner, source_type="projection", source_id=f"projection-{suffix}", crop="okra", variety="local", grade="A",
             week_start="2026-12-01", week_end="2026-12-07", quantity_g=100, consent_status="opted-in", reviewed=True))
         db.flush()
-        db.add(Listing(id=f"listing-{suffix}", organisation_id=org_owner, capacity_id=f"cap-{suffix}", resource_type="harvested_lot"))
+        db.add(Listing(id=f"listing-{suffix}", organisation_id=org_owner, capacity_id=f"cap-{suffix}", resource_type="projection"))
     def attempt():
         with sessions() as db:
             try:
@@ -273,3 +369,18 @@ def test_postgresql_concurrent_reservations_do_not_oversell():
     with sessions() as db:
         assert db.get(Capacity, f"cap-{suffix}").reserved_g == 70
     engine.dispose()
+
+
+@pytest.mark.skipif(not os.getenv("MERAKI_TEST_POSTGRES_URL"), reason="Disposable PostgreSQL URL is required")
+def test_postgresql_concurrent_capacity_creation_cannot_multiply_source(monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    monkeypatch.setenv("MERAKI_DEV_AUTH", "1")
+    monkeypatch.setenv("MERAKI_ENV", "development")
+    app = create_app(os.environ["MERAKI_TEST_POSTGRES_URL"], create_schema=True)
+    suffix = uuid4().hex
+    with TestClient(app) as client:
+        seller = login(client, suffix)
+        source = client.post("/api/v1/projections", headers={**seller, "Idempotency-Key": "source"}, json=projection(source=suffix)).json()["projection"]["id"]
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            statuses = list(pool.map(lambda i: make_capacity(client, seller, source, 70000, f"concurrent-{i}").status_code, range(2)))
+        assert sorted(statuses) == [201, 409]

@@ -5,6 +5,7 @@ import Sidebar, { isNavActive, navigation, useMessageBadge } from './Sidebar'
 import { MerakiMark } from '../ui'
 import { Archive, RotateCcw } from 'lucide-react'
 import { resetDemoData } from '../../context/PlanContext'
+import WorkflowAuthorityNotice from '../WorkflowAuthorityNotice'
 import { SEASON_LABEL } from '../../planning/engine'
 import { LANGUAGES, useI18n } from '../../i18n'
 import GoogleTranslate from '../../i18n/GoogleTranslate'
@@ -35,7 +36,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <span className="m-tag m-tag-neutral">{SEASON_LABEL}</span>
         </div>
       </header>
-      <main className="m-main">{children}</main>
+      <main className="m-main"><WorkflowAuthorityNotice pathname={pathname} />{children}</main>
       <footer className="m-mobile-foot">
         <div className="m-synthetic-note m-small">{t('synthetic_note')}</div>
         <div className="m-row" style={{ gap: 18 }}>

@@ -71,6 +71,6 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -r server/requirements.txt
       - run: python -m pytest server/tests -q
-      - run: python -m pytest server/tests/test_shared_backend.py::test_postgresql_concurrent_reservations_do_not_oversell -q
+      - run: python -m pytest server/tests/test_shared_backend.py -q -k postgresql
         env:
           MERAKI_TEST_POSTGRES_URL: postgresql+psycopg://postgres:postgres@localhost:5432/meraki_test

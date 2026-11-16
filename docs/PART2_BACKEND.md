@@ -66,7 +66,7 @@ Protected routes return a consistent `{ "error": { "code", "message", "request_i
 | `GET /api/v1/audit-events` | Read organisation-scoped audit history | `audit:read` |
 | `POST /api/v1/jobs` | Enqueue supported expiry task | `job:write` |
 
-All produce quantities are integer `*_g`. Projection quantity is a planning value, not a reservation or harvested stock. `source_type` is either `projection` or `harvested_lot`; these remain distinct. Capacity starts unreviewed and requires a separate permissioned review command. Harvested-lot review requires a Part 3 quality-release reference, but a trusted QC adapter is not yet connected, so this reference is not independently verified evidence.
+All produce quantities are integer `*_g`. Projection quantity is a planning value, not a reservation or harvested stock. `source_type` is either `projection` or `harvested_lot`; these remain distinct. Capacity starts unreviewed and requires a separate permissioned review command. Harvested-lot capacity cannot be approved, listed, reserved or confirmed through this service until a verified Part 3 QC adapter exists. An evidence-reference string alone is insufficient; the service now fails closed.
 
 ### Part 1 integration
 
@@ -107,3 +107,13 @@ Verification note (16 November 2026): user reported 7 passed, 1 skipped with Pyt
 Part 2 is merged into Kireeti in `5dd2b23`. Port 8003 above avoids the separate trade API on 8000. Both services still have independent application/transaction boundaries; no frontend projection publisher or trusted trade identity/capacity/QC adapter was added by the merge. Existing dependency pins are retained with Alembic/multipart and Uvicorn extras added.
 
 The earlier local-only limitations above are historical: upstream main CI 43790402925 passed the dedicated PostgreSQL reservation concurrency test. On merged Kireeti, 144 Python tests plus 10 subtests passed locally with the PostgreSQL-only test skipped; disposable SQLite Alembic upgrade/downgrade/upgrade passed. Fresh merged PostgreSQL CI is recorded in WORK_LOG.md. These checks do not establish production migration, backup/restore, identity-provider, object-store or deployment acceptance.
+
+## Workflow alignment safeguards (16 November 2026)
+
+See [WORKFLOW_ALIGNMENT_AUDIT.md](WORKFLOW_ALIGNMENT_AUDIT.md) for the frontend/backend comparison and exporter-sponsored procurement addendum matrix. Projection capacity creation now locks the owned projection and bounds the sum of capacity slices plus older-version commitments; withheld slices still consume their declared budget. Product/variety/grade/week must match the source. Current consent, review, freshness and source identity are rechecked at discovery, listing, reservation and confirmation. Legacy contradictory rows are excluded rather than silently repaired. Canonical physical-source identity across independently generated IDs, private procurement and partner authorisation remain unimplemented.
+
+Shared gram fields accept strict JSON integers from 0 (projection) or 1 (capacity/reservation) through 2,147,483,647, matching PostgreSQL INTEGER storage. Bounds must enclose base quantity; stale_after must follow as_of. These shared limits differ from the JSON-backed Part 3 ledger and require explicit adapter validation.
+
+Idempotency fingerprints now include the operation/resource path as well as the payload. Reusing a key on another endpoint/resource returns 409. A pre-change stored key can also return 409 under the stricter fingerprint; inspect the recorded operation rather than automatically creating a new key after an uncertain outcome. This is a fail-closed contract correction, not a data migration.
+
+The reservation API still requires an eligible member-visible listing: it is not a private partner allocation channel. Generic organisation permissions are not approved exporter–FPO relationships. No source-level guarantee across the independent trade ledger or future private channel is claimed by these guards.

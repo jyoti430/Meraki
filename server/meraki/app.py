@@ -18,7 +18,7 @@ from .schemas import (CapacityCreate, CapacityResponse, CapacityReview, Capacity
     DevSessionRequest, DocumentResponse, ItemPage, JobCreate, JobResponse, ListingCreate, ListingResponse,
     ProjectionPublish, ProjectionResult, ProjectionResponse, ReservationCreate, ReservationResponse, ReservationResult,
     ReservationTransition)
-from .services import as_dict, audit, current_consent, eligible_listings, idempotent, reserve_capacity, transition_reservation, utcnow, aware
+from .services import as_dict, audit, current_consent, eligible_listings, idempotent, reserve_capacity, transition_reservation, utcnow, aware, SOURCE_FIELDS, require_capacity_source, require_capacity_eligible, projection_budget_used
 from .storage import LocalStorage
 
 
@@ -96,19 +96,19 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
         if not development_auth_enabled:
             raise HTTPException(404, "Development authentication is disabled")
 
-    def commit_idempotent(db, user, key, body, operation):
+    def commit_idempotent(request, db, user, key, body, operation):
         # Authentication performs a read using this request-scoped session.
         # End that read transaction before opening the atomic mutation.
         if db.in_transaction():
             db.rollback()
         try:
             with db.begin():
-                result = idempotent(db, user, key, body, lambda: jsonable_encoder(operation()))
+                result = idempotent(db, user, key, {"operation": request.url.path, "payload": body}, lambda: jsonable_encoder(operation()))
             return result
         except IntegrityError:
             db.rollback()
             with db.begin():
-                return idempotent(db, user, key, body, lambda: (_ for _ in ()).throw(HTTPException(409, "Concurrent idempotency conflict; retry the request")))
+                return idempotent(db, user, key, {"operation": request.url.path, "payload": body}, lambda: (_ for _ in ()).throw(HTTPException(409, "Concurrent idempotency conflict; retry the request")))
 
     @app.get("/api/v1/health")
     def health(db: Session = Depends(db_session)):
@@ -185,7 +185,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                 "released_superseded_reservations": released, "committed_reservations_for_review": committed}, correlation_id=request.state.correlation_id)
             return {"projection": as_dict(row), "released_superseded_reservations": released,
                     "committed_reservations_for_review": committed}
-        return commit_idempotent(db, user, idempotency_key, data, op)
+        return commit_idempotent(request, db, user, idempotency_key, data, op)
 
     @app.get("/api/v1/projections", response_model=ItemPage)
     def projections(limit: int = 100, offset: int = 0, user: dict = Depends(actor), db: Session = Depends(db_session)):
@@ -237,7 +237,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                 "released_reservations": released, "committed_reservations_for_review": committed}, correlation_id=request.state.correlation_id)
             db.flush(); return {"consent_event": as_dict(event), "released_reservations": released,
                                 "committed_reservations_for_review": committed}
-        return commit_idempotent(db, user, idempotency_key, data, op)
+        return commit_idempotent(request, db, user, idempotency_key, data, op)
 
     @app.post("/api/v1/capacities", status_code=201, response_model=CapacityResponse)
     def create_capacity(body: CapacityCreate, request: Request, idempotency_key: str = Header(..., alias="Idempotency-Key"),
@@ -246,9 +246,13 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
         data = body.model_dump(mode="json")
         def op():
             if body.source_type == "projection":
-                projection = db.scalar(select(Projection).where(Projection.id == body.source_id, Projection.organisation_id == user["organisation_id"]))
+                projection = db.scalar(select(Projection).where(Projection.id == body.source_id, Projection.organisation_id == user["organisation_id"]).with_for_update())
                 if not projection or body.quantity_g > projection.quantity_g:
                     raise HTTPException(422, "Capacity must reference an owned projection and not exceed its quantity")
+                if any(getattr(body, field) != getattr(projection, field) for field in SOURCE_FIELDS):
+                    raise HTTPException(422, "Capacity crop, variety, grade and week must match the source projection")
+                if projection_budget_used(db, projection) + body.quantity_g > projection.quantity_g:
+                    raise HTTPException(409, "Source quantity is already allocated or committed in an earlier version; review existing commitments")
                 latest = db.scalar(select(Projection.version).where(Projection.organisation_id == projection.organisation_id,
                     Projection.source_id == projection.source_id).order_by(Projection.version.desc()).limit(1))
                 if latest != projection.version or projection.stale_after and aware(projection.stale_after) <= utcnow():
@@ -259,7 +263,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             db.add(row); db.flush()
             audit(db, user, "capacity.created", "capacity", row.id, after={"quantity_g": row.quantity_g}, correlation_id=request.state.correlation_id)
             return as_dict(row)
-        return commit_idempotent(db, user, idempotency_key, data, op)
+        return commit_idempotent(request, db, user, idempotency_key, data, op)
 
     @app.get("/api/v1/capacities/available", response_model=ItemPage)
     def available_capacity(user: dict = Depends(actor), db: Session = Depends(db_session)):
@@ -267,6 +271,10 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
         rows = db.scalars(select(Capacity).where(Capacity.organisation_id == user["organisation_id"], Capacity.status == "available")).all()
         result = []
         for row in rows:
+            try:
+                require_capacity_eligible(db, row)
+            except HTTPException:
+                continue
             if row.source_type == "projection":
                 projection = db.get(Projection, row.source_id)
                 latest = db.scalar(select(Projection.version).where(Projection.organisation_id == row.organisation_id,
@@ -290,6 +298,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             if not capacity: raise HTTPException(404, "Capacity not found")
             released, committed = [], []
             if body.decision == "approve":
+                require_capacity_source(db, capacity)
                 if capacity.consent_status != "opted-in": raise HTTPException(409, "Consent does not permit capacity approval")
                 if capacity.source_type == "projection":
                     projection = db.get(Projection, capacity.source_id)
@@ -321,7 +330,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                          "committed_reservations_for_review": committed}, correlation_id=request.state.correlation_id)
             return {"capacity": as_dict(capacity), "released_reservations": released,
                     "committed_reservations_for_review": committed}
-        return commit_idempotent(db, user, idempotency_key, data, op)
+        return commit_idempotent(request, db, user, idempotency_key, data, op)
 
     @app.post("/api/v1/listings", status_code=201, response_model=ListingResponse)
     def create_listing(body: ListingCreate, request: Request, idempotency_key: str = Header(..., alias="Idempotency-Key"),
@@ -332,6 +341,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             capacity = db.scalar(select(Capacity).where(Capacity.id == body.capacity_id, Capacity.organisation_id == user["organisation_id"]))
             if not capacity or capacity.source_type != body.resource_type:
                 raise HTTPException(404, "Owned capacity not found or resource type mismatch")
+            require_capacity_eligible(db, capacity)
             if capacity.consent_status != "opted-in" or not capacity.reviewed:
                 raise HTTPException(409, "Capacity is not consented and reviewed")
             if capacity.status != "available":
@@ -354,7 +364,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                 db.add(Job(id=uuid4().hex, kind="expire_listing", payload={"listing_id": listing.id}, run_at=listing.expires_at))
             audit(db, user, "listing.created", "listing", listing.id, after={"status": "active"}, correlation_id=request.state.correlation_id)
             return as_dict(listing)
-        return commit_idempotent(db, user, idempotency_key, data, op)
+        return commit_idempotent(request, db, user, idempotency_key, data, op)
 
     @app.get("/api/v1/market/listings", response_model=ItemPage)
     def market_listings(limit: int = 100, offset: int = 0, user: dict = Depends(actor), db: Session = Depends(db_session)):
@@ -368,7 +378,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                            user: dict = Depends(actor), db: Session = Depends(db_session)):
         allowed(user, "reservation:write")
         data = body.model_dump(mode="json")
-        return commit_idempotent(db, user, idempotency_key, data, lambda: reserve_capacity(db, user, body.capacity_id, body.quantity_g, body.expires_at,
+        return commit_idempotent(request, db, user, idempotency_key, data, lambda: reserve_capacity(db, user, body.capacity_id, body.quantity_g, body.expires_at,
                                                                                            request.state.correlation_id))
 
     @app.post("/api/v1/reservations/{reservation_id}/transition", response_model=ReservationResponse)
@@ -376,7 +386,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                            idempotency_key: str = Header(..., alias="Idempotency-Key"), user: dict = Depends(actor), db: Session = Depends(db_session)):
         allowed(user, "reservation:write")
         data = {"reservation_id": reservation_id, **body.model_dump(mode="json")}
-        return commit_idempotent(db, user, idempotency_key, data,
+        return commit_idempotent(request, db, user, idempotency_key, data,
             lambda: transition_reservation(db, user, reservation_id, body.expected_version, body.action, request.state.correlation_id))
 
     @app.get("/api/v1/reservations", response_model=ItemPage)
@@ -422,7 +432,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             audit(db, user, "document.uploaded", "document", row.id, after={"size_bytes": row.size_bytes, "sha256": payload["sha256"]}, correlation_id=request.state.correlation_id)
             return as_dict(row)
         try:
-            result = commit_idempotent(db, user, idempotency_key, payload, op)
+            result = commit_idempotent(request, db, user, idempotency_key, payload, op)
             if result.get("storage_key") != storage_key:
                 target = storage.root / storage_key
                 if target.exists(): target.unlink()
@@ -480,7 +490,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             job = Job(id=uuid4().hex, kind=kind, payload=data["payload"], run_at=due_at, max_attempts=body.max_attempts)
             db.add(job); db.flush()
             return as_dict(job)
-        return commit_idempotent(db, user, idempotency_key, data, op)
+        return commit_idempotent(request, db, user, idempotency_key, data, op)
 
     @app.get("/api/v1/openapi.json")
     def openapi():

@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Fragment, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { AlertCircle, ArrowRight, CheckCircle2, ChevronDown, FlaskConical, Gavel, Handshake, Landmark, LoaderCircle, PackageCheck, RefreshCw, ShieldCheck, Truck } from 'lucide-react'
 import { useTrade } from './TradeProvider'
@@ -76,7 +76,7 @@ export function TradeFrame({ title, subtitle, eyebrow, children }: { title: stri
     {loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>{t('loading_trade')}</p></div>}
     {(health || workspace) && !(workspace?.production_ready ?? health?.production_ready) && <div className="t-gate"><ShieldCheck size={17} aria-hidden="true" /><span><strong>Development workflow.</strong> Live trading is blocked until verified identity, capacity and production acceptance are connected.</span></div>}
     {!loading && !workspace && <Panel title="Connect to continue" subtitle="Records, permissions and deadlines come from the trade service."><p>{health?.synthetic ? 'Use “Connect synthetic workspace” above to select an FPO, exporter, QC reviewer or finance reviewer. Each actor sees only its permitted records.' : 'Start the configured trade API and refresh this page. Production requires the verified identity integration.'}</p>{health?.blockers?.length ? <ul className="t-bullets">{health.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}</Panel>}
-    {workspace && <>{children}<footer className="t-footer">Server snapshot {timestamp(workspace.server_time)} · {workspace.synthetic ? 'Synthetic records' : 'Organisation-scoped records'} · Commands are validated and saved by the server.</footer></>}
+    {workspace && <Fragment key={`${workspace.principal.id}:${workspace.principal.organisation_id}:${workspace.principal.role}`}>{children}<footer className="t-footer">Server snapshot {timestamp(workspace.server_time)} · {workspace.synthetic ? 'Synthetic records' : 'Organisation-scoped records'} · Commands are validated and saved by the server.</footer></Fragment>}
   </div>
 }
 
@@ -92,7 +92,7 @@ function MembersInput({ id, value, onChange }: { id: string; value: string; onCh
 }
 
 export function CommandForm({ title, fields = [], path, prepare, submit = 'Save record', success = 'Record saved on the server.', onSaved, tone = 'primary', note }: { title?: string; fields?: FieldSpec[]; path: string; prepare: (values: Values) => unknown; submit?: string; success?: string; onSaved?: () => void; tone?: 'primary' | 'danger' | 'secondary'; note?: string }) {
-  const { command } = useTrade()
+  const { command, writesEnabled } = useTrade()
   const prefix = useId()
   const [values, setValues] = useState<Values>(() => Object.fromEntries(fields.map((field) => [field.name, field.value ?? (field.type === 'select' ? field.options?.[0]?.value || '' : field.type === 'checkbox' ? 'false' : '')])))
   const [pending, setPending] = useState(false)
@@ -103,7 +103,7 @@ export function CommandForm({ title, fields = [], path, prepare, submit = 'Save 
   const update = (name: string, value: string) => { setValues((old) => ({ ...old, [name]: value })); setSaved(false) }
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (busy.current) return
+    if (busy.current || !writesEnabled) return
     setError(''); setSaved(false)
     let body: unknown
     try { body = prepare(values) } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the entered values.'); return }
@@ -114,7 +114,7 @@ export function CommandForm({ title, fields = [], path, prepare, submit = 'Save 
   }
   return <form className="t-command-form" onSubmit={(event) => { void handleSubmit(event) }}>
     {title && <h3 className="m-h3">{title}</h3>}
-    <fieldset disabled={pending} className="t-fields"><legend className="sr-only">{title || submit}</legend>{fields.map((field) => {
+    <fieldset disabled={pending || !writesEnabled} className="t-fields"><legend className="sr-only">{title || submit}</legend>{fields.map((field) => {
       const id = `${prefix}-${field.name}`
       const value = values[field.name] ?? field.value ?? ''
       const common = { id, name: field.name, required: field.required !== false, 'aria-describedby': field.help ? `${id}-help` : undefined }
@@ -126,9 +126,10 @@ export function CommandForm({ title, fields = [], path, prepare, submit = 'Save 
       </label>
     })}</fieldset>
     {note && <p className="m-small">{note}</p>}
+    {!writesEnabled && <p role="status" className="m-small">Actions are paused until a fresh snapshot is loaded for this session. Refresh the trade workspace before submitting.</p>}
     {error && <Notice error>{error}</Notice>}
     {saved && <div className="t-success" role="status"><CheckCircle2 size={18} />{success}</div>}
-    <button className={`m-btn m-btn-${tone} m-btn-sm`} type="submit" disabled={pending || saved}>{pending && <LoaderCircle size={16} className="t-spin" aria-hidden="true" />}{pending ? 'Saving…' : saved ? 'Saved' : submit}</button>
+    <button className={`m-btn m-btn-${tone} m-btn-sm`} type="submit" disabled={pending || saved || !writesEnabled}>{pending && <LoaderCircle size={16} className="t-spin" aria-hidden="true" />}{pending ? 'Saving…' : saved ? 'Saved' : submit}</button>
   </form>
 }
 

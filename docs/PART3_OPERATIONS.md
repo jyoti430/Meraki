@@ -88,3 +88,7 @@ python -m pytest server/tests tests/part3_acceptance -q
 Use `.venv` Python. To verify PostgreSQL, set `TRADE_TEST_DATABASE_URL` to a disposable test database first; never point acceptance tests at production. CI provisions PostgreSQL 16 and runs the same Python suite. Read actual job outcomes before claiming PostgreSQL verification.
 
 Backend tests must cover concurrent bids/reservations, idempotency conflicts, late bids/extensions, no-sale/expiry, wrong-organisation access, QC holds, partial shipment limits, receipts, claims and money conservation. Browser checks must cover the FPO/exporter/reviewer journey, rejected commands, refresh and mobile layout. A passing software suite is not field validation, payment-provider approval or a farmer-income result.
+
+## Frontend authority guard
+
+Trade command forms require a successfully loaded snapshot for the current session, received within 60 seconds, with no refresh/error pending. Read-only records remain visible after a refresh fails; writes pause until a successful refresh. The command function independently checks freshness and session changes, and forms remount when actors change. This is a UX prevention layer: server clocks, permissions, expected versions, quantities and idempotency remain authoritative. Local planning/QC records are explicitly separate; use `/trade/lots` and `/trade/review` for this API-backed development workflow. See WORKFLOW_ALIGNMENT_AUDIT.md for remaining shared-ledger integration gaps.

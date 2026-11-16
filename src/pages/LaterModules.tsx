@@ -5,8 +5,8 @@ import { useI18n } from '../i18n'
 export default function LaterModules() {
   const { t } = useI18n()
   const modules = [
-    { to: '/lots-inspection', title: t('mod_lots'), icon: ClipboardCheck, text: t('mod_lots_desc') },
-    { to: '/lab-release-review', title: t('mod_lab'), icon: FlaskConical, text: t('mod_lab_desc') },
+    { to: '/trade/lots', title: t('mod_lots'), icon: ClipboardCheck, text: t('mod_lots_desc') },
+    { to: '/trade/review', title: t('mod_lab'), icon: FlaskConical, text: t('mod_lab_desc') },
     { to: '/crates-shipments', title: t('mod_crates'), icon: Truck, text: t('mod_crates_desc') },
     { to: '/arrival-claims', title: t('mod_arrival'), icon: PackageCheck, text: t('mod_arrival_desc') },
     { to: '/farmer-settlements', title: t('mod_settlements'), icon: BadgeIndianRupee, text: t('mod_settlements_desc') },

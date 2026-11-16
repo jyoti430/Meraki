@@ -53,3 +53,9 @@ Latest Part 2 merge: 54 Vitest tests plus 16 Node tests, TypeScript/Vite build, 
 ## Synthetic trained yield POC update — 16 November 2026
 
 The requested dummy-data trained demonstration now exists at `/yield-poc`: deterministic generation, real coefficient fitting, separate farm/time validation and test splits, downloadable dataset/model card, browser prediction/explanations and dummy supply adjustments. See [SYNTHETIC_YIELD_POC.md](SYNTHETIC_YIELD_POC.md). This completes a synthetic demonstration slice only. T12's real-data training, permissions, independent evaluation, calibrated uncertainty and pilot tasks above remain unchanged; this does not supply any eligible real farm outcomes or connect predictions to actual reservations/plans.
+
+## Exporter-sponsored workflow alignment audit — 16 November 2026
+
+See [WORKFLOW_ALIGNMENT_AUDIT.md](WORKFLOW_ALIGNMENT_AUDIT.md) for the supplied addendum's implemented/partial/missing matrix and the full contradiction inventory. Its relationship/sponsorship model, shared exporter demand, partner-specific coverage and private procurement path are still missing. The existing reserve path requires a marketplace listing, which does not satisfy private procurement.
+
+Bounded fixes now prevent duplicate capacity slices against a declared source, preserve old commitments in revised-source budgets, enforce source metadata and current eligibility, reject fabricated QC references, scope retry keys to their operation, and pause trade writes on stale/error/changed-session state. These do not connect the three ledgers or authenticate a physical source represented under newly invented IDs. Follow the proposed integration PR sequence; don't rebuild existing agronomy/auction/QC/settlement engines. Subscription-first versus current section 14's fee-first positioning is explicitly flagged for alignment, not silently treated as an implemented entitlement system.
