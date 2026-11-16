@@ -18,3 +18,5 @@ playwright-report/
 test-results/
 
 server/runtime-sensor*
+
+.test-build/

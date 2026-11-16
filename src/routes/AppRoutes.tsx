@@ -25,6 +25,9 @@ import SupplyPlanning from '../pages/SupplyPlanning'
 import SupplyPlanCreate from '../pages/SupplyPlanCreate'
 import SupplyPlanPreview from '../pages/SupplyPlanPreview'
 import SupplyPlanDetails from '../pages/SupplyPlanDetails'
+import LotReceive from '../pages/LotReceive'
+import LotDetails from '../pages/LotDetails'
+import LabReviewDetails from '../pages/LabReviewDetails'
 const TradeRoutes = lazy(() => import('./TradeRoutes'))
 const LiveData = lazy(() => import('../pages/LiveData'))
 
@@ -62,6 +65,9 @@ export default function AppRoutes() {
     <Route path="/supply-planning/:planId" element={<SupplyPlanDetails />} />
     {/* Post-harvest modules: retained, not in primary navigation */}
     <Route path="/lots-inspection" element={<LotsInspection />} />
+    <Route path="/lots-inspection/receive" element={<LotReceive />} />
+    <Route path="/lots-inspection/:lotId" element={<LotDetails />} />
+    <Route path="/lab-release-review/:lotId" element={<LabReviewDetails />} />
     <Route path="/lab-release-review" element={<LabReleaseReview />} />
     <Route path="/crates-shipments" element={<CratesShipments />} />
     <Route path="/arrival-claims" element={<ArrivalClaims />} />

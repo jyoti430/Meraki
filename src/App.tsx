@@ -4,6 +4,8 @@ import { BuyerOrdersProvider } from './context/BuyerOrdersContext'
 import { FarmIntelligenceProvider } from './context/FarmIntelligenceContext'
 import { FarmersProvider } from './context/FarmersContext'
 import { PlanProvider } from './context/PlanContext'
+import { LotsProvider } from './context/LotsContext'
+import { LabReviewProvider } from './context/LabReviewContext'
 import { SupplyPlanningProvider } from './context/SupplyPlanningContext'
 
 export default function App() {
@@ -12,11 +14,15 @@ export default function App() {
       <FarmersProvider>
         <FarmIntelligenceProvider>
           <SupplyPlanningProvider>
-            <PlanProvider>
-              <AppLayout>
-                <AppRoutes />
-              </AppLayout>
-            </PlanProvider>
+            <LotsProvider>
+              <LabReviewProvider>
+                <PlanProvider>
+                  <AppLayout>
+                    <AppRoutes />
+                  </AppLayout>
+                </PlanProvider>
+              </LabReviewProvider>
+            </LotsProvider>
           </SupplyPlanningProvider>
         </FarmIntelligenceProvider>
       </FarmersProvider>

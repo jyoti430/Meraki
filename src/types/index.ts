@@ -265,6 +265,7 @@ export interface Reservation {
 export interface SupplyPlan {
   id: string
   orderId: string
+  buyerSpecificationVersion?: number
   programmeId: string
   status: SupplyPlanStatus
   orderQuantityKg: number
@@ -282,4 +283,218 @@ export interface SupplyPlan {
   cancelledAt: string | null
   cancelledBy: string | null
   cancellationReason: string
+}
+
+export type InspectionStatus = 'Unassessed' | 'In Progress' | 'Completed' | 'Needs Review'
+export type SafetyEvidenceStatus = 'Unknown' | 'Pending' | 'Under Review' | 'Reviewed' | 'Hold'
+export type LotStatus = 'Received' | 'Inspecting' | 'Awaiting Evidence' | 'Ready for Review' | 'On Hold'
+export type SampleStatus = 'Not submitted' | 'Submitted' | 'Pending' | 'Result received' | 'Under review' | 'Reviewed' | 'Hold'
+
+export interface WeightRecord {
+  plannedQuantityKg: number
+  grossWeightKg: number
+  tareWeightKg: number
+  netReceivedWeightKg: number
+  shortageKg: number
+  excessKg: number
+  reconciliation: 'matched' | 'shortage' | 'excess'
+  recordedAt: string
+  recordedBy: string
+}
+
+export interface EvidenceAttachment {
+  id: string
+  name: string
+  mediaType: string
+  dataUrl: string
+  addedAt: string
+  addedBy: string
+}
+
+export interface Measurement {
+  id: string
+  attribute: string
+  value: string
+  unit: string
+  observation: string
+  criterionId: string | null
+}
+
+export interface DefectObservation {
+  id: string
+  description: string
+  observed: boolean
+  notes: string
+}
+
+export interface GradeAllocation {
+  id: string
+  grade: string
+  quantityKg: number
+  observations: string
+  downgradeReason: string
+}
+
+export interface Inspection {
+  id: string
+  lotId: string
+  inspectedAt: string
+  inspector: string
+  samplingMethod: string
+  sampleQuantity: number
+  sampleUnit: string
+  observations: string
+  defects: DefectObservation[]
+  measurements: Measurement[]
+  grades: GradeAllocation[]
+  sampleQuantityKg: number
+  lossQuantityKg: number
+  status: InspectionStatus
+  evidence: EvidenceAttachment[]
+  buyerSpecificationVersion: number | null
+  historyRecordedAt: string
+}
+
+export interface Sublot {
+  id: string
+  parentLotId: string
+  grade: string
+  quantityKg: number
+  observations: string
+  inspectionId: string | null
+  safetyEvidenceStatus: SafetyEvidenceStatus
+  status: LotStatus
+  evidence: EvidenceAttachment[]
+  createdAt: string
+}
+
+export interface Sample {
+  id: string
+  lotId: string
+  sublotId: string | null
+  collectedAt: string
+  quantity: number
+  unit: string
+  samplingMethod: string
+  collector: string
+  laboratoryName: string
+  testsRequested: string[]
+  status: SampleStatus
+  reportReference: string
+  evidence: EvidenceAttachment[]
+}
+
+export interface LotEvent {
+  id: string
+  lotId: string
+  type: string
+  description: string
+  occurredAt: string
+  actor: string
+  data?: Record<string, unknown>
+}
+
+export interface Lot {
+  id: string
+  receiptToken: string
+  farmerId: string
+  plotId: string
+  cropCycleId: string
+  supplyPlanId: string
+  buyerOrderId: string
+  buyerSpecificationVersion: number | null
+  crop: string
+  variety: string
+  harvestDate: string
+  arrivalAt: string
+  weights: WeightRecord
+  reservationReconciledAt: string | null
+  reservationReconciledBy: string | null
+  operator: string
+  initialObservations: string
+  inspectionStatus: InspectionStatus
+  safetyEvidenceStatus: SafetyEvidenceStatus
+  status: LotStatus
+  inspections: Inspection[]
+  sublots: Sublot[]
+  samples: Sample[]
+  events: LotEvent[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type EvidenceReviewStatus = 'Pending' | 'Under Review' | 'Accepted' | 'Rejected'
+export type RequirementReviewResult = 'Pending' | 'Pass' | 'Fail' | 'Insufficient Evidence'
+export type RequirementGroup = 'Commercial / quality' | 'Safety and laboratory' | 'Mandatory documents' | 'Other order requirements'
+export type ReleaseOutcome = 'Released' | 'Held' | 'Rejected'
+
+export interface LabTestResult {
+  id: string
+  analyte: string
+  testingMethod: string
+  result: string
+  unit: string
+  reportingLimit: string
+}
+
+export interface LaboratoryReport {
+  id: string
+  reportId: string
+  lotId: string
+  supersedesReportId: string | null
+  sampleId: string
+  sampleCollectedAt: string
+  buyerOrderId: string
+  buyerSpecificationVersion: number | null
+  issuingLaboratory: string
+  reportDate: string
+  results: LabTestResult[]
+  documentReference: string
+  attachment: EvidenceAttachment | null
+  reviewerNotes: string
+  createdAt: string
+  createdBy: string
+}
+
+export interface EvidenceReview {
+  id: string
+  reportId: string
+  lotId: string
+  status: EvidenceReviewStatus
+  reason: string
+  reviewer: string
+  reviewedAt: string
+}
+
+export interface RequirementReview {
+  id: string
+  lotId: string
+  requirementId: string
+  group: RequirementGroup
+  requirement: string
+  requiredCondition: string
+  required: boolean
+  result: RequirementReviewResult
+  evidenceReference: string
+  reviewerNote: string
+  reviewer: string
+  reviewedAt: string
+  sourceFingerprint: string
+}
+
+export interface ReleaseDecision {
+  outcome: ReleaseOutcome
+  reviewer: string
+  decidedAt: string
+  reason: string
+}
+
+export interface ReleaseReviewHistory {
+  id: string
+  lotId: string
+  decision: ReleaseDecision
+  buyerOrderId: string
+  buyerSpecificationVersion: number | null
+  sourceFingerprint: string
+  requirementReviews: RequirementReview[]
 }

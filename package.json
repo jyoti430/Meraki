@@ -16,7 +16,8 @@
     "test:agricultural": "python -m pytest tests/test_agricultural_pipeline.py -q",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run --exclude tests/labReviewService.test.cjs && npm run test:lab",
+    "test:lab": "node scripts/runLabReviewTests.cjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
