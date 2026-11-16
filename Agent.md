@@ -78,7 +78,7 @@ Deliver: FastAPI service, migrations, PostgreSQL/PostGIS where needed, private d
 
 Acceptance: two organisations cannot access each other's private records; concurrent reservations cannot oversell; retries cannot duplicate allocations; expiry/cancellation releases correctly; malformed amounts and units fail; backup restore works. Tests must use a real database. Preserve useful frontend workflows via an explicit API boundary.
 
-### T05 Exporter workspace and market discovery — IN_PROGRESS (discovery API merged)
+### T05 Exporter workspace and market discovery — IN_PROGRESS (exporter UI and discovery API merged; wiring pending)
 
 Dependencies: T01; T04 for shared persistence.
 
@@ -169,3 +169,7 @@ Reviewed main `e27051d` / Part 2 `496f97b`, merged via [PR #6](https://github.co
 ## 16 November 2026 Part 2 integration result
 
 Merged main `e27051d` into Kireeti in `5dd2b23`, including Part 2 `496f97b`. Both API implementations/CI jobs and current dependency pins are preserved; added Alembic/multipart and Uvicorn extras. Shared foundation is now in this branch, superseding the earlier remote-only audit. Local validation: 70 frontend tests/build, 144 Python tests plus 10 subtests with one PostgreSQL-only skip, agricultural/model report checks, and disposable SQLite migration upgrade/downgrade/upgrade passed. Fresh CI results belong to the latest work-log checkpoint. T04/T05/T11 remain IN_PROGRESS: merging source does not connect frontend farm/QC records or Part 3 identity/capacity/reservations to the shared backend. Next: the projection publisher, verified identity/capacity adapters and one shared atomic reservation transaction boundary. Production and field gates remain open.
+
+## 16 November 2026 exporter portal integration
+
+Merged exporter branch `46a6a57` into Kireeti in `a20d920`. `src/exporter/` now provides synthetic dashboard/requirements/marketplace/orders UI and browser-local drafts. `/` is segment selection and `/fpo` retains the FPO overview; existing Part 1/data/sensor/QC/trade routes are preserved. T05 remains IN_PROGRESS: shared demand API/persistence, authenticated market/reservation calls, matching/duplicate checks and fulfilment feeds are absent. Local 56 Vitest plus 16 Node tests/build and 144 Python tests plus 10 subtests passed, with one local PostgreSQL skip. Browser route and guard checks passed; browser draft save/edit and responsive acceptance remain unfinished. Fresh CI and delivery checkpoint are in WORK_LOG.md. See updated REMAINING_TASKS.md.
