@@ -1,3 +1,4 @@
+import { DemoTradeBoard } from './DemoTradeBoard'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowDownRight, ArrowLeft, ArrowUpRight, Clock3, Gavel, Leaf } from 'lucide-react'
@@ -24,6 +25,7 @@ const scheduleFields: FieldSpec[] = [
 
 export function TradeBoardPage() {
   const { workspace } = useTrade()
+  const [demo, setDemo] = useState(true)
   const [mode, setMode] = useState('all')
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
@@ -31,8 +33,10 @@ export function TradeBoardPage() {
   const auctions = (workspace?.auctions ?? []).filter((auction) => (mode === 'all' || auction.mode === mode) && (status === 'all' || auction.status === status) && `${auction.crop} ${auction.variety} ${auction.grade}`.toLowerCase().includes(query.toLowerCase()))
   const isFpo = workspace?.principal.role === 'fpo'
   const isExporter = workspace?.principal.role === 'exporter'
-  return <TradeFrame title="Trade opportunities" subtitle="Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.">
-    {workspace && <>
+  return <TradeFrame demo={demo} controls={<div className="t-filter" role="group" aria-label="Opportunity data source" style={{ marginBottom: 20 }}><button className="m-btn m-btn-secondary" type="button" aria-pressed={demo} onClick={() => setDemo(true)}>Demo examples</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={!demo} onClick={() => setDemo(false)}>Connected market</button></div>} title="Trade opportunities" subtitle="Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.">
+
+    {demo && <DemoTradeBoard />}
+    {!demo && workspace && <>
       <div className="t-metrics"><Metric label="Open opportunities" value={workspace.auctions.filter((auction) => auction.status === 'open').length} help="Server clock determines eligibility" /><Metric label="Provisional awards" value={workspace.contracts.filter((contract) => contract.status === 'provisional').length} help="Both parties must approve terms" /><Metric label="Confirmed contracts" value={workspace.contracts.filter((contract) => contract.status === 'confirmed').length} help="Ready for released-lot fulfilment" /><Metric label="Released lots" value={workspace.lots.filter((lot) => lot.qc_status === 'released').length} help="Scope-limited QC release" /></div>
       <div className="t-grid"><Panel title="Market board" subtitle="Published opportunities; private offers and evidence remain organisation scoped." aside={<Gavel size={23} color="var(--forest)" />}>
         <div className="t-filter" style={{ marginBottom: 18 }}><label><span className="sr-only">Search crop or variety</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search crop or variety" /></label><label><span className="sr-only">Auction mode</span><select value={mode} onChange={(event) => setMode(event.target.value)}><option value="all">Both modes</option><option value="spot">Harvested lots</option><option value="forward">Forward requests</option></select></label><label><span className="sr-only">Auction status</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">All statuses</option>{['scheduled', 'open', 'awarded', 'no_sale', 'cancelled'].map((value) => <option value={value} key={value}>{value.replace(/_/g, ' ')}</option>)}</select></label></div>

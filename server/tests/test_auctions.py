@@ -351,3 +351,14 @@ def test_synthetic_lot_fixture_does_not_bypass_real_shared_qc_gate(system,monkey
     monkeypatch.setenv('MERAKI_ENV','production')
     assert post(c,'/dev/auction-lots',a['seller'],{}).status_code==404
     assert auction(c,a,cap).status_code==409
+
+
+def test_concurrent_mobile_signup_creates_only_one_account(system):
+    client, app, _ = system
+    body = {"mobile_number": "+12025550109", "password": "Synthetic-Test-Password!",
+            "display_name": "Synthetic mobile user", "organisation_name": "Synthetic mobile org", "role": "exporter"}
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: client.post("/api/v1/auth/register", json=body), range(2)))
+    assert sorted(response.status_code for response in results) == [201, 409]
+    with app.state.sessions() as db:
+        assert db.scalar(select(func.count()).select_from(PasswordCredential).where(PasswordCredential.mobile_number == body["mobile_number"])) == 1

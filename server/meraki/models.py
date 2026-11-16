@@ -210,6 +210,8 @@ class PasswordCredential(Base):
     username: Mapped[str] = mapped_column(String(80), primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(300), nullable=False)
+    # Contact identifier only: collecting a number does not verify ownership.
+    mobile_number: Mapped[str | None] = mapped_column(String(16), unique=True)
 
 
 class Auction(Base):

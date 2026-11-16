@@ -50,5 +50,11 @@ export const FULFILMENT_STAGES: FulfilmentStatus[] = [
 export const DEMO_ACTIVITY = [
   { id: 'activity-1', title: 'Synthetic okra requirement sample', detail: 'DEMO-REQ-2101 · not a live buyer request', time: 'Example activity' },
   { id: 'activity-2', title: 'Projected supply sample added', detail: 'DEMO-SUP-3101 · not harvested or reserved stock', time: 'Example activity' },
-  { id: 'activity-3', title: 'Order lifecycle feed unavailable', detail: 'Live Part 3 integration is pending', time: 'Current integration status' },
+  { id: 'activity-3', title: 'Demo tomato shipment in transit', detail: 'DEMO-ORD-4102 · illustrative shipment only', time: 'Example activity' },
 ]
+
+export const DEMO_ORDERS = [
+  { id: 'DEMO-ORD-4101', crop: 'Okra', fpo: 'Demo Sahyadri FPO', quantityKg: 1200, status: 'Awaiting inspection', delivery: '9 Dec 2026', amountInr: 50400 },
+  { id: 'DEMO-ORD-4102', crop: 'Tomato', fpo: 'Demo Green Valley FPO', quantityKg: 1800, status: 'In transit', delivery: '12 Dec 2026', amountInr: 50400 },
+  { id: 'DEMO-ORD-4103', crop: 'Red onion', fpo: 'Demo Nashik FPO', quantityKg: 5000, status: 'Delivered', delivery: '7 Dec 2026', amountInr: 160000 },
+] as const

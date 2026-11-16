@@ -9,14 +9,32 @@ class StrictBody(BaseModel):
 
 class Login(StrictBody):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
-    username: str = Field(min_length=3, max_length=60, pattern=r"^[a-zA-Z0-9_.-]+$")
+    # Username remains available for existing operator-created demo accounts.
+    username: str | None = Field(default=None, min_length=3, max_length=60, pattern=r"^[a-zA-Z0-9_.-]+$")
+    mobile_number: str | None = Field(default=None, max_length=40)
     password: str = Field(min_length=10, max_length=128)
 
     @field_validator("username")
     @classmethod
     def normalize_username(cls, value):
-        return value.lower()
+        return value.lower() if value else value
+
+    @field_validator("mobile_number")
+    @classmethod
+    def normalize_mobile(cls, value):
+        import re
+        if value is None:
+            return value
+        value = re.sub(r"[\s()\-]", "", value)
+        if not re.fullmatch(r"\+[1-9][0-9]{6,14}", value):
+            raise ValueError("Include the country code, for example +91, and 7–15 digits")
+        return value
+
+    @model_validator(mode="after")
+    def one_identifier(self):
+        if bool(self.username) == bool(self.mobile_number):
+            raise ValueError("Provide either mobile_number or username")
+        return self
 
 
 class Register(Login):

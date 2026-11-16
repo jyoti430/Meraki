@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError, auctionRequest, money, priceToPaise, validateAccount, validateAuction, validateAuctionCapabilities, validateAuctionList, validateBidReceipt, validateCapacityList } from '../services/auctionApi'
-import type { Account, Auction, AuctionCapabilities, Capacity } from '../services/auctionApi'
+import { ApiError, auctionRequest, money, priceToPaise, validateAuction, validateAuctionCapabilities, validateAuctionList, validateBidReceipt, validateCapacityList } from '../services/auctionApi'
+import type { Auction, AuctionCapabilities, Capacity } from '../services/auctionApi'
 import { decimalToInteger } from '../trade/calculations'
 import '../styles/auctions.css'
+import { useAuth } from '../auth/context'
 
-const storageKey = 'meraki-auction-session-v1'
-function restored(): Account | null {
-  try { const a = JSON.parse(sessionStorage.getItem(storageKey) || 'null'); return a ? validateAccount(a) : null } catch { return null }
-}
 const dateTime = (value: string) => new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 export default function Auctions() {
-  const [account, setAccount] = useState<Account | null>(restored)
-  const [register, setRegister] = useState(false)
+  const { account, session } = useAuth()
   const [items, setItems] = useState<Auction[]>([])
   const [capacities, setCapacities] = useState<Capacity[]>([])
   const [selected, setSelected] = useState<string | null>(null)
@@ -37,12 +33,6 @@ export default function Auctions() {
   const active = items.find(item => item.id === selected)
   const authEnabled = capabilities?.password_auth_enabled === true
   const writesEnabled = fresh && !pending && authEnabled && capabilities?.auction_mutations_enabled === true
-  function saveAccount(value: Account | null) {
-    identity.current += 1; readGeneration.current += 1; receivedAt.current = 0; refreshing.current = false
-    accountRef.current = value
-    retry.current = null; setFresh(false); setCapacities([]); setShowCreate(false); setAccount(value); setItems([]); setSelected(null); setLoaded(false); setError(''); setNotice('')
-    try { if (value) sessionStorage.setItem(storageKey, JSON.stringify(value)); else sessionStorage.removeItem(storageKey) } catch { /* scoped in-memory sessions remain supported */ }
-  }
   const refresh = useCallback(async () => {
     const actor = accountRef.current
     const epoch = identity.current
@@ -54,7 +44,6 @@ export default function Auctions() {
       if (request !== readGeneration.current || epoch !== identity.current) return
       capabilitiesRef.current = service; setCapabilities(service)
       healthRead = true
-      if (!service.registration_enabled) setRegister(false)
       if (!actor) return
       const [board, supply] = await Promise.all([
         auctionRequest<unknown>('/auctions?limit=200', actor),
@@ -66,13 +55,13 @@ export default function Auctions() {
     } catch (cause) {
       if (request !== readGeneration.current || epoch !== identity.current) return
       if (!healthRead) { capabilitiesRef.current = null; setCapabilities(null) }
-      if (cause instanceof ApiError && cause.status === 401) saveAccount(null)
+      if (cause instanceof ApiError && cause.status === 401) session.invalidate()
       setError(cause instanceof Error ? cause.message : 'Could not load auctions. Use Refresh to retry.')
       throw cause
     } finally {
       if (request === readGeneration.current) refreshing.current = false
     }
-  }, [])
+  }, [session])
   useEffect(() => {
     void refresh().catch(() => {})
     const id = window.setInterval(() => { if (!busy.current && !refreshing.current && document.visibilityState === 'visible') void refresh().catch(() => {}) }, 5000)
@@ -105,23 +94,13 @@ export default function Auctions() {
     } catch (cause) {
       if (epoch !== identity.current) throw new Error('The account changed while this action was submitted. Reconnect the previous account and inspect its recorded outcome.')
       if (cause instanceof ApiError && cause.status > 0 && cause.status < 500 && ![408, 429].includes(cause.status) && cause.code !== 'invalid_response') retry.current = null
-      if (cause instanceof ApiError && cause.status === 401) saveAccount(null)
+      if (cause instanceof ApiError && cause.status === 401) session.invalidate()
       else await refresh().catch(() => {})
       throw cause
     }
   }
   async function refreshSaved() {
     try { await refresh() } catch (cause) { throw new Error('The action was saved, but its refreshed state is unavailable. Refresh before continuing. ' + (cause instanceof Error ? cause.message : '')) }
-  }
-  function signIn(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const f = new FormData(event.currentTarget)
-    if (!authEnabled || (register && !capabilities?.registration_enabled)) return
-    void run(async () => {
-      const data = { username: f.get('username'), password: f.get('password'), ...(register ? { display_name: f.get('display_name'), organisation_name: f.get('organisation_name'), role: f.get('role') } : {}) }
-      const epoch = identity.current
-      const result = validateAccount(await auctionRequest<unknown>(register ? '/auth/register' : '/auth/login', null, data))
-      if (epoch === identity.current) saveAccount(result)
-    })
   }
   function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const f = new FormData(event.currentTarget)
@@ -156,11 +135,8 @@ export default function Auctions() {
     <p className="a-context">These accounts and awards use the shared auction service. Confirming an award here does not create a procurement-workspace contract, shipment or settlement. <Link to="/trade/requirements">Open buyer requirements and partial FPO proposals</Link> or <Link to="/trade">procurement auctions and fulfilment</Link>. Planning examples remain separate. No emails or payments are sent. Real harvested-lot trading stays disabled until the QC bridge is verified.</p>
     {error && <div className="a-error" role="alert">{error}</div>}{notice && <div className="a-notice" role="status">{notice}</div>}
     {!capabilities ? <p role="status">Auction service capabilities are unavailable until a successful health check. Actions are paused.</p> : !authEnabled ? <p className="a-context" role="status">This backend has not enabled password accounts for shared auctions. An operator must configure this workspace before sign-in. The separate <Link to="/trade/requirements">synthetic procurement workspace</Link> remains available where enabled.</p> : !capabilities.auction_mutations_enabled && <p className="a-context" role="status">Auction writes are disabled on this backend. Existing records may be viewed after sign-in; publication, bidding and award decisions remain paused.</p>}
-    {!account ? <section className="a-panel a-login"><h2>{register ? 'Create an organisation account' : 'Sign in to shared auctions'}</h2><p>Use a username and password. Synthetic procurement actors do not sign in here. Creating an account creates a separate organisation; it does not join an existing one.</p>
-      <form onSubmit={signIn}><fieldset disabled={pending || !authEnabled} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}><div className="a-fields">{field('Username', 'username', 'text', { minLength: 3, maxLength: 60, autoComplete: 'username', pattern: '[a-zA-Z0-9_.-]+' })}{field('Password', 'password', 'password', { minLength: 10, maxLength: 128, autoComplete: register ? 'new-password' : 'current-password' })}
-        {register && <>{field('Your name', 'display_name', 'text', { maxLength: 100 })}{field('Organisation name', 'organisation_name', 'text', { minLength: 2, maxLength: 150 })}<label>Organisation type<select name="role"><option value="fpo">FPO · sell crops</option><option value="exporter">Exporter · buy crops</option></select></label></>}
-      </div><button disabled={pending || !authEnabled || (register && !capabilities?.registration_enabled)} type="submit">{pending ? 'Connecting…' : register ? 'Create account' : 'Sign in'}</button></fieldset></form><button className="a-secondary" disabled={pending || !authEnabled || !capabilities?.registration_enabled} onClick={() => setRegister(!register)}>{register ? 'Use an existing account' : 'Create an account'}</button>{authEnabled && !capabilities?.registration_enabled && <p>Self-registration is disabled. Use an account supplied by your operator.</p>}</section> : <>
-      <div className="a-toolbar"><span>Signed in as {account.role.toUpperCase()} · <span className="a-id">Organisation {account.organisation_id}</span></span><div><button className="a-secondary" disabled={pending} onClick={() => void run(refresh)}>Refresh</button><button disabled={!writesEnabled} onClick={() => setShowCreate(!showCreate)}>{showCreate ? 'Close form' : account.role === 'fpo' ? 'Sell a synthetic harvested lot' : 'Request future supply'}</button><button className="a-secondary" disabled={pending} onClick={() => void run(async () => { try { await auctionRequest('/auth/logout', account, {}) } finally { saveAccount(null) } })}>Sign out</button></div></div>
+    {account && <>
+      <div className="a-toolbar"><span>Signed in as {account.role.toUpperCase()} · <span className="a-id">Organisation {account.organisation_id}</span></span><div><button className="a-secondary" disabled={pending} onClick={() => void run(refresh)}>Refresh</button><button disabled={!writesEnabled} onClick={() => setShowCreate(!showCreate)}>{showCreate ? 'Close form' : account.role === 'fpo' ? 'Sell a synthetic harvested lot' : 'Request future supply'}</button></div></div>
       {!fresh && <p role="status">Loading or refreshing scoped auction records. Displayed records may be stale; actions are paused.</p>}
       {showCreate && <section className="a-panel"><h2>{account.role === 'fpo' ? 'Publish a synthetic whole-lot sale' : 'Publish forward procurement'}</h2><p>Prices include the agreed handover basis. Whole-lot awards only. Valid late bids extend closing by 2 minutes, up to 10 minutes total. This form sets a 24-hour confirmation deadline.</p><form onSubmit={create}><div className="a-fields">
         {field('Auction title', 'title', 'text', { minLength: 3, maxLength: 200 })}{field('Crop', 'crop')}{field('Variety', 'variety')}{field('Grade', 'grade')}{field('Whole-lot quantity (kg)', 'quantity', 'number', { min: 0.001, step: 0.001 })}

@@ -73,21 +73,22 @@ def install_accounts(app, db_session, actor, environment):
                 permissions = ["auction:read", "auction:write", "listing:read", "reservation:read"]
                 if body.role == "fpo": permissions += ["projection:read", "projection:write", "capacity:write", "capacity:read", "capacity:review", "listing:write", "document:read", "document:write"]
                 db.add(Membership(user_id=uid, organisation_id=oid, role=body.role, permissions=permissions))
-                db.add(PasswordCredential(username=body.username, user_id=uid, password_hash=hashed)); db.flush()
+                db.add(PasswordCredential(username=body.username or "mobile_" + uid, mobile_number=body.mobile_number, user_id=uid, password_hash=hashed)); db.flush()
                 return issue_session(db, uid)
         except IntegrityError:
-            db.rollback(); raise HTTPException(409, "Username is unavailable")
+            db.rollback(); raise HTTPException(409, "Account identifier is unavailable")
 
     @app.post("/api/v1/auth/login", dependencies=[Depends(account_guard)])
     def login(body: Login, request: Request, db=Depends(db_session)):
         with db.begin():
-            throttle(db, "login-user:" + body.username)
+            throttle(db, "login-user:" + (body.mobile_number or body.username))
             throttle(db, "login-ip:" + (request.client.host if request.client else "unknown"))
-        credential = db.get(PasswordCredential, body.username)
+        credential = (db.scalar(select(PasswordCredential).where(PasswordCredential.mobile_number == body.mobile_number))
+                      if body.mobile_number else db.get(PasswordCredential, body.username))
         stored = credential.password_hash if credential else password_hash("not-a-real-password", "0" * 32)
         candidate = password_hash(body.password, stored.split("$")[1])
         if not credential or not hmac.compare_digest(candidate, stored):
-            raise HTTPException(401, "Invalid username or password")
+            raise HTTPException(401, "Invalid mobile number or password")
         user = db.get(User, credential.user_id)
         membership = db.scalar(select(Membership).where(Membership.user_id == credential.user_id, Membership.status == "active"))
         org = db.get(Organization, membership.organisation_id) if membership else None

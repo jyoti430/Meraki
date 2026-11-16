@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import DemoNotice from '../components/DemoNotice'
 import ExporterPageHeader from '../components/ExporterPageHeader'
 import StatusBadge from '../components/StatusBadge'
-import { DEMO_ACTIVITY, FULFILMENT_STAGES } from '../demoData'
+import { DEMO_ACTIVITY } from '../demoData'
 import { exporterService } from '../exporterService'
 import useRequirements from '../hooks/useRequirements'
 import type { SupplyProjectionExample } from '../types'
@@ -33,15 +33,15 @@ export default function ExporterDashboard() {
   const values: Record<(typeof metrics)[number]['key'], { value: string; detail: string }> = {
     requirements: { value: activeCount === null ? '—' : String(activeCount), detail: 'Synthetic sample requirements' },
     supply: { value: projectedKg === null ? '—' : tons(projectedKg), detail: 'Projected volume; not harvested stock' },
-    reservations: { value: 'Not connected', detail: 'Authenticated Part 2 integration required' },
-    inspection: { value: 'Not connected', detail: 'No live QC feed' },
-    transit: { value: 'Not connected', detail: 'No live shipment feed' },
-    settlement: { value: 'Not connected', detail: 'No acceptance or settlement feed' },
+    reservations: { value: '4', detail: 'Sample reservations · demo only' },
+    inspection: { value: '2', detail: 'Sample inspections · demo only' },
+    transit: { value: '1', detail: 'Sample shipment · demo only' },
+    settlement: { value: '1', detail: 'Sample settlement · demo only' },
   }
 
   return <div className="e-page">
-    <ExporterPageHeader eyebrow="Procurement workspace" title="Exporter layout example" description="Inspect the synthetic layout. Shared procurement records are available in the separate server-backed workspace." actions={<span className="e-demo-pill">Synthetic demo</span>} />
-    <p><Link className="e-button e-button-primary" to="/trade/requirements">Open shared procurement →</Link></p>
+    <ExporterPageHeader eyebrow="Procurement workspace" title="Exporter overview" description="Explore sample procurement requirements, FPO supply and fulfilment." actions={<span className="e-demo-pill">Synthetic demo</span>} />
+    <p><Link className="e-button e-button-primary" to="/trade">Explore demo trade opportunities →</Link></p>
     <DemoNotice>These figures are retained solely to demonstrate the interface before authorised farm records are connected. All requirement and supply examples on this portal are synthetic. Projected quantities are forecasts, not harvested or allocatable stock. Live reservations and fulfilment records are not connected.</DemoNotice>
     {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void refresh()}>Retry</button></div>}
     {supplyError && <div className="e-error" role="alert">{supplyError}</div>}
@@ -78,9 +78,9 @@ export default function ExporterDashboard() {
         </div>)}</div>
       </section>
       <section className="e-panel">
-        <div className="e-panel-head"><div><p className="e-eyebrow">Operational alerts</p><h2>Integration status</h2></div></div>
-        <div className="e-alert-row"><ShieldAlert size={20} /><div><strong>Reservation actions are unavailable</strong><p>Part 2 requires an authenticated organisation. This portal does not create a session or bypass permissions.</p></div></div>
-        <div className="e-alert-row e-alert-muted"><PackageSearch size={20} /><div><strong>Fulfilment feed is not connected</strong><p>{FULFILMENT_STAGES.filter((stage) => stage.availability === 'not-integrated').length} Part 3 lifecycle stages have no live records in this build.</p></div></div>
+        <div className="e-panel-head"><div><p className="e-eyebrow">Demo checklist</p><h2>Next steps</h2></div></div>
+        <div className="e-alert-row"><ShieldAlert size={20} /><div><strong>Review sample requirements</strong><p>Compare crops, grades and delivery dates before trying the demo market.</p></div></div>
+        <div className="e-alert-row e-alert-muted"><PackageSearch size={20} /><div><strong>Explore sample fulfilment</strong><p>See example orders awaiting inspection, in transit and delivered.</p></div></div>
         <Link to="/exporter/orders" className="e-inline-link e-alert-link">Review order status <ArrowRight size={16} /></Link>
       </section>
     </div>

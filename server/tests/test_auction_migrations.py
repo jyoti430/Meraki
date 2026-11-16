@@ -89,3 +89,29 @@ def test_duplicate_retained_lots_fail_before_partial_schema_changes(tmp_path, st
         migrate(url, "head")
     finally:
         engine.dispose()
+
+
+def test_mobile_upgrade_preserves_legacy_credentials_and_sessions(tmp_path):
+    from datetime import datetime, timezone, timedelta
+    url = f"sqlite:///{tmp_path / 'mobile-retained.sqlite3'}"
+    migrate(url, "e24f867ea17b")
+    engine = create_engine(url)
+    try:
+        metadata = MetaData()
+        users = Table("users", metadata, autoload_with=engine)
+        creds = Table("password_credentials", metadata, autoload_with=engine)
+        sessions = Table("sessions", metadata, autoload_with=engine)
+        with engine.begin() as db:
+            db.execute(users.insert(), dict(id="legacy-user", email="synthetic@accounts.invalid", display_name="Synthetic legacy", status="active", identity_provider="local-password", created_at=datetime.now(timezone.utc)))
+            db.execute(creds.insert(), dict(username="legacy", user_id="legacy-user", password_hash="retained-synthetic-hash"))
+            db.execute(sessions.insert(), dict(token_hash="synthetic-token-hash", user_id="legacy-user", expires_at=datetime.now(timezone.utc) + timedelta(hours=1)))
+        for revision, direction in [("head", "upgrade"), ("e24f867ea17b", "downgrade"), ("head", "upgrade")]:
+            migrate(url, revision, direction)
+            with engine.connect() as db:
+                assert db.execute(select(creds.c.password_hash)).scalar_one() == "retained-synthetic-hash"
+                assert db.execute(select(sessions.c.token_hash)).scalar_one() == "synthetic-token-hash"
+        credentials = Table("password_credentials", MetaData(), autoload_with=engine)
+        with engine.connect() as db:
+            assert db.execute(select(credentials.c.mobile_number)).scalar_one() is None
+    finally:
+        engine.dispose()
