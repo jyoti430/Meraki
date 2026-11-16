@@ -70,7 +70,7 @@ Acceptance: farmer decline and overlapping plots prevent allocation; timing/grad
 
 Part 1 slice (`src/farmdata/agronomy.ts`, `projections.ts`): explainable consent/timing/water/soil reasons, low/base/high weekly projections with grade loss applied once and additive columns, and decision-date filtering. Crop alternatives, accepted-versus-planted distinctions across the order journey and reviewed local agronomy remain unfinished; labels state that confidence is not calibrated.
 
-### T04 Backend organisation access and ledger — TODO
+### T04 Backend organisation access and ledger — IN_PROGRESS (shared foundation on main; integration pending)
 
 Dependencies: T01 schema. Required before live multi-user transactions.
 
@@ -78,7 +78,7 @@ Deliver: FastAPI service, migrations, PostgreSQL/PostGIS where needed, private d
 
 Acceptance: two organisations cannot access each other's private records; concurrent reservations cannot oversell; retries cannot duplicate allocations; expiry/cancellation releases correctly; malformed amounts and units fail; backup restore works. Tests must use a real database. Preserve useful frontend workflows via an explicit API boundary.
 
-### T05 Exporter workspace and market discovery — TODO
+### T05 Exporter workspace and market discovery — IN_PROGRESS (discovery API on main)
 
 Dependencies: T01; T04 for shared persistence.
 
@@ -128,7 +128,7 @@ Deliver: acceptance/downgrade/rejection reasons, dispute and reinspection flow, 
 
 Acceptance: weights and money reconcile; claims do not silently rewrite dispatch evidence; payment screenshots remain unverified until reconciled; refunds/adjustments are auditable; FPO receipt and farmer disbursal are distinct; cosmetic recovery does not imply unsafe produce is saleable.
 
-### T11 Worker reliability and operational readiness — TODO
+### T11 Worker reliability and operational readiness — IN_PROGRESS (expiry foundation on main; auction worker on Kireeti)
 
 Dependencies: T04; deliver incrementally alongside T02/T06/T08–T10.
 
@@ -161,3 +161,7 @@ Software implemented: `server/sensors.py`, `src/pages/LiveSensors.tsx`, LAN laun
 ## 16 November 2026 team integration audit
 
 Agricultural foundation history and `feature/planning` are merged into `Kireeti` through functional revision `83d4bc9`. T09 now also has browser-local receipt/inspection and laboratory-review workflows with 16 incoming service tests; these are separate from server-backed trade lots and do not complete shared QC integration. T04 and T11 are partial implementations despite the historical TODO headings: the trade API/database and auction worker exist, while shared farm identity/persistence and full operational acceptance remain unfinished. All parent completion gates remain open. See [ordered remaining tasks](docs/REMAINING_TASKS.md) and the latest work-log checkpoint.
+
+## 16 November 2026 Part 2 remote update audit
+
+Reviewed main `e27051d` / Part 2 `496f97b`, merged via [PR #6](https://github.com/jyoti430/Meraki/pull/6). Shared foundation code exists in `server/meraki/` with Alembic and projection/reservation fixtures; T04/T05/T11 are partial implementations. This code is not yet integrated into the audited Kireeti application. [Main CI 43790402925](https://github.com/jyoti430/Meraki/actions/runs/43790402925) passed 10 backend tests with one skipped, then separately passed the configured PostgreSQL concurrent-reservation test. This supersedes the remote documentation's unverified claim for that specific check, not for full production acceptance. External identity, production document storage, farm/QC/trade adapters and shared atomic transaction integration remain unfinished. Preserve existing Part 1/3 status evidence; the older main ledger does not include all Kireeti implementations. See [updated remaining tasks](docs/REMAINING_TASKS.md).
