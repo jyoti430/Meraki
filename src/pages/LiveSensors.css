@@ -12,7 +12,25 @@
 .sensor-warnings { border-top: 1px solid var(--line); }
 .sensor-setup pre { overflow-x: auto; padding: 16px; background: #f2f4f0; border-radius: 12px; }
 .sensor-setup code { overflow-wrap: anywhere; }
+.sensor-sms h2 { margin-top: 0; }
+.sensor-sms label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.sensor-sms input, .sensor-sms select { min-width: 0; width: 100%; min-height: 44px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; color: inherit; background: var(--surface, #fff); font: inherit; }
+.sensor-sms input:focus-visible, .sensor-sms select:focus-visible { outline: 2px solid var(--primary, #286344); outline-offset: 2px; }
+.sensor-sms .m-btn { min-height: 44px; }
+.sensor-sms-unlock { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 20px 0; }
+.sensor-sms-unlock label { flex: 1 1 240px; }
+.sensor-sms-forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin: 24px 0; border-top: 1px solid var(--line); }
+.sensor-sms-forms form { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.sensor-sms-forms h3 { margin-bottom: 0; }
+.sensor-sms-ranges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sensor-sms .sensor-sms-check { flex-direction: row; align-items: center; }
+.sensor-sms-check input { width: 20px; min-height: 20px; flex-shrink: 0; accent-color: var(--primary, #286344); }
+.sensor-sms-history { list-style: none; padding: 0; }
+.sensor-sms-history li { padding: 16px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.sensor-sms-history li > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.sensor-sms-history p { margin: 8px 0; }
 @media (max-width: 640px) {
+  .sensor-sms-forms { grid-template-columns: 1fr; gap: 24px; }
   .sensor-metrics { grid-template-columns: 1fr; }
   .sensor-status { flex-wrap: wrap; }
 }

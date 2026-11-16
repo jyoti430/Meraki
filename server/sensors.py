@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Annotated, Optional
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from .sensor_alerts import SensorAlerts, FpoProfile, CrateRule, evaluate
 
 DEVICE_NAME = os.getenv('SENSOR_BLE_NAME', 'AgriTrust-Nexus')
 TX_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -99,14 +100,17 @@ def _ble_runtime_available():
     except (ImportError, ValueError):
         return False
 
-def _store_reading(database_path, clock, reading: Reading):
+def _store_reading(database_path, clock, reading: Reading, alerts=None):
     received_at = clock()
     with sqlite3.connect(database_path, timeout=10) as db:
+        db.execute('BEGIN IMMEDIATE')
         db.execute('INSERT INTO readings(device_id, received_at, payload) VALUES(?,?,?)', (reading.device_id, received_at, reading.model_dump_json()))
         db.execute('DELETE FROM readings WHERE device_id=? AND id NOT IN (SELECT id FROM readings WHERE device_id=? ORDER BY id DESC LIMIT 120)', (reading.device_id, reading.device_id))
+        if alerts:
+            alerts.observe(db, reading, received_at)
     return received_at
 
-async def _ble_main(database_path, clock, get_enabled, state, state_lock, stop_event: threading.Event):
+async def _ble_main(database_path, clock, get_enabled, state, state_lock, stop_event: threading.Event, alerts=None):
     if stop_event.is_set() or not get_enabled():
         return
     try:
@@ -140,7 +144,7 @@ async def _ble_main(database_path, clock, get_enabled, state, state_lock, stop_e
                     readings, errors = parser.feed(data)
                     for reading in readings:
                         try:
-                            received_at = _store_reading(database_path, clock, reading)
+                            received_at = _store_reading(database_path, clock, reading, alerts)
                             with state_lock:
                                 state['last_ok_at'] = received_at
                                 state['error'] = ''
@@ -181,9 +185,9 @@ async def _ble_main(database_path, clock, get_enabled, state, state_lock, stop_e
         if state['available']:
             state['status'] = 'disconnected'
 
-def _ble_thread(database_path, clock, get_enabled, state, state_lock, stop_event):
+def _ble_thread(database_path, clock, get_enabled, state, state_lock, stop_event, alerts=None):
     async def supervise():
-        task = asyncio.create_task(_ble_main(database_path, clock, get_enabled, state, state_lock, stop_event))
+        task = asyncio.create_task(_ble_main(database_path, clock, get_enabled, state, state_lock, stop_event, alerts))
         try:
             while not task.done() and not stop_event.is_set() and get_enabled():
                 await asyncio.sleep(.05)
@@ -199,14 +203,18 @@ def _ble_thread(database_path, clock, get_enabled, state, state_lock, stop_event
         with state_lock:
             state.update(available=False, status='unavailable', reason='BLE worker failed', error=str(e)[:300])
 
-def create_app(database_path=None, token=None, clock=time.time, ble_enabled=None):
+def create_app(database_path=None, token=None, clock=time.time, ble_enabled=None, admin_token=None, sms_provider=None):
     database_path = str(database_path or os.getenv('SENSOR_DATABASE_PATH', 'server/sensors.sqlite3'))
     token = token if token is not None else os.getenv('SENSOR_PUSH_TOKEN', '')
+    admin_token = admin_token if admin_token is not None else os.getenv('SENSOR_ADMIN_TOKEN', '')
     initial_enabled = (str(os.getenv('SENSOR_BLE_ENABLED', '0')).lower() in ('1','true','yes','on')
                        if ble_enabled is None else bool(ble_enabled))
     Path(database_path).parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(database_path) as db:
         db.execute('CREATE TABLE IF NOT EXISTS readings (id INTEGER PRIMARY KEY AUTOINCREMENT, device_id TEXT NOT NULL, received_at REAL NOT NULL, payload TEXT NOT NULL)')
+
+    alerts = SensorAlerts(database_path, clock, sms_provider)
+    sms_stop_event = threading.Event()
 
     cfg_lock = threading.Lock()
     cfg = {'enabled': initial_enabled}
@@ -227,7 +235,7 @@ def create_app(database_path=None, token=None, clock=time.time, ble_enabled=None
         if thread and thread.is_alive():
             return
         stop_event = threading.Event()
-        thread = threading.Thread(target=_ble_thread, args=(database_path, clock, get_enabled, ble_state, state_lock, stop_event),
+        thread = threading.Thread(target=_ble_thread, args=(database_path, clock, get_enabled, ble_state, state_lock, stop_event, alerts),
                                   name='meraki-ble-gateway', daemon=True)
         thread.start()
 
@@ -246,13 +254,57 @@ def create_app(database_path=None, token=None, clock=time.time, ble_enabled=None
         with control_lock:
             if get_enabled() and ble_state['available']:
                 start_thread()
+        # SMS continues independently when Bluetooth is disabled/disconnected;
+        # HTTP pushes can still contain warnings while no radio is enabled.
+        sms_stop_event.clear()
+        def sms_loop():
+            while not sms_stop_event.is_set():
+                try:
+                    if alerts.dispatch_once():
+                        continue
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).warning('SMS worker unavailable; retrying')
+                sms_stop_event.wait(2)
+        sms_thread = threading.Thread(target=sms_loop, name='meraki-sms-worker', daemon=True)
+        sms_thread.start()
         try:
             yield
         finally:
+            sms_stop_event.set()
             with control_lock:
                 stop_thread()
+            sms_thread.join(timeout=12)
 
     app = FastAPI(title='Meraki live crate sensors', lifespan=lifespan)
+
+    app.state.alerts = alerts
+
+    def require_admin(value):
+        if not admin_token:
+            raise HTTPException(503, 'Configure SENSOR_ADMIN_TOKEN to manage FPO SMS alerts')
+        if not hmac.compare_digest(value.encode(), admin_token.encode()):
+            raise HTTPException(401, 'Invalid sensor admin key')
+
+    @app.get('/api/sensors/alerts')
+    def alert_settings(x_sensor_admin_key: str = Header(default='')):
+        require_admin(x_sensor_admin_key)
+        return alerts.snapshot()
+
+    @app.post('/api/sensors/alerts/profiles')
+    def save_profile(profile: FpoProfile, x_sensor_admin_key: str = Header(default='')):
+        require_admin(x_sensor_admin_key)
+        alerts.save_profile(profile)
+        return {'ok': True}
+
+    @app.post('/api/sensors/alerts/crates')
+    def save_rule(rule: CrateRule, x_sensor_admin_key: str = Header(default='')):
+        require_admin(x_sensor_admin_key)
+        try:
+            alerts.save_rule(rule)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
+        return {'ok': True}
 
     @app.post('/api/sensors')
     def push(reading: Reading, x_sensor_key: str = Header(default='')):
@@ -260,15 +312,24 @@ def create_app(database_path=None, token=None, clock=time.time, ble_enabled=None
             raise HTTPException(503, 'Configure SENSOR_PUSH_TOKEN on the gateway before accepting readings')
         if not hmac.compare_digest(x_sensor_key.encode(), token.encode()):
             raise HTTPException(401, 'Invalid sensor key')
-        received_at = _store_reading(database_path, clock, reading)
+        received_at = _store_reading(database_path, clock, reading, alerts)
         return {'ok': True, 'received_at': received_at}
 
     @app.get('/api/sensors')
     def latest():
         with sqlite3.connect(database_path, timeout=10) as db:
             rows = db.execute('SELECT r.id, r.received_at, r.payload FROM readings r JOIN (SELECT device_id, MAX(id) AS latest FROM readings GROUP BY device_id) d ON r.id=d.latest ORDER BY r.device_id').fetchall()
+            rules = {device: json.loads(payload) for device, payload in db.execute('SELECT device_id,payload FROM sensor_crate_rules')}
         now = clock()
-        return {'server_time': now, 'stale_after_seconds': 30, 'devices': [dict(json.loads(payload), id=key, received_at=stamp, stale=now-stamp>30) for key, stamp, payload in rows]}
+        devices = []
+        for key, stamp, payload in rows:
+            value = json.loads(payload)
+            rule = rules.get(value['device_id'])
+            value.update(id=key, received_at=stamp, stale=now-stamp>30,
+                         range_problems=evaluate(value, rule) if rule else [],
+                         range_configured=rule is not None)
+            devices.append(value)
+        return {'server_time': now, 'stale_after_seconds': 30, 'devices': devices}
 
     @app.get('/api/sensors/bluetooth')
     def ble_status():

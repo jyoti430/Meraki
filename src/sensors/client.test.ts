@@ -5,7 +5,7 @@ const snapshot = { server_time: 1000, stale_after_seconds: 15, devices: [{ id: 1
 it('keeps empty real sensor data empty and validates actual measurements', () => {
   expect(parseSensorSnapshot({ ...snapshot, devices: [] }).devices).toEqual([])
   expect(parseSensorSnapshot(snapshot)).toEqual(snapshot)
-  for (const patch of [{ temperature: null }, { humidity: 101 }, { received_at: 'yesterday' }, { stale: undefined }, { opened_count: -1 }]) expect(() => parseSensorSnapshot({ ...snapshot, devices: [{ ...snapshot.devices[0], ...patch }] })).toThrow()
+  for (const patch of [{ temperature: null }, { humidity: 101 }, { received_at: 'yesterday' }, { stale: undefined }, { opened_count: -1 }, { range_configured: 'yes' }, { range_problems: [null] }]) expect(() => parseSensorSnapshot({ ...snapshot, devices: [{ ...snapshot.devices[0], ...patch }] })).toThrow()
 })
 it('fails on gateway errors without returning fabricated sensor readings', async () => {
   await expect(fetchSensorSnapshot(undefined, async () => new Response('{}', { status: 503 }))).rejects.toThrow('503')

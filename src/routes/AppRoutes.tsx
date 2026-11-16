@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Auctions from '../pages/Auctions'
 import Overview from '../pages/Overview'
+import LiveSensors from '../pages/LiveSensors'
 import BuyerOrders from '../pages/BuyerOrders'
 import FarmersPlots from '../pages/FarmersPlots'
 import PlantingPlan from '../pages/PlantingPlan'
@@ -52,7 +53,7 @@ export default function AppRoutes() {
     <Route path="/exporter/orders" element={<ExporterLayout><ExporterOrders /></ExporterLayout>} />
     <Route path="/exporter/*" element={<Navigate to="/exporter" replace />} />
     <Route path="/fpo" element={<Overview />} />
-    <Route path="/sensors" element={<Navigate to="/fpo" replace />} />
+    <Route path="/sensors" element={<LiveSensors />} />
     <Route path="/demand" element={<BuyerOrders />} />
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
