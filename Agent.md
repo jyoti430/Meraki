@@ -206,3 +206,8 @@ Software checks and exact results are recorded in the latest WORK_LOG checkpoint
 ### 16 November mobile-entry and demo-workspace extension
 
 T04 remains IN_PROGRESS. Mobile/password accounts now support both FPO and exporter entry with a normalized unique mobile column, legacy account retention, session verification and revocation. Numbers are unverified and no messages are sent by this flow. Restored exporter and Trade sidebars; explicit hardcoded opportunity/order examples are independent of connected command APIs. Final local checks: 116 Vitest +16 Node cases/build; 370 Python +10 subtests with disposable PostgreSQL; migration retention and concurrent registration passed. Live pre-mobile gateway test: 18/18 synthetic auction/bid/worker/award assertions passed. See [integration guide](docs/MOBILE_SIGN_IN.md) and latest [work log](docs/WORK_LOG.md); production identity, farm/QC authority and independent Part 3 bridging remain unfinished.
+
+
+### 16 November shared-gateway authentication regression
+
+Live mobile and browser bids passed after deploying PR #10. Repeated end-to-end tests then exposed shared-IP login throttling across distinct organisations. A narrow backend fix preserves the ten-attempt account limit while giving the coarse gateway/login and signup checks separate finite allowances (100/20 per 15 minutes); no UI or forwarded-header trust changes. Targeted account regressions: 14 passed. T04 remains IN_PROGRESS; final regression, CI and deployed verification follow delivery.

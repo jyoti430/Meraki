@@ -241,8 +241,9 @@ def test_accounts_scope_logout_expiry_bad_password_and_throttle(system):
     account=logged.json(); headers={"Authorization":"Bearer "+account["access_token"],"X-Organisation-ID":account["organisation_id"]}
     assert c.post("/api/v1/auth/logout",headers=headers).status_code==204
     assert c.get("/api/v1/auth/me",headers=headers).status_code==401
-    for _ in range(10): response=c.post("/api/v1/auth/login",json={"username":"unknown","password":"incorrect-password"})
-    assert response.status_code==429
+    for _ in range(10):
+        assert c.post("/api/v1/auth/login",json={"username":"unknown","password":"incorrect-password"}).status_code==401
+    assert c.post("/api/v1/auth/login",json={"username":"unknown","password":"incorrect-password"}).status_code==429
     with app.state.sessions() as db,db.begin():
         for row in db.scalars(select(SessionToken)).all():row.expires_at=utcnow()-timedelta(seconds=1)
     assert c.get("/api/v1/auctions",headers=a["buyer"]).status_code==401
