@@ -105,3 +105,35 @@ def test_registration_and_password_gates_stay_operator_controlled(system, monkey
     monkeypatch.setenv("MERAKI_ALLOW_REGISTRATION", "0")
     assert client.get("/api/v1/health").json()["registration_enabled"] is False
     assert client.post("/api/v1/auth/register", json=registration()).status_code == 403
+
+
+
+def test_shared_gateway_allows_distinct_accounts_without_weakening_identity_limit(system):
+    client, _ = system
+    for phone, role in [("+12025550100", "fpo"), ("+12025550101", "exporter")]:
+        assert client.post("/api/v1/auth/register", json=registration(role, mobile_number=phone)).status_code == 201
+    # Twelve logins through one TestClient peer used to block both organisations.
+    for index in range(12):
+        phone = "+12025550100" if index % 2 == 0 else "+12025550101"
+        result = client.post("/api/v1/auth/login", json={"mobile_number": phone, "password": "Synthetic-Test-Password!"})
+        assert result.status_code == 200, result.text
+    # The FPO identity still reaches the original ten-attempt cap independently.
+    for _ in range(4):
+        assert client.post("/api/v1/auth/login", json={"mobile_number": "+12025550100", "password": "Wrong-test-password!"}).status_code == 401
+    assert client.post("/api/v1/auth/login", json={"mobile_number": "+12025550100", "password": "Wrong-test-password!"}).status_code == 429
+    assert client.post("/api/v1/auth/login", json={"mobile_number": "+12025550101", "password": "Synthetic-Test-Password!"}).status_code == 200
+
+
+def test_shared_gateway_still_bounds_distributed_login_attempts(system):
+    client, _ = system
+    for index in range(100):
+        response = client.post("/api/v1/auth/login", json={"mobile_number": f"+1202555{index:04d}", "password": "Wrong-test-password!"})
+        assert response.status_code == 401
+    assert client.post("/api/v1/auth/login", json={"mobile_number": "+12025550999", "password": "Wrong-test-password!"}).status_code == 429
+
+
+def test_shared_gateway_signup_has_a_separate_twenty_attempt_bound(system):
+    client, _ = system
+    for index in range(20):
+        assert client.post("/api/v1/auth/register", json=registration(mobile_number=f"+1202555{index:04d}")).status_code == 201
+    assert client.post("/api/v1/auth/register", json=registration(mobile_number="+12025550999")).status_code == 429

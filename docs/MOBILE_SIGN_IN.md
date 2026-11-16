@@ -20,7 +20,7 @@ Apply `python -m alembic -c server/alembic.ini upgrade head` before starting the
 }
 ```
 
-Use `exporter` for the other role. The example number is a fictional test identifier. `POST /api/v1/auth/login` takes only `mobile_number` and `password`. Include either a mobile number or a legacy username, never both. Normalization removes spaces, parentheses and hyphens and requires `+` followed by 7–15 digits with a nonzero country-code prefix. Password whitespace is preserved. The response remains `access_token`, `organisation_id`, `role`, `expires_in`, and `token_type`.
+Use `exporter` for the other role. The example number is a fictional test identifier. `POST /api/v1/auth/login` takes only `mobile_number` and `password`. Include either a mobile number or a legacy username, never both. Normalization removes spaces, parentheses and hyphens and requires `+` followed by 7–15 digits with a nonzero country-code prefix. Password whitespace is preserved. Authentication allows 10 attempts per normalized account per 15 minutes, with a separate 100-attempt gateway-IP allowance so a shared proxy does not lock out distinct organisations. Registration has a separate 20-attempt IP bound. Forwarded headers are not trusted to bypass these limits. The response remains `access_token`, `organisation_id`, `role`, `expires_in`, and `token_type`.
 
 `GET /api/v1/health` advertises `mobile_auth_enabled`. The entry form pauses sign-in if the deployed backend does not support it. Password authentication and registration remain operator-controlled through the existing `MERAKI_PASSWORD_AUTH` and `MERAKI_ALLOW_REGISTRATION` flags. Registration is disabled by default outside development. This change does not promote the demo into production identity or verified phone ownership.
 

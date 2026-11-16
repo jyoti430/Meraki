@@ -43,14 +43,14 @@ def install_accounts(app, db_session, actor, environment):
     def account_guard():
         if not enabled: raise HTTPException(404, "Password accounts are disabled")
 
-    def throttle(db, key):
+    def throttle(db, key, limit=10):
         # PostgreSQL advisory transaction lock also serialises the first attempt.
         from sqlalchemy import text
         hashed = hashlib.sha256(key.encode()).hexdigest()
         if db.bind.dialect.name == "postgresql":
             db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": int(hashed[:15], 16)})
         row = db.scalar(select(AuthThrottle).where(AuthThrottle.key == hashed).with_for_update())
-        if row and aware(row.resets_at) > utcnow() and row.attempts >= 10:
+        if row and aware(row.resets_at) > utcnow() and row.attempts >= limit:
             raise HTTPException(429, "Too many attempts. Try again in 15 minutes.")
         if not row:
             row = AuthThrottle(key=hashed, attempts=0, resets_at=utcnow() + timedelta(minutes=15)); db.add(row)
@@ -62,7 +62,7 @@ def install_accounts(app, db_session, actor, environment):
     def register(body: Register, request: Request, db=Depends(db_session)):
         if os.getenv("MERAKI_ALLOW_REGISTRATION", "1" if environment == "development" else "0") != "1":
             raise HTTPException(403, "Registration is disabled; ask your operator for an account")
-        with db.begin(): throttle(db, "register:" + (request.client.host if request.client else "unknown"))
+        with db.begin(): throttle(db, "register:" + (request.client.host if request.client else "unknown"), limit=20)
         hashed = password_hash(body.password)
         try:
             with db.begin():
@@ -82,7 +82,10 @@ def install_accounts(app, db_session, actor, environment):
     def login(body: Login, request: Request, db=Depends(db_session)):
         with db.begin():
             throttle(db, "login-user:" + (body.mobile_number or body.username))
-            throttle(db, "login-ip:" + (request.client.host if request.client else "unknown"))
+            # Vercel/Render can present one peer IP for many demo organisations.
+            # Keep the strict identity limit above; use a coarser network bound.
+            # Do not trust arbitrary forwarded headers to bypass either limit.
+            throttle(db, "login-ip:" + (request.client.host if request.client else "unknown"), limit=100)
         credential = (db.scalar(select(PasswordCredential).where(PasswordCredential.mobile_number == body.mobile_number))
                       if body.mobile_number else db.get(PasswordCredential, body.username))
         stored = credential.password_hash if credential else password_hash("not-a-real-password", "0" * 32)
