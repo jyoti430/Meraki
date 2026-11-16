@@ -1,0 +1,24 @@
+{
+  "source_id": "synthetic-weekly-scenario-01",
+  "version": 1,
+  "farmer_ref": "synthetic-farmer-reference",
+  "crop": "okra",
+  "variety": "synthetic-variety",
+  "grade": "A",
+  "week_start": "2026-12-01",
+  "week_end": "2026-12-07",
+  "quantity_g": 24000,
+  "low_g": 18000,
+  "high_g": 30000,
+  "consent_status": "opted-in",
+  "consent_recorded_at": "2026-11-16T00:00:00Z",
+  "evidence_refs": [
+    {"id": "synthetic-evidence-01", "status": "estimated", "provenance": {"synthetic": true}}
+  ],
+  "uncertainty": {"level": "high", "basis": "Synthetic planning example", "caveats": ["Not calibrated"]},
+  "assumptions": {"unit": "g", "synthetic": true},
+  "source_rule_version": "synthetic-rule-v1",
+  "as_of": "2026-11-16T00:00:00Z",
+  "stale_after": "2026-12-01T00:00:00Z",
+  "caveats": ["Synthetic example; not actual farm supply"]
+}

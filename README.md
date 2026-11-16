@@ -2,7 +2,7 @@
 
 Meraki helps FPOs propose feasible crops, coordinate farmer-approved production against buyer requirements, and manage procurement through delivery and farmer settlement.
 
-**Current status:** a React/Vite browser prototype with synthetic fixtures and local storage. The full supply-chain product below is the execution target, not a claim that every module is implemented. Baseline inspected on 15 November 2026 at `dddaa7cc4aab040802e8795b03565ad1d14d48c0`.
+**Current status:** a React/Vite browser prototype with synthetic fixtures and local storage, with an initial shared FastAPI backend foundation under development. The full supply-chain product below is the execution target, not a claim that every module is implemented. Baseline inspected on 15 November 2026 at `dddaa7cc4aab040802e8795b03565ad1d14d48c0`.
 
 - [Demo](https://meraki-tau-opal.vercel.app/) — deployed content may differ from this checkout.
 - [Full Final 3.0 execution plan](docs/EXECUTION_PLAN.md)
@@ -67,15 +67,19 @@ Data persists in this browser's local storage with an in-memory fallback. It is 
 | Soil record fields | `src/types/index.ts`, plot forms | Basic report/pH/moisture representation; no full SHC analyte/provenance pipeline |
 | Planning regression tests and CI | `src/planning/engine.test.ts`, `.github/workflows/ci.yml` | 15 tests and build passed at baseline; no service/concurrency/E2E coverage established |
 | Lots, lab review, shipments, claims, settlements | Five pages wrapping `ModulePlaceholder` | Placeholders only |
-| Auth, backend, shared storage and worker | No implementation in inspected tree | Planned |
-| Open marketplace and two auction engines | No implementation in inspected tree | Planned |
+| Shared API/backend | `server/meraki/`, `server/alembic/` | Initial Part 2 foundation; identity provider, PostgreSQL concurrency and operations remain unverified |
+| Marketplace discovery | `GET /api/v1/market/listings` | Basic consented-capacity feed; exporter intake/matching and both auction engines remain planned |
 | Government APIs, OCR and validated ML | No implementation in inspected tree | Planned; access/data gates apply |
 
 Source inspection establishes implementation presence, not operational or agronomic validation. See [the ledger](Agent.md) for task-level evidence and acceptance criteria.
 
+The `feature/part2-backend` branch now contains an **in-progress** shared API foundation in `server/meraki/`. It includes organisation-scoped sessions/permissions, projection version and consent records, listing/capacity/reservation APIs, document metadata with local file storage, audit/idempotency, Alembic migrations and an expiry job worker. It is not production-ready: no external identity provider or object store is configured, PostgreSQL concurrency has not been verified, and the existing Part 3 trade service has not been adapted to the shared transaction boundary. See [Part 2 backend setup and contracts](docs/PART2_BACKEND.md).
+
 ## Current and target stack
 
-**Installed today:** React 18, TypeScript 5.6, Vite 5, React Router 6, Tailwind 3, Lucide icons and Vitest 2. Exact resolutions live in `package-lock.json`; do not describe recommended packages as installed.
+**Installed frontend:** React 18, TypeScript 5.6, Vite 5, React Router 6, Tailwind 3, Lucide icons and Vitest 2. Exact resolutions live in `package-lock.json`.
+
+**Backend foundation in this branch:** FastAPI, Pydantic 2, SQLAlchemy 2, Alembic and Pytest are pinned in `server/requirements.txt`; PostgreSQL is the target shared database. The user initially reported 7 passed, 1 skipped using Python 3.10; after adding auth-guard cases, the latest local Python 3.10.10 run passed 10 tests with 1 skipped. The user reports Alembic migrations applied successfully. Local verification observed API health HTTP 200 and a successful synthetic end-to-end workflow. PostgreSQL concurrency remains unverified; no external production identity provider or production object store is configured, and production readiness has not been established. See [the Part 2 setup notes](docs/PART2_BACKEND.md).
 
 **Proposed target:** retain the React/Vite frontend; add a Python FastAPI modular backend, PostgreSQL/PostGIS, private object storage, organisation-scoped authentication and a background worker. A worker is a separate Python process for imports, OCR, projections, notifications and auction deadlines. Celery/Redis is a candidate, not present infrastructure. Database transactions decide reservations and winners.
 
