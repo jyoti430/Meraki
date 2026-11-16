@@ -16,7 +16,23 @@ Source inspection confirms `server/meraki/` implements organisation membership/p
 
 [Main CI 43790402925](https://github.com/jyoti430/Meraki/actions/runs/43790402925) passed: the shared-backend suite reported **10 passed, 1 skipped**, followed by a separate configured PostgreSQL concurrency test reporting **1 passed**. Its frontend baseline passed 15 tests and the build. This supersedes the source documentation's PostgreSQL-unverified statement for that specific upstream test only; fresh merged-branch results are recorded in the work log. Production capacity lineage, restore and all concurrency paths are not established by one test. The earlier Kireeti suite results below remain separate historical evidence.
 
-## Latest integrated update: exporter portal
+## Current alignment checkpoint — 16 November 2026
+
+The latest procurement and USB pushes are integrated. API-backed requirements/proposals are now the exporter entry point; partial contributions and multiple explicit FPO awards share a server quantity budget. Proposal deadlines may precede delivery, contract edits preserve buyer specifications, and confirmation shows them. The composite hosting entry point retains API prefixes/authentication, supervises shared/trade workers, and reports unsupported hosted sensors/documents honestly. Frontend clients share one configured backend root; live values are preserved and provider failure does not become mock success. Local planning/QC, exporter draft examples and synthetic yield demonstrations remain explicitly separate.
+
+Prioritized remaining tasks:
+
+1. **T04/T05/T07 — connect the domain authorities.** Verified identity, canonical physical-source IDs, shared consent/projection/QC and one atomic capacity/award transaction remain missing across the separate shared and trade ledgers. Hosting them together does not finish this integration.
+2. **T04/T05 — implement partner-private procurement and sponsorship.** The merged requirements/proposals API replaces the previous “no shared demand” gap for the synthetic trade workflow. It does not implement exporter/FPO partnership entitlements, private partner visibility, sponsorship/subscriptions or residual-market allocation on the shared ledger.
+3. **T02/T09 — join real farm/intake/lab evidence to trade.** Browser-local plans, reports and QC cannot authorize server stock. Add approved durable document storage and reviewed import/migration boundaries. Hosted uploads stay disabled until configured.
+4. **T11/S01 — complete operational acceptance.** Verify backup/restore, always-on worker/recovery behavior, production monitoring, notifications and real sensor gateway/lot linkage. Current free hosting is demo-only, with sleeping compute and expiring PostgreSQL; public URLs/deployment checks are in the latest work log.
+5. **T01/T02/T03/T08 — complete reviewed farm planning.** Finish authorized ingestion, crop alternatives, agronomic review, farmer decision milestones and shortfall/replan workflows using real consented observations.
+6. **T06/T07/T09/T10 — production/commercial acceptance.** Verify external identity/capacity adapters, concurrency and recovery in the target environment, private evidence, commercial/QC/logistics responsibility and real reconciliation. Partial procurement awards now exist; the older whole-award-only statement below is historical. No software record transfers money or certifies export safety.
+7. **T12 — real yield model and pilot.** Obtain licensed linked plot-season outcomes, independent holdouts and uncertainty review. Current real-data promotion stays blocked with zero eligible farm outcomes; the synthetic trained POC remains only a demonstration.
+
+The older checkpoints below preserve their evidence and are superseded by this section where implementation has advanced.
+
+## Earlier integrated update: exporter portal
 
 Merged `feature/exporter-portal` through `46a6a57` into Kireeti in `a20d920`. The entry page `/` now selects a workspace; the existing FPO overview is `/fpo`. Exporter routes provide a dashboard, requirements list/details/local draft form, illustrative marketplace comparisons and orders integration status. Existing sensors, farm intelligence, public data, local QC and API-backed trade routes remain present. Source code uses explicit synthetic fixtures and browser-local drafts, not a shared exporter demand store.
 

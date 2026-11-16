@@ -5,7 +5,6 @@ import { fetchLiveSnapshot } from '../liveData/client'
 import type { LiveSnapshot, MarketCrop, MarketRow, ReferenceLocation, SourceEnvelope, WeatherRow } from '../liveData/client'
 import validation from '../../reports/model_validation.json'
 import { useI18n } from '../i18n'
-import { translateDeep } from '../i18n/autoTranslate'
 import './LiveData.css'
 
 const publicUrl = (url: string) => /^https?:\/\//.test(url) ? url : undefined
@@ -29,14 +28,14 @@ function WeatherTable({ rows, forecast, dateBasis }: { rows: WeatherRow[]; forec
   const { t } = useI18n()
   const value = (n: number | null | undefined) => n == null ? t('unknown') : n.toLocaleString('en-IN', { maximumFractionDigits: 2 })
   if (!rows.length) return <p>{t('ld_no_weather_rows')}</p>
-  return <div className="ld-table-wrap"><table><caption>{t(forecast ? 'ld_weather_caption_forecast' : 'ld_weather_caption_history', { basis: dateBasis })}</caption><thead><tr><th>{t('ld_date')}</th><th>{t('ld_min_c')}</th><th>{t('ld_max_c')}</th><th>{t('ld_precip')}</th>{forecast && <th>{t('ld_et0')}</th>}</tr></thead><tbody>{(forecast ? rows : rows.slice(-7)).map(row => <tr key={row.date}><th scope="row">{row.date}</th><td>{value(row.t2m_min_c)}</td><td>{value(row.t2m_max_c)}</td><td>{value(row.precipitation_mm_day)}</td>{forecast && <td>{value(row.et0_mm_day)}</td>}</tr>)}</tbody></table></div>
+  return <div className="ld-table-wrap"><table><caption>{t(forecast ? 'ld_weather_caption_forecast' : 'ld_weather_caption_history', { basis: dateBasis })}</caption><thead><tr><th>{t('ld_date')}</th><th>{t('ld_min_c')}</th><th>{t('ld_max_c')}</th><th>{t('ld_precip')}</th>{forecast && <th>{t('ld_et0')}</th>}</tr></thead><tbody data-no-translate>{(forecast ? rows : rows.slice(-7)).map(row => <tr key={row.date}><th scope="row">{row.date}</th><td>{value(row.t2m_min_c)}</td><td>{value(row.t2m_max_c)}</td><td>{value(row.precipitation_mm_day)}</td>{forecast && <td>{value(row.et0_mm_day)}</td>}</tr>)}</tbody></table></div>
 }
 
 function MarketTable({ source }: { source: SourceEnvelope<MarketRow> }) {
   const { t } = useI18n()
   const value = (n: number | null | undefined) => n == null ? t('unknown') : n.toLocaleString('en-IN', { maximumFractionDigits: 2 })
   if (!source.data.length) return <p>{t('ld_no_market_rows')}</p>
-  return <><p>{t('ld_market_rows_info', { count: source.data.length })}</p><div className="ld-table-wrap"><table><caption>{t('ld_market_caption')}</caption><thead><tr><th>{t('ld_date_market')}</th><th>{t('ld_commodity_variety')}</th><th>{t('ld_min')}</th><th>{t('ld_modal')}</th><th>{t('ld_max')}</th><th>{t('ld_price_unit')}</th><th>{t('ld_arrivals')}</th></tr></thead><tbody>{source.data.slice(0, 25).map((row, index) => <tr key={index}><th scope="row">{row.observation_date}<br />{row.market}</th><td>{row.commodity}<br />{row.variety ?? t('ld_variety_unknown')}</td><td>{value(row.price_min_rs_per_unit)}</td><td>{value(row.price_modal_rs_per_unit)}</td><td>{value(row.price_max_rs_per_unit)}</td><td>{row.price_unit}</td><td>{value(row.arrivals_value)} {row.arrivals_unit}</td></tr>)}</tbody></table></div></>
+  return <><p>{t('ld_market_rows_info', { count: source.data.length })}</p><div className="ld-table-wrap"><table><caption>{t('ld_market_caption')}</caption><thead><tr><th>{t('ld_date_market')}</th><th>{t('ld_commodity_variety')}</th><th>{t('ld_min')}</th><th>{t('ld_modal')}</th><th>{t('ld_max')}</th><th>{t('ld_price_unit')}</th><th>{t('ld_arrivals')}</th></tr></thead><tbody data-no-translate>{source.data.slice(0, 25).map((row, index) => <tr key={index}><th scope="row">{row.observation_date}<br />{row.market}</th><td>{row.commodity}<br />{row.variety ?? t('ld_variety_unknown')}</td><td>{value(row.price_min_rs_per_unit)}</td><td>{value(row.price_modal_rs_per_unit)}</td><td>{value(row.price_max_rs_per_unit)}</td><td>{row.price_unit}</td><td>{value(row.arrivals_value)} {row.arrivals_unit}</td></tr>)}</tbody></table></div></>
 }
 
 export default function LiveData() {
@@ -48,8 +47,9 @@ export default function LiveData() {
   const [crop, setCrop] = useState<MarketCrop>('tomato')
   const [refresh, setRefresh] = useState(0)
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null)
-  const [displaySnapshot, setDisplaySnapshot] = useState<LiveSnapshot | null>(null)
-  const [report, setReport] = useState<any>(validation)
+  // Display backend records verbatim; translating a JSON tree can change source IDs, units and enum states.
+  const displaySnapshot = snapshot
+  const report = validation
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const utc = (stamp: string | null) => stamp ? `${new Date(stamp).toLocaleString('en-GB', { timeZone: 'UTC', hour12: false })} UTC` : t('unknown')
@@ -64,16 +64,6 @@ export default function LiveData() {
     return () => controller.abort()
   }, [location, crop, refresh, lang, t])
 
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      if (!snapshot) { if (alive) setDisplaySnapshot(null); return }
-      if (lang === 'en') { if (alive) { setDisplaySnapshot(snapshot); setReport(validation) } ; return }
-      const [s, r] = await Promise.all([translateDeep(snapshot, lang), translateDeep(validation, lang)])
-      if (alive) { setDisplaySnapshot(s); setReport(r) }
-    })()
-    return () => { alive = false }
-  }, [snapshot, lang])
 
   return <div className="m-page ld-page">
     <header className="ld-heading"><div><div className="m-eyebrow">{t('ld_eyebrow')}</div><h1 className="m-h1">{t('public_data_title')}</h1><p className="m-lead">{t('public_data_sub')}</p></div><Link className="m-btn" to="/farm-intelligence">{t('farm_data_workspace')}</Link></header>

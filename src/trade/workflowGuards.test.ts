@@ -4,7 +4,7 @@ import type { Workspace } from './types'
 
 const snapshot = { server_time: '2026-11-16T00:00:00Z', synthetic: true, production_ready: false, blockers: [],
   principal: { id: 'actor-a', organisation_id: 'org-a', role: 'fpo', display_name: 'Synthetic A' },
-  lots: [], capacities: [], auctions: [], contracts: [], shipments: [], receipts: [], claims: [], settlements: [], audit_events: [] }
+  requirements: [], proposals: [], lots: [], capacities: [], auctions: [], contracts: [], shipments: [], receipts: [], claims: [], settlements: [], audit_events: [] }
 
 it('allows commands only after a successful, fresh, authenticated snapshot', () => {
   const state = { token: 'synthetic-token', workspace: snapshot as Workspace, loading: false, refreshing: false, error: '', receivedAt: 1000, now: 2000 }

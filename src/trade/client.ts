@@ -1,3 +1,5 @@
+import { apiUrl } from '../api/config'
+
 export class TradeApiError extends Error {
   constructor(message: string, public status = 0, public code = 'request_failed') { super(message); this.name = 'TradeApiError' }
 }
@@ -5,8 +7,7 @@ export class TradeApiError extends Error {
 type Options = { method?: string; body?: unknown; idempotencyKey?: string; signal?: AbortSignal }
 let accessToken = ''
 export function setTradeToken(token: string) { accessToken = token }
-const configuredBase = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_TRADE_API_URL
-export const API_BASE = (configuredBase || '/api/trade').replace(/\/$/, '')
+export const API_BASE = apiUrl('/api/trade')
 
 function errorMessage(data: unknown, fallback: string): { message: string; code: string } {
   if (!data || typeof data !== 'object') return { message: fallback, code: 'request_failed' }

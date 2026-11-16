@@ -16,6 +16,7 @@ const en = {
   language: "Language",
   app_name: "Meraki",
   nav_overview: "Overview",
+  nav_procurement: "Procurement",
   nav_plans: "Planting Plans",
   nav_demand: "Buyer Demand",
   nav_farmers: "Farmers & Farms",

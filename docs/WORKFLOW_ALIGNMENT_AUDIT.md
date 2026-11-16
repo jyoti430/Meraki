@@ -1,5 +1,7 @@
 # Frontend/backend workflow alignment audit
 
+16 November deployment alignment update: the latest procurement branch is now integrated, including server-backed requirements, partial proposals and multiple explicit awards. Exporter entry points use this workflow; sample local drafts remain labelled. Contract amendment/confirmation preserves and displays buyer specifications. Hosted API routing and sensor/document capability responses are explicit; provider data is not translated or replaced with mocks. This supersedes older “no requirements API” and whole-award-only observations below. Partner entitlements, private allocation and shared/trade identity-capacity-QC transactions remain unfinished. Current deployment evidence is in WORK_LOG.md and HOSTING.md.
+
 Reviewed 16 November 2026 on Kireeti, starting at `bc1b051`. The user-supplied **Exporter-Sponsored Procurement Workflow Addendum** dated 16 November was reviewed as the intended alignment target. It explicitly describes a proposal, not evidence of implemented features. This audit does not imply that partnerships, private procurement or subscriptions already exist. Fresh fetch found no pending remote branch outside the starting checkout.
 
 ## Main finding

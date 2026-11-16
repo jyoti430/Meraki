@@ -74,7 +74,7 @@ const lazyBrowserStorage: StorageLike = {
 export const exporterService = createExporterService(lazyBrowserStorage)
 
 export const requirementSources = {
-  backend: 'No exporter demand endpoint is implemented yet.',
+  backend: 'Shared procurement is available at /trade/requirements. This service intentionally retains local examples only.',
   drafts: 'Drafts stay in this browser and are not shared with an FPO or buyer.',
   reservations: 'Reservation calls require authenticated organisation access and are not enabled in this demo.',
 } as const

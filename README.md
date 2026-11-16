@@ -11,6 +11,7 @@ Meraki helps FPOs propose feasible crops, coordinate farmer-approved production 
 - [Validation and resume checkpoint](docs/WORK_LOG.md)
 - [Part 3 setup and operating guide](docs/PART3_OPERATIONS.md)
 - [Part 3 API contract](server/CONTRACT.md)
+- [Render and Vercel hosting](docs/HOSTING.md)
 - [Public live data setup and source limits](docs/LIVE_DATA.md)
 - [Model validation report](reports/model_validation.md)
 

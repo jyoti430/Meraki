@@ -17,8 +17,8 @@ export default function Requirements() {
   }) ?? [], [items, query, status])
 
   return <div className="e-page">
-    <ExporterPageHeader eyebrow="Demand workspace" title="Procurement requirements" description="Review synthetic example demand and create browser-local drafts. Drafts are not submitted to a buyer, FPO or shared service." actions={<Link className="e-button e-button-primary" to="/exporter/requirements/new"><Plus size={17} /> Create requirement</Link>} />
-    <DemoNotice>The sample active requirements are synthetic fixtures. New requirements are stored as local drafts in this browser only; publishing or sharing demand is not implemented.</DemoNotice>
+    <ExporterPageHeader eyebrow="Demand workspace" title="Local procurement draft examples" description="Review synthetic example demand and create browser-local drafts. Drafts are not submitted to a buyer, FPO or shared service." actions={<Link className="e-button e-button-primary" to="/exporter/requirements/new"><Plus size={17} /> Create local draft</Link>} />
+    <DemoNotice>The sample active requirements are synthetic fixtures. New requirements are stored as local drafts in this browser only; publishing or sharing demand is not implemented. For the server-backed synthetic proposal workflow, open <Link to="/trade/requirements">Requirements & proposals</Link>.</DemoNotice>
     <section className="e-panel e-requirements-panel">
       <div className="e-filter-bar">
         <label className="e-search"><Search size={17} /><span className="sr-only">Search requirements</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search crop, variety, destination or ID" /></label>

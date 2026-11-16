@@ -16,7 +16,7 @@ export function validateTradeWorkspace(value: unknown): Workspace {
     || !obj(value.principal) || ['id', 'organisation_id', 'role', 'display_name'].some(key => typeof (value.principal as Record<string, unknown>)[key] !== 'string')) {
     throw new Error('Trade workspace contract mismatch. Refresh or check the API configuration; actions are disabled.')
   }
-  for (const key of ['lots', 'capacities', 'auctions', 'contracts', 'shipments', 'receipts', 'claims', 'settlements', 'audit_events']) {
+  for (const key of ['requirements', 'proposals', 'lots', 'capacities', 'auctions', 'contracts', 'shipments', 'receipts', 'claims', 'settlements', 'audit_events']) {
     if (!Array.isArray(value[key]) || (value[key] as unknown[]).some(row => !obj(row) || typeof row.id !== 'string')) {
       throw new Error(`Trade workspace is missing valid ${key} records. Actions are disabled.`)
     }

@@ -79,6 +79,25 @@ def create_app(database_url=None, demo_enabled=None, environment=None, clock=Non
     def create_auction(request: Request, body: dict = Body(...)):
         return command(request, body, lambda s, p: service.create_auction(s, p, body))
 
+    @app.post(prefix + '/requirements')
+    def create_requirement(request: Request, body: dict = Body(...)):
+        return command(request, body, lambda s, p: service.create_requirement(s, p, body))
+
+    @app.post(prefix + '/requirements/{key}/proposals')
+    def submit_proposal(key: str, request: Request, body: dict = Body(...)):
+        return command(request, body, lambda s, p: service.submit_proposal(s, p, key, body))
+
+    @app.post(prefix + '/requirements/{key}/{action}')
+    def requirement_action(key: str, action: str, request: Request, body: dict = Body(...)):
+        require(action in ('publish', 'award'), 'Unknown requirement action', 404)
+        method = service.publish_requirement if action == 'publish' else service.award_requirement
+        return command(request, body, lambda s, p: method(s, p, key, body))
+
+    @app.post(prefix + '/proposals/{key}/{action}')
+    def proposal_action(key: str, action: str, request: Request, body: dict = Body(...)):
+        require(action in ('withdraw', 'reject'), 'Unknown proposal action', 404)
+        return command(request, body, lambda s, p: service.proposal_action(s, p, key, action, body))
+
     @app.post(prefix + '/auctions/{key}/{action}')
     def auction_action(key: str, action: str, request: Request, body: dict = Body(...)):
         require(action in ('bids', 'cancel', 'close'), 'Unknown auction action', 404)

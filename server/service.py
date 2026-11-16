@@ -13,7 +13,7 @@ from uuid import uuid4
 from sqlalchemy import select
 
 from .db import Command, PrincipalSession, Resource, canonical_hash
-from .domain import allocate, contributions, fail, integer, iso, money, require, string, terms_from, timestamp
+from .domain import allocate, contributions, fail, integer, iso, money, quality_specification, require, string, terms_from, timestamp
 
 
 PRINCIPALS = {
@@ -26,7 +26,7 @@ PRINCIPALS = {
     'finance-a': dict(id='finance-a', display_name='Synthetic Finance reviewer A', organisation_id='fpo-a', role='finance_reviewer'),
     'finance-b': dict(id='finance-b', display_name='Synthetic Finance reviewer B', organisation_id='fpo-b', role='finance_reviewer'),
 }
-COLLECTIONS = ('lots', 'capacities', 'auctions', 'contracts', 'shipments', 'receipts', 'claims', 'settlements')
+COLLECTIONS = ('requirements', 'proposals', 'lots', 'capacities', 'auctions', 'contracts', 'shipments', 'receipts', 'claims', 'settlements')
 BLOCKERS = ['Part 2 verified identity adapter is not installed', 'Part 2 authoritative capacity adapter is not installed',
             'Production PostgreSQL, operational, legal and payment-provider acceptance remain external gates']
 
@@ -39,7 +39,7 @@ class TradeService:
     def __init__(self, database, demo_enabled=False, environment='development', clock=None):
         self.database = database
         self.environment = environment
-        self.demo_enabled = bool(demo_enabled and environment != 'production')
+        self.demo_enabled = bool(demo_enabled and environment == 'development')
         self.clock = clock or utcnow
 
     def now(self):
@@ -111,11 +111,16 @@ class TradeService:
     def audit(self, session, principal, action, resource, details=None):
         self.create(session, 'audit_events', dict(actor_id=principal['id'], organisation_id=principal['organisation_id'],
             action=action, resource_id=resource['id'], resource_version=resource['version'],
-            parties=[x for x in (resource.get('seller_org'), resource.get('buyer_org'), resource.get('owner_org'),
+            parties=[x for x in (resource.get('seller_org'), resource.get('buyer_org'), resource.get('owner_org'), resource.get('supplier_org'),
                                 resource.get('organisation_id')) if x], details=details or {}))
 
     def visible(self, value, kind, principal):
         org = principal['organisation_id']
+        if kind == 'requirements':
+            return value.get('owner_org') == org or org in value.get('participant_orgs', []) or (
+                principal['role'] == 'fpo' and value.get('status') == 'published')
+        if kind == 'proposals':
+            return value.get('owner_org') == org or value.get('supplier_org') == org
         if kind == 'auctions':
             return True
         if kind == 'lots':
@@ -128,6 +133,12 @@ class TradeService:
 
     def project(self, value, kind, principal):
         value = copy.deepcopy(value)
+        if kind == 'requirements':
+            value.pop('participant_orgs', None)
+        if kind == 'proposals' and principal['organisation_id'] != value['supplier_org']:
+            value.pop('capacity_id', None)
+            value.pop('reservation_id', None)
+            value.pop('evidence_reference', None)
         if kind == 'auctions':
             if value['status'] == 'scheduled' and timestamp(value['opens_at']) <= self.now():
                 value['status'] = 'open'
@@ -297,21 +308,170 @@ class TradeService:
         self.audit(session, principal, 'auction.created', auction)
         return auction
 
-    def capacity_reserve(self, session, principal, auction, capacity_id):
+    def capacity_reserve(self, session, principal, auction, capacity_id, quantity_g=None):
         capacity = self.get(session, 'capacities', capacity_id)
         self.own(capacity, principal, 'organisation_id')
         require(capacity['consented'] and capacity['reviewed'], 'Capacity requires consent and reviewed evidence')
         require(all(capacity[field] == auction[field] for field in ('crop', 'variety', 'grade', 'grade_protocol')), 'Capacity crop, variety, grade or protocol mismatch')
         require(timestamp(capacity['delivery_start']) <= timestamp(auction['delivery_start']) and
                 timestamp(capacity['delivery_end']) >= timestamp(auction['delivery_end']), 'Capacity does not cover delivery window')
-        require(capacity['available_g'] >= auction['quantity_g'], 'Insufficient uncommitted capacity')
-        reservation = dict(id='reservation-' + uuid4().hex, auction_id=auction['id'], quantity_g=auction['quantity_g'],
+        quantity = quantity_g if quantity_g is not None else auction['quantity_g']
+        require(capacity['available_g'] >= quantity, 'Insufficient uncommitted capacity')
+        reservation = dict(id='reservation-' + uuid4().hex, auction_id=auction['id'], quantity_g=quantity,
                            status='reserved', reserved_at=iso(self.now()), expires_at=iso(timestamp(auction['closes_at']) + timedelta(hours=24)))
         capacity['reservations'].append(reservation)
-        capacity['available_g'] -= auction['quantity_g']
-        capacity['reserved_g'] += auction['quantity_g']
+        capacity['available_g'] -= quantity
+        capacity['reserved_g'] += quantity
         self.save(session, capacity)
         return reservation['id']
+
+    def sync_requirement_allocation(self, session, requirement_id, principal):
+        # The shared trade transaction lock serialises competing awards, contract
+        # expiry and cancellation before this budget is recalculated.
+        requirement = self.get(session, 'requirements', requirement_id)
+        contracts = [item for item in self.all(session, 'contracts') if item.get('requirement_id') == requirement_id]
+        active = [item for item in contracts if item['status'] not in ('cancelled', 'defaulted', 'expired')]
+        allocated = sum(item['quantity_g'] for item in active)
+        require(0 <= allocated <= requirement['quantity_g'], 'Requirement quantity is overallocated; review contracts', 409)
+        remaining = requirement['quantity_g'] - allocated
+        requirement.update(allocated_g=allocated, remaining_g=remaining,
+            contract_ids=[item['id'] for item in contracts],
+            awarded_proposal_ids=[item['proposal_id'] for item in contracts if item.get('proposal_id')],
+            allocation_status='fully_awarded' if remaining == 0 else 'partially_awarded' if allocated else 'unallocated')
+        if requirement['status'] != 'draft':
+            requirement['status'] = 'awarded' if remaining == 0 else 'published' if self.now() < timestamp(requirement['proposal_deadline']) else 'expired'
+        self.save(session, requirement)
+        if requirement['status'] in ('awarded', 'expired'):
+            for proposal in self.all(session, 'proposals'):
+                if proposal['requirement_id'] == requirement_id and proposal['status'] == 'submitted':
+                    self.capacity_transition(session, proposal['capacity_id'], proposal['reservation_id'], 'released')
+                    proposal['status'] = 'not_selected' if requirement['status'] == 'awarded' else 'expired'
+                    self.save(session, proposal)
+                    self.audit(session, principal, 'proposal.' + proposal['status'], proposal)
+        return requirement
+
+    def create_requirement(self, session, principal, body):
+        self.role(principal, 'exporter')
+        terms = terms_from(body)
+        quantity = integer(body.get('quantity_g'), 'quantity_g', 1)
+        money(quantity, integer(body.get('maximum_price_paise_per_kg'), 'maximum_price_paise_per_kg', 1))
+        deadline = timestamp(body.get('proposal_deadline'), 'proposal_deadline')
+        require(self.now() < deadline <= timestamp(terms['delivery_end']),
+                'Proposal deadline must be in the future and no later than the end of the delivery window', 422)
+        requirement = self.create(session, 'requirements', dict(
+            owner_org=principal['organisation_id'], status='draft', crop=string(body.get('crop'), 'crop'),
+            variety=string(body.get('variety'), 'variety'), grade=string(body.get('grade'), 'grade'),
+            quantity_g=quantity, maximum_price_paise_per_kg=integer(body.get('maximum_price_paise_per_kg'), 'maximum_price_paise_per_kg', 1),
+            terms=terms, proposal_deadline=iso(deadline), published_at=None, awarded_proposal_id=None,
+            awarded_proposal_ids=[], contract_ids=[], allocated_g=0, remaining_g=quantity, allocation_status='unallocated',
+            proposal_count=0, participant_orgs=[principal['organisation_id']]))
+        self.audit(session, principal, 'requirement.draft_created', requirement)
+        return requirement
+
+    def publish_requirement(self, session, principal, key, body):
+        self.role(principal, 'exporter')
+        requirement = self.get(session, 'requirements', key)
+        self.own(requirement, principal, 'owner_org')
+        self.version(requirement, body)
+        require(requirement['status'] == 'draft', 'Only a draft requirement can be published')
+        require(timestamp(requirement['proposal_deadline']) > self.now(), 'Proposal deadline has passed')
+        requirement.update(status='published', published_at=iso(self.now()))
+        self.save(session, requirement)
+        self.audit(session, principal, 'requirement.published', requirement)
+        return requirement
+
+    def submit_proposal(self, session, principal, key, body):
+        self.role(principal, 'fpo')
+        requirement = self.get(session, 'requirements', key)
+        require(principal['organisation_id'] != requirement['owner_org'], 'An exporter cannot propose to its own requirement', 403)
+        require(requirement['status'] == 'published' and self.now() < timestamp(requirement['proposal_deadline']),
+                'Requirement is not accepting proposals')
+        prior = [item for item in self.all(session, 'proposals') if item['requirement_id'] == key and
+                 item['supplier_org'] == principal['organisation_id'] and item['status'] == 'submitted']
+        require(not prior, 'An active proposal already exists; revise or withdraw it before submitting another')
+        quantity = integer(body.get('quantity_g'), 'quantity_g', 1, requirement.get('remaining_g', requirement['quantity_g']))
+        price = integer(body.get('price_paise_per_kg'), 'price_paise_per_kg', 1)
+        require(price <= requirement['maximum_price_paise_per_kg'], 'Offered price exceeds the buyer maximum')
+        grade = string(body.get('grade'), 'grade')
+        require(grade == requirement['grade'], 'Offered grade does not match the buyer requirement')
+        expected = timestamp(body.get('expected_availability'), 'expected_availability')
+        terms = requirement['terms']
+        require(timestamp(terms['delivery_start']) <= expected <= timestamp(terms['delivery_end']),
+                'Expected availability is outside the delivery window', 422)
+        capacity_id = string(body.get('capacity_id'), 'capacity_id')
+        reservation_id = self.capacity_reserve(session, principal, dict(
+            id=key, crop=requirement['crop'], variety=requirement['variety'], grade=requirement['grade'],
+            grade_protocol=terms['grade_protocol'], quantity_g=quantity,
+            delivery_start=terms['delivery_start'], delivery_end=terms['delivery_end'],
+            closes_at=requirement['proposal_deadline']), capacity_id, quantity)
+        proposal = self.create(session, 'proposals', dict(
+            requirement_id=key, owner_org=requirement['owner_org'], supplier_org=principal['organisation_id'],
+            status='submitted', quantity_g=quantity, grade=grade, price_paise_per_kg=price,
+            expected_availability=iso(expected), capacity_id=capacity_id, reservation_id=reservation_id,
+            evidence_reference=str(body.get('evidence_reference') or '').strip()[:500],
+            notes=str(body.get('notes') or '').strip()[:2000], submitted_at=iso(self.now())))
+        requirement['proposal_count'] += 1
+        if principal['organisation_id'] not in requirement['participant_orgs']:
+            requirement['participant_orgs'].append(principal['organisation_id'])
+        self.save(session, requirement)
+        self.audit(session, principal, 'proposal.submitted', proposal)
+        return proposal
+
+    def award_requirement(self, session, principal, key, body):
+        self.role(principal, 'exporter')
+        requirement = self.get(session, 'requirements', key)
+        self.own(requirement, principal, 'owner_org')
+        self.version(requirement, body)
+        require(requirement['status'] == 'published' and self.now() < timestamp(requirement['proposal_deadline']),
+                'Requirement is not accepting awards')
+        proposal = self.get(session, 'proposals', string(body.get('proposal_id'), 'proposal_id'))
+        require(proposal['requirement_id'] == key and proposal['owner_org'] == principal['organisation_id'],
+                'Proposal does not belong to this requirement', 404)
+        require(proposal['status'] == 'submitted', 'Proposal is no longer available for award')
+        require(proposal['quantity_g'] <= requirement.get('remaining_g', requirement['quantity_g']), 'Proposal exceeds the requirement quantity remaining for award')
+        terms = copy.deepcopy(requirement['terms'])
+        contract = self.create(session, 'contracts', dict(
+            auction_id=None, requirement_id=key, proposal_id=proposal['id'], seller_org=proposal['supplier_org'],
+            buyer_org=requirement['owner_org'], mode='forward', crop=requirement['crop'], variety=requirement['variety'],
+            grade=requirement['grade'], lot_id=None, capacity_id=proposal['capacity_id'],
+            reservation_id=proposal['reservation_id'], quantity_g=proposal['quantity_g'],
+            price_paise_per_kg=proposal['price_paise_per_kg'], status='provisional', terms_version=1,
+            terms=terms, confirmations=[], expires_at=iso(self.now() + timedelta(hours=24)), shipped_g=0,
+            amendment_history=[]))
+        proposal['status'] = 'awarded'
+        proposal['contract_id'] = contract['id']
+        self.save(session, proposal)
+        requirement.update(awarded_proposal_id=proposal['id'], contract_id=contract['id'])
+        self.save(session, requirement)
+        requirement = self.sync_requirement_allocation(session, key, principal)
+        self.audit(session, principal, 'requirement.awarded', requirement, dict(proposal_id=proposal['id'], contract_id=contract['id']))
+        self.audit(session, principal, 'contract.provisional', contract)
+        return dict(requirement=requirement, proposal=proposal, contract=contract)
+
+    def proposal_action(self, session, principal, key, action, body):
+        proposal = self.get(session, 'proposals', key)
+        self.version(proposal, body)
+        if action == 'withdraw':
+            self.role(principal, 'fpo')
+            self.own(proposal, principal, 'supplier_org')
+            require(proposal['status'] == 'submitted', 'Only an active proposal can be withdrawn')
+            requirement = self.get(session, 'requirements', proposal['requirement_id'])
+            require(requirement['status'] == 'published' and self.now() < timestamp(requirement['proposal_deadline']),
+                    'Requirement is closed')
+            self.capacity_transition(session, proposal['capacity_id'], proposal['reservation_id'], 'released')
+            proposal['status'] = 'withdrawn'
+        elif action == 'reject':
+            self.role(principal, 'exporter')
+            self.own(proposal, principal, 'owner_org')
+            require(proposal['status'] == 'submitted', 'Only an active proposal can be rejected')
+            reason = string(body.get('reason'), 'reason')
+            self.capacity_transition(session, proposal['capacity_id'], proposal['reservation_id'], 'released')
+            proposal.update(status='rejected', rejection_reason=reason)
+        else:
+            fail('Unknown proposal action', 404)
+        self.save(session, proposal)
+        self.audit(session, principal, 'proposal.' + action, proposal)
+        return proposal
 
     def capacity_transition(self, session, capacity_id, reservation_id, target):
         capacity = self.get(session, 'capacities', capacity_id)
@@ -393,7 +553,7 @@ class TradeService:
                 bid['status'] = 'won' if bid['id'] == winner['id'] else 'lost'
                 if auction['mode'] == 'forward' and bid['id'] != winner['id']:
                     self.capacity_transition(session, bid['capacity_id'], bid['reservation_id'], 'released')
-            contract = self.create(session, 'contracts', dict(auction_id=auction['id'], seller_org=seller, buyer_org=buyer,
+            contract = self.create(session, 'contracts', dict(auction_id=auction['id'], requirement_id=None, proposal_id=None, seller_org=seller, buyer_org=buyer,
                 mode=auction['mode'], crop=auction['crop'], variety=auction['variety'], grade=auction['grade'],
                 lot_id=auction['lot_id'], capacity_id=winner.get('capacity_id'), reservation_id=winner.get('reservation_id'),
                 quantity_g=auction['quantity_g'], price_paise_per_kg=winner['price_paise_per_kg'], status='provisional',
@@ -440,6 +600,8 @@ class TradeService:
         self.release_contract(session, contract)
         contract['status'] = 'expired'
         self.save(session, contract)
+        if contract.get('requirement_id'):
+            self.sync_requirement_allocation(session, contract['requirement_id'], principal)
         self.audit(session, principal, 'contract.expired', contract)
         return True
 
@@ -478,6 +640,8 @@ class TradeService:
         else:
             fail('Unknown contract action', 404)
         self.save(session, contract)
+        if contract.get('requirement_id'):
+            self.sync_requirement_allocation(session, contract['requirement_id'], principal)
         self.audit(session, principal, 'contract.' + action, contract)
         return contract
 
@@ -743,7 +907,7 @@ class TradeService:
         # Worker-only principal is not an HTTP development session.
         require(self.demo_enabled, 'Worker disabled until real adapters are installed', 503)
         principal = dict(id='server-worker', organisation_id='system', role='worker')
-        closed = expired = 0
+        closed = expired = expired_requirements = 0
         with self.database.transaction() as session:
             for auction in self.all(session, 'auctions'):
                 if auction['status'] in ('scheduled', 'open') and timestamp(auction['closes_at']) <= self.now():
@@ -751,4 +915,16 @@ class TradeService:
                     closed += 1
             for contract in self.all(session, 'contracts'):
                 expired += int(self.expire_contract(session, contract, principal))
-        return dict(closed=closed, expired=expired, server_time=iso(self.now()))
+            for requirement in self.all(session, 'requirements'):
+                if requirement['status'] == 'published' and timestamp(requirement['proposal_deadline']) <= self.now():
+                    for proposal in self.all(session, 'proposals'):
+                        if proposal['requirement_id'] == requirement['id'] and proposal['status'] == 'submitted':
+                            self.capacity_transition(session, proposal['capacity_id'], proposal['reservation_id'], 'released')
+                            proposal['status'] = 'expired'
+                            self.save(session, proposal)
+                            self.audit(session, principal, 'proposal.expired', proposal)
+                    requirement['status'] = 'expired'
+                    self.save(session, requirement)
+                    self.audit(session, principal, 'requirement.expired', requirement)
+                    expired_requirements += 1
+        return dict(closed=closed, expired=expired, expired_requirements=expired_requirements, server_time=iso(self.now()))

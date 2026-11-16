@@ -7,9 +7,9 @@ import type { CommercialTerms, Contribution, Principal } from './types'
 import { useI18n } from '../i18n'
 
 export type Values = Record<string, string>
-export type FieldSpec = { name: string; label: string; type?: 'text' | 'textarea' | 'number' | 'date' | 'datetime-local' | 'select' | 'checkbox' | 'members'; required?: boolean; value?: string; options?: { value: string; label: string }[]; help?: string; placeholder?: string; min?: string; max?: string; step?: string; wide?: boolean }
+export type FieldSpec = { name: string; label: string; type?: 'text' | 'textarea' | 'number' | 'date' | 'datetime-local' | 'select' | 'checkbox' | 'members' | 'criteria'; required?: boolean; value?: string; options?: { value: string; label: string }[]; help?: string; placeholder?: string; min?: string; max?: string; step?: string; wide?: boolean }
 const nav = [
-  { to: '/trade', labelKey: 'mod_auctions', icon: Gavel, end: true }, { to: '/trade/contracts', labelKey: 'mod_contracts', icon: Handshake },
+  { to: '/trade/requirements', labelKey: 'nav_procurement', icon: Handshake, end: false }, { to: '/trade', labelKey: 'mod_auctions', icon: Gavel, end: true }, { to: '/trade/contracts', labelKey: 'mod_contracts', icon: Handshake },
   { to: '/trade/lots', labelKey: 'mod_lots_qc', icon: PackageCheck }, { to: '/trade/review', labelKey: 'mod_release_review', icon: ShieldCheck },
   { to: '/trade/shipments', labelKey: 'mod_shipments', icon: Truck }, { to: '/trade/arrivals', labelKey: 'mod_arrival', icon: FlaskConical },
   { to: '/trade/settlements', labelKey: 'mod_settlements_nav', icon: Landmark },
@@ -119,6 +119,7 @@ export function CommandForm({ title, fields = [], path, prepare, submit = 'Save 
       const value = values[field.name] ?? field.value ?? ''
       const common = { id, name: field.name, required: field.required !== false, 'aria-describedby': field.help ? `${id}-help` : undefined }
       if (field.type === 'checkbox') return <label key={field.name} className="t-check t-wide"><input {...common} type="checkbox" checked={value === 'true'} onChange={(event) => update(field.name, String(event.target.checked))} /><span>{field.label}</span></label>
+      if (field.type === 'criteria') return <div className="t-field t-wide" key={field.name}><span>{field.label}</span><CriteriaInput id={id} value={value} onChange={(next) => update(field.name, next)} />{field.help && <small id={`${id}-help`}>{field.help}</small>}</div>
       if (field.type === 'members') return <div className="t-field t-wide" key={field.name}><span>{field.label}</span><MembersInput id={id} value={value} onChange={(next) => update(field.name, next)} />{field.help && <small id={`${id}-help`}>{field.help}</small>}</div>
       return <label className={`t-field${field.wide || field.type === 'textarea' ? ' t-wide' : ''}`} key={field.name} htmlFor={id}><span>{field.label}{field.required === false && <small> (optional)</small>}</span>
         {field.type === 'textarea' ? <textarea {...common} value={value} rows={3} placeholder={field.placeholder} onChange={(event) => update(field.name, event.target.value)} /> : field.type === 'select' ? <select {...common} value={value} onChange={(event) => update(field.name, event.target.value)}>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <input {...common} type={field.type || 'text'} min={field.min} max={field.max} step={field.step} value={value} placeholder={field.placeholder} onChange={(event) => update(field.name, event.target.value)} />}
@@ -166,7 +167,29 @@ export function termFields(terms?: CommercialTerms): FieldSpec[] {
     { name: 'cancellation_terms', label: 'Cancellation and default terms', type: 'textarea', value: terms?.cancellation_terms },
     { name: 'production_risk', label: 'Production risk allocation', type: 'textarea', value: terms?.production_risk },
     { name: 'dispute_procedure', label: 'Dispute and evidence procedure', type: 'textarea', value: terms?.dispute_procedure },
+    { name: 'packaging_requirements', label: 'Packaging requirements', type: 'textarea', required: false, value: terms?.packaging_requirements ?? '' },
+    { name: 'additional_requirements', label: 'Additional requirements and notes', type: 'textarea', required: false, value: terms?.additional_requirements ?? '' },
+    { name: 'quality_specification', label: 'Buyer quality criteria', type: 'criteria', required: false,
+      value: JSON.stringify((terms?.quality_specification ?? []).map(item => ({ ...item, minimum: item.minimum ?? '', maximum: item.maximum ?? '' }))),
+      help: 'Optional buyer-defined criteria. These form part of the versioned commercial terms; no crop-wide thresholds are assumed.' },
   ]
+}
+function qualityCriteria(value: string): NonNullable<CommercialTerms['quality_specification']> {
+  let rows: unknown
+  try { rows = JSON.parse(value || '[]') } catch { throw new Error('Check the buyer quality criteria.') }
+  if (!Array.isArray(rows) || rows.length > 30) throw new Error('Add at most 30 buyer quality criteria.')
+  return rows.map((row) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) throw new Error('Check each buyer quality criterion.')
+    const item = row as Record<string, unknown>
+    if (typeof item.attribute !== 'string' || !item.attribute.trim() || item.attribute.trim().length > 2000
+      || typeof item.unit !== 'string' || item.unit.length > 80 || typeof item.notes !== 'string' || item.notes.length > 500
+      || typeof item.required !== 'boolean'
+      || [item.minimum, item.maximum].some(limit => limit !== null && (typeof limit !== 'string' || limit.length > 120))) {
+      throw new Error('Complete each buyer quality criterion and check its text limits.')
+    }
+    return { attribute: item.attribute.trim(), unit: item.unit, minimum: item.minimum || null, maximum: item.maximum || null,
+      notes: item.notes, required: item.required } as NonNullable<CommercialTerms['quality_specification']>[number]
+  })
 }
 export function termsFrom(values: Values): CommercialTerms {
   if (!values.delivery_start || !values.delivery_end || values.delivery_end < values.delivery_start) throw new Error('Delivery window end must be on or after its start.')
@@ -174,8 +197,23 @@ export function termsFrom(values: Values): CommercialTerms {
   if (downgrade > 10000) throw new Error('Downgraded price cannot exceed 100%.')
   const required = ['handover', 'grade_protocol', 'payment_terms', 'cancellation_terms', 'production_risk', 'dispute_procedure']
   if (required.some((key) => !values[key]?.trim())) throw new Error('Complete every commercial term before publishing.')
-  return { handover: values.handover.trim(), grade_protocol: values.grade_protocol.trim(), delivery_start: isoDate(values.delivery_start), delivery_end: isoDate(values.delivery_end), payment_due_days: whole(values.payment_due_days, 'Payment due days', 0, 365), downgrade_bps: downgrade, fee_paise: paise(values, 'fee'), shortfall_liability: values.shortfall_liability as 'seller' | 'buyer', payment_terms: values.payment_terms.trim(), cancellation_terms: values.cancellation_terms.trim(), production_risk: values.production_risk.trim(), dispute_procedure: values.dispute_procedure.trim() }
+  return { handover: values.handover.trim(), grade_protocol: values.grade_protocol.trim(), delivery_start: isoDate(values.delivery_start), delivery_end: isoDate(values.delivery_end), payment_due_days: whole(values.payment_due_days, 'Payment due days', 0, 365), downgrade_bps: downgrade, fee_paise: paise(values, 'fee'), shortfall_liability: values.shortfall_liability as 'seller' | 'buyer', payment_terms: values.payment_terms.trim(), cancellation_terms: values.cancellation_terms.trim(), production_risk: values.production_risk.trim(), dispute_procedure: values.dispute_procedure.trim(),
+    quality_specification: qualityCriteria(values.quality_specification || '[]'), packaging_requirements: values.packaging_requirements || '', additional_requirements: values.additional_requirements || '' }
 }
+function CriteriaInput({ id, value, onChange }: { id: string; value: string; onChange: (value: string) => void }) {
+  type Criterion = { attribute: string; unit: string; minimum: string; maximum: string; required: boolean; notes: string }
+  let rows: Criterion[]
+  try { rows = JSON.parse(value || '[]') } catch { rows = [] }
+  const empty = (): Criterion => ({ attribute: '', unit: '', minimum: '', maximum: '', required: true, notes: '' })
+  const update = (index: number, key: keyof Criterion, next: string | boolean) => onChange(JSON.stringify(rows.map((row, i) => i === index ? { ...row, [key]: next } : row)))
+  return <div className="t-criteria" id={id}>{rows.map((row, index) => <fieldset className="t-criterion" key={index}><legend>Buyer criterion {index + 1}</legend><div className="t-fields">
+    {(['attribute', 'unit', 'minimum', 'maximum', 'notes'] as const).map((key) => <label className={`t-field${key === 'notes' ? ' t-wide' : ''}`} key={key}><span>{key === 'minimum' || key === 'maximum' ? `${key} value (optional)` : key[0].toUpperCase() + key.slice(1)}</span><input required={key === 'attribute'} value={row[key]} onChange={(event) => update(index, key, event.target.value)} /></label>)}
+    <label className="t-check"><input type="checkbox" checked={row.required} onChange={(event) => update(index, 'required', event.target.checked)} /><span>Required criterion</span></label><button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => onChange(JSON.stringify(rows.filter((_, i) => i !== index)))}>Remove criterion</button>
+  </div></fieldset>)}<button type="button" className="m-btn m-btn-secondary m-btn-sm" onClick={() => onChange(JSON.stringify([...rows, empty()]))}>+ Add quality criterion</button></div>
+}
+
 export function TermsView({ terms }: { terms: CommercialTerms }) {
-  return <dl className="t-details"><Detail label="Handover">{terms.handover}</Detail><Detail label="Grade protocol">{terms.grade_protocol}</Detail><Detail label="Delivery window">{timestamp(terms.delivery_start)} – {timestamp(terms.delivery_end)}</Detail><Detail label="Payment">{terms.payment_terms} · {terms.payment_due_days} days</Detail><Detail label="Downgraded price">{terms.downgrade_bps / 100}% of contracted price</Detail><Detail label="Transit shortfall">{terms.shortfall_liability} liability</Detail><Detail label="Cancellation / default">{terms.cancellation_terms}</Detail><Detail label="Production risk">{terms.production_risk}</Detail><Detail label="Disputes">{terms.dispute_procedure}</Detail></dl>
+  return <><dl className="t-details"><Detail label="Handover">{terms.handover}</Detail><Detail label="Grade protocol">{terms.grade_protocol}</Detail><Detail label="Delivery window">{timestamp(terms.delivery_start)} – {timestamp(terms.delivery_end)}</Detail><Detail label="Payment">{terms.payment_terms} · {terms.payment_due_days} days</Detail><Detail label="Downgraded price">{terms.downgrade_bps / 100}% of contracted price</Detail><Detail label="Transit shortfall">{terms.shortfall_liability} liability</Detail><Detail label="Cancellation / default">{terms.cancellation_terms}</Detail><Detail label="Production risk">{terms.production_risk}</Detail><Detail label="Disputes">{terms.dispute_procedure}</Detail><Detail label="Packaging">{terms.packaging_requirements || 'Not specified'}</Detail><Detail label="Additional requirements">{terms.additional_requirements || 'Not specified'}</Detail></dl>
+    {terms.quality_specification?.length ? <div className="t-table-wrap" style={{ marginTop: 16 }}><table className="t-table"><caption>Buyer quality criteria for this terms version</caption><thead><tr><th>Attribute</th><th>Unit</th><th>Minimum</th><th>Maximum</th><th>Required</th><th>Notes</th></tr></thead><tbody>{terms.quality_specification.map((item, index) => <tr key={index}><td>{item.attribute}</td><td>{item.unit || '—'}</td><td>{item.minimum ?? '—'}</td><td>{item.maximum ?? '—'}</td><td>{item.required ? 'Yes' : 'Optional'}</td><td>{item.notes || '—'}</td></tr>)}</tbody></table></div> : <p className="m-small">No additional buyer quality criteria specified.</p>}
+  </>
 }

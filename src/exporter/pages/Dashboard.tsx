@@ -40,8 +40,9 @@ export default function ExporterDashboard() {
   }
 
   return <div className="e-page">
-    <ExporterPageHeader eyebrow="Procurement workspace" title="Exporter dashboard" description="Review demand and example supply while keeping projected volume separate from confirmed stock." actions={<span className="e-demo-pill">Synthetic demo</span>} />
-    <DemoNotice>All requirement and supply examples on this portal are synthetic. Projected quantities are forecasts, not harvested or allocatable stock. Live reservations and fulfilment records are not connected.</DemoNotice>
+    <ExporterPageHeader eyebrow="Procurement workspace" title="Exporter layout example" description="Inspect the synthetic layout. Shared procurement records are available in the separate server-backed workspace." actions={<span className="e-demo-pill">Synthetic demo</span>} />
+    <p><Link className="e-button e-button-primary" to="/trade/requirements">Open shared procurement →</Link></p>
+    <DemoNotice>These figures are retained solely to demonstrate the interface before authorised farm records are connected. All requirement and supply examples on this portal are synthetic. Projected quantities are forecasts, not harvested or allocatable stock. Live reservations and fulfilment records are not connected.</DemoNotice>
     {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void refresh()}>Retry</button></div>}
     {supplyError && <div className="e-error" role="alert">{supplyError}</div>}
     <section className="e-metric-grid" aria-label="Procurement overview">

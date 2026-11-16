@@ -2,11 +2,8 @@ import { useEffect, useState } from 'react'
 import { Activity, DoorOpen, Droplets, Plug, RefreshCw, Thermometer, TriangleAlert } from 'lucide-react'
 import { useI18n } from '../i18n'
 import './LiveSensors.css'
-
-type Device = { id: number; device_id: string; temperature: number; humidity: number; opened_count?: number | null; closed_count?: number | null; warnings: string[]; received_at: number; stale: boolean }
-type Snapshot = { server_time: number; stale_after_seconds: number; devices: Device[] }
-type SerialPort = { port: string; description: string; hwid: string }
-type SerialState = { status: string; port: string; baud: number; error: string; last_ok_at: number | null; ports: SerialPort[] }
+import { apiUrl } from '../api/config'
+import { fetchSensorSnapshot, type SensorSnapshot as Snapshot, type SerialState } from '../sensors/client'
 
 export default function LiveSensors() {
   const { t } = useI18n()
@@ -18,24 +15,28 @@ export default function LiveSensors() {
   const [selPort, setSelPort] = useState('')
   const [selBaud, setSelBaud] = useState('115200')
   const [serialBusy, setSerialBusy] = useState(false)
+  const [serialError, setSerialError] = useState('')
 
   async function loadSerial() {
     try {
-      const r = await fetch('/api/sensors/serial', { cache: 'no-store' })
-      if (!r.ok) return
+      const r = await fetch(apiUrl('/api/sensors/serial'), { cache: 'no-store' })
+      if (!r.ok) throw new Error(`USB gateway returned HTTP ${r.status}. USB devices require a local gateway.`)
       const d: SerialState = await r.json()
-      setSerial(d)
+      if (!Array.isArray(d.ports) || typeof d.status !== 'string') throw new Error('Invalid USB gateway response.')
+      setSerial(d); setSerialError('')
       setSelPort(p => p || d.port || '')
-      setSelBaud(String(d.baud || 115200))
-    } catch {}
+    } catch (cause) { setSerial(null); setSerialError(cause instanceof Error ? cause.message : 'USB gateway unavailable.') }
   }
 
   async function connectSerial(port: string) {
+    const baud = Number(selBaud)
+    if (!Number.isSafeInteger(baud) || baud < 1200 || baud > 921600) { setSerialError('Baud must be a whole number between 1200 and 921600.'); return }
     setSerialBusy(true)
     try {
-      const r = await fetch('/api/sensors/serial', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ port, baud: Number(selBaud) || 115200 }) })
-      if (r.ok) { const d = await r.json(); setSerial(d); setSelPort(d.port || '') }
-    } finally { setSerialBusy(false) }
+      const r = await fetch(apiUrl('/api/sensors/serial'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ port, baud }) })
+      if (!r.ok) throw new Error(`USB connection was not accepted (HTTP ${r.status}).`)
+      const d: SerialState = await r.json(); setSerial(d); setSelPort(d.port || ''); setSelBaud(String(d.baud)); setSerialError('')
+    } catch (cause) { setSerialError(cause instanceof Error ? cause.message : 'USB connection failed.') } finally { setSerialBusy(false) }
   }
 
   useEffect(() => { loadSerial(); const tmr = setInterval(loadSerial, 3000); return () => clearInterval(tmr) }, [])
@@ -46,13 +47,10 @@ export default function LiveSensors() {
     const controller = new AbortController()
     async function poll() {
       try {
-        const response = await fetch('/api/sensors', { cache: 'no-store', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]) })
-        if (!response.ok) throw new Error('Gateway unavailable')
-        const data: Snapshot = await response.json()
-        if (!Array.isArray(data.devices)) throw new Error('Invalid gateway response')
+        const data = await fetchSensorSnapshot(AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]))
         if (!stopped) { setSnapshot(data); setAge(0); setError('') }
-      } catch {
-        if (!stopped) setError(t('cannot_reach_gateway'))
+      } catch (cause) {
+        if (!stopped) setError(cause instanceof Error ? cause.message : t('cannot_reach_gateway'))
       } finally { if (!stopped) timer = setTimeout(poll, 2000) }
     }
     void poll()
@@ -60,7 +58,8 @@ export default function LiveSensors() {
   }, [refresh, t])
   useEffect(() => { const timer = setInterval(() => setAge(value => value + 1), 1000); return () => clearInterval(timer) }, [])
 
-  const endpoint = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/sensors`
+  const sensorEndpoint = apiUrl('/api/sensors')
+  const endpoint = typeof window === 'undefined' ? sensorEndpoint : new URL(sensorEndpoint, window.location.origin).href
   const ports = serial?.ports || []
   const hasSel = ports.some(p => p.port === selPort)
 
@@ -73,19 +72,21 @@ export default function LiveSensors() {
         <span className={`m-tag ${serial?.status === 'connected' ? 'm-tag-success' : 'm-tag-neutral'}`}>{serial?.status || 'unknown'}</span>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
-        <select value={hasSel || !selPort ? selPort : selPort} onChange={e => setSelPort(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, minWidth: 220 }}>
+        <select aria-label="USB serial port" disabled={!serial || serial.available === false} value={hasSel || !selPort ? selPort : selPort} onChange={e => setSelPort(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, minWidth: 220 }}>
           <option value="">-- Select COM port --</option>
           {selPort && !hasSel && <option value={selPort}>{selPort} (current)</option>}
           {ports.map(p => <option key={p.port} value={p.port}>{p.port}{p.description ? ` — ${p.description}` : ''}</option>)}
         </select>
         <label className="m-small" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>Baud
-          <input value={selBaud} onChange={e => setSelBaud(e.target.value)} list="baud-options" style={{ width: 110, padding: '8px 10px', borderRadius: 8 }} />
+          <input disabled={!serial || serial.available === false} value={selBaud} onChange={e => setSelBaud(e.target.value)} list="baud-options" style={{ width: 110, padding: '8px 10px', borderRadius: 8 }} />
         </label>
         <datalist id="baud-options">{['9600','19200','38400','57600','115200','230400','460800','921600'].map(b => <option key={b} value={b} />)}</datalist>
-        <button type="button" className="m-btn" disabled={serialBusy || !selPort} onClick={() => connectSerial(selPort)}>Connect</button>
-        <button type="button" className="m-btn" disabled={serialBusy} onClick={() => connectSerial('')}>Disconnect</button>
+        <button type="button" className="m-btn" disabled={serialBusy || !selPort || !serial || serial.available === false} onClick={() => connectSerial(selPort)}>Connect</button>
+        <button type="button" className="m-btn" disabled={serialBusy || !serial || serial.available === false} onClick={() => connectSerial('')}>Disconnect</button>
         <button type="button" className="m-btn" onClick={loadSerial}><RefreshCw size={15} /> Refresh ports</button>
       </div>
+      {serial?.available === false && <p role="note" className="m-small">{serial.reason || 'USB ports belong to a local gateway. Render cannot access the laptop USB device.'}</p>}
+      {serialError && <p role="alert" className="sensor-alert">{serialError}</p>}
       {serial?.error && <p role="alert" className="sensor-alert" style={{ marginTop: 8 }}>{serial.error}</p>}
       {serial?.port && <p className="m-small" style={{ marginTop: 6 }}>Configured: <strong>{serial.port}</strong> @ {serial.baud} baud</p>}
     </section>
@@ -103,6 +104,8 @@ export default function LiveSensors() {
       </section>
     })}</div>
     <section className="m-card"><h2>{t('extra_visibility')}</h2><p>{t('extra_visibility_desc')}</p><p className="m-small">{t('extra_visibility_note')}</p></section>
-    <details className="m-card sensor-setup"><summary>{t('esp_details')}</summary><p>USB mode: choose the COM port above (baud default <strong>115200</strong>). The device should send lines like:</p><pre>{`@SENSOR ${JSON.stringify({ device_id: 'crate-01', temperature: 26.4, humidity: 72.0, opened_count: 12, closed_count: 11, warnings: ['Temperature outside selected crop range', 'Crate door is OPEN'] }, null, 2)}`}</pre><p>HTTP push is also supported at <code>{endpoint}</code> with header <code>X-Sensor-Key</code> (see gateway logs for token).</p></details>
+    <details className="m-card sensor-setup"><summary>{t('esp_details')}</summary>
+      {serial?.available === false ? <p>{serial.reason || 'This hosted API has no connected sensor gateway.'} Device uploads are unavailable here. Run the authorised local gateway to use USB or HTTP sensor ingestion.</p> : serial ? <><p>USB mode: choose the COM port above (baud default <strong>115200</strong>). The device should send lines like:</p><pre>{`@SENSOR ${JSON.stringify({ device_id: 'crate-01', temperature: 26.4, humidity: 72.0, opened_count: 12, closed_count: 11, warnings: ['Temperature outside selected crop range', 'Crate door is OPEN'] }, null, 2)}`}</pre><p>The local gateway supports HTTP push at <code>{endpoint}</code> with header <code>X-Sensor-Key</code> (see gateway logs for token).</p></> : <p>Connect to the sensor gateway before configuring device uploads. No sensor readings are substituted while the gateway is unavailable.</p>}
+    </details>
   </div>
 }

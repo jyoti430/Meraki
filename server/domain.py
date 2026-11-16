@@ -71,6 +71,26 @@ COMMERCIAL_STRINGS = ('handover', 'grade_protocol', 'payment_terms', 'shortfall_
                       'cancellation_terms', 'production_risk', 'dispute_procedure')
 
 
+def quality_specification(value):
+    require(isinstance(value, list) and len(value) <= 30, 'quality_specification must contain at most 30 criteria', 422)
+    result = []
+    for index, item in enumerate(value):
+        require(isinstance(item, dict), f'quality_specification[{index}] must be an object', 422)
+        attribute = string(item.get('attribute'), f'quality_specification[{index}].attribute')
+        unit = item.get('unit', '')
+        minimum = item.get('minimum')
+        maximum = item.get('maximum')
+        notes = item.get('notes', '')
+        required = item.get('required', True)
+        require(isinstance(unit, str) and len(unit) <= 80, f'quality_specification[{index}].unit is invalid', 422)
+        require(minimum is None or isinstance(minimum, str) and len(minimum) <= 120, f'quality_specification[{index}].minimum is invalid', 422)
+        require(maximum is None or isinstance(maximum, str) and len(maximum) <= 120, f'quality_specification[{index}].maximum is invalid', 422)
+        require(isinstance(notes, str) and len(notes) <= 500, f'quality_specification[{index}].notes is invalid', 422)
+        require(type(required) is bool, f'quality_specification[{index}].required must be boolean', 422)
+        result.append(dict(attribute=attribute, unit=unit, minimum=minimum, maximum=maximum, required=required, notes=notes))
+    return result
+
+
 def terms_from(body):
     require(isinstance(body, dict), 'terms must be an object', 422)
     terms = {key: string(body.get(key), key) for key in COMMERCIAL_STRINGS}
@@ -81,4 +101,9 @@ def terms_from(body):
     terms['payment_due_days'] = integer(body.get('payment_due_days'), 'payment_due_days', 0, 365)
     terms['downgrade_bps'] = integer(body.get('downgrade_bps'), 'downgrade_bps', 0, 10000)
     terms['fee_paise'] = integer(body.get('fee_paise'), 'fee_paise')
+    terms['quality_specification'] = quality_specification(body.get('quality_specification', []))
+    for field in ('packaging_requirements', 'additional_requirements'):
+        value = body.get(field, '')
+        require(isinstance(value, str) and len(value) <= 2000, f'{field} must be text no longer than 2000 characters', 422)
+        terms[field] = value.strip()
     return terms

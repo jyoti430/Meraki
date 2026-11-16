@@ -1,3 +1,5 @@
+import { apiUrl } from '../api/config'
+
 export type ReferenceLocation = 'nashik' | 'pune' | 'satara'
 export type MarketCrop = 'tomato' | 'green_chilli'
 export type SourceStatus = 'ok' | 'partial' | 'stale' | 'error'
@@ -47,11 +49,11 @@ export function parseLiveSnapshot(value: unknown): LiveSnapshot {
 export async function fetchLiveSnapshot(location: ReferenceLocation, crop: MarketCrop, lang = 'en', signal?: AbortSignal, fetcher: typeof fetch = fetch): Promise<LiveSnapshot> {
   if (!['nashik', 'pune', 'satara'].includes(location)) throw new Error('Select a public reference location.')
   if (!['tomato', 'green_chilli'].includes(crop)) throw new Error('Select a supported market crop.')
-  const response = await fetcher(`/api/live-data/snapshot?${new URLSearchParams({ location, crop, lang })}`, {
+  const response = await fetcher(apiUrl(`/api/live-data/snapshot?${new URLSearchParams({ location, crop, lang })}`), {
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(40000)]) : AbortSignal.timeout(40000),
     headers: { Accept: 'application/json' },
   })
-  if (!response.ok) throw new Error(`Public data gateway returned HTTP ${response.status}. Start npm run dev:live or check the gateway.`)
+  if (!response.ok) throw new Error(`Public data gateway returned HTTP ${response.status}. Check the configured backend; no mock values were substituted.`)
   let payload: unknown
   try { payload = await response.json() } catch { throw new Error('Public data gateway returned invalid JSON.') }
   return parseLiveSnapshot(payload)

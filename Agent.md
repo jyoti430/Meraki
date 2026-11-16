@@ -1,6 +1,8 @@
 # Implementation ledger and resumable handoff
 
-Last audited: 15 November 2026. Implementation baseline: `dddaa7cc4aab040802e8795b03565ad1d14d48c0`. This is the canonical task ledger; working rules are in `AGENTS.md`. Full product requirements are in `docs/EXECUTION_PLAN.md`.
+Last audited: 16 November 2026. Implementation baseline: `dddaa7cc4aab040802e8795b03565ad1d14d48c0`. This is the canonical task ledger; working rules are in `AGENTS.md`. Full product requirements are in `docs/EXECUTION_PLAN.md`.
+
+Latest alignment: the procurement branch and USB sensor pushes are integrated. Server-backed exporter requirements support partial FPO proposals and multiple explicit awards within one serialized quantity budget. Buyer quality/packaging terms survive amendments and appear before confirmation. Exporter entry points prefer that API workflow; separate local examples remain labelled. A composite hosted API supervises existing shared/trade workers and preserves each domain's authority; public-data failures never become synthetic success. Render/Vercel deployment evidence is recorded in the latest work log and [hosting guide](docs/HOSTING.md). T04/T05/T07/T11 remain partial: production identity, canonical cross-domain capacity/QC, partner-private access, durable documents and operational/field acceptance are still required.
 
 ## Status vocabulary
 
