@@ -78,7 +78,7 @@ Part 2 API slice (16 November 2026, `feature/part2-backend`): `POST /api/v1/list
 
 Exporter Portal UI slice (16 November 2026, based on `e27051d`): the segment selector, exporter dashboard, local draft requirements, synthetic supply discovery and integration-status view are implemented under `src/exporter/`; exporter routes are in `src/routes/AppRoutes.tsx`. `npm test` passed 17 tests and `npm run build` passed. The service tests verify local draft isolation from fixture records. A local Vite server started, but the sandbox denied the HTTP smoke check with a socket permission error; route rendering and interaction behaviour remain unverified. No exporter demand API, authenticated market API integration, reservation action, identity provider or Part 3 lifecycle feed is connected. Requirements and supply are synthetic or browser-local. T05 remains `IN_PROGRESS`; the larger exporter workflow, duplicate enquiry review, matching, verified supply evidence and backend integration acceptance remain outstanding.
 
-### T06 Harvested lot auction — TODO
+### T06 Harvested lot auction — IN_PROGRESS (synthetic workflow; production acceptance unverified)
 
 Dependencies: T04–T05 and inspection record contract from T02/T09.
 
@@ -86,13 +86,17 @@ Deliver: whole-lot ascending price auction, eligibility/reserve/increment, publi
 
 Acceptance: highest eligible price meeting reserve wins; equal bids use server-accepted order; late/retried bids and extension cap are deterministic; restart closes once; two auctions cannot sell the same stock; linked/self-bids are prevented/flagged. Browser countdown is display only. Reconnect retrieves authoritative state. No real purchases in tests.
 
-### T07 Future production procurement — TODO
+Implementation slice on `feature/procurement-bidding` (16 November 2026): selectively reused `server/app.py`, `server/service.py`, `server/db.py`, `server/worker.py` and `src/trade/` from the existing Part 3 implementation; actual harvested lots remain held until recorded inspection and QC release. Spot listings use server-authoritative highest eligible price bids and reserve/extension rules. `npm test`, `npm run build` and `python -m pytest server/tests tests/part3_acceptance -q` passed (27 frontend tests; 73 passed, 1 skipped backend). PostgreSQL concurrency acceptance was skipped without a configured test database. Local API health and Vite route returned HTTP 200; browser interactions/mobile layout were not visually exercised. T06 remains incomplete pending browser verification, PostgreSQL concurrency, shared identity/capacity integration and production operations.
+
+### T07 Future production procurement — IN_PROGRESS (synthetic requirement/proposal slice; acceptance incomplete)
 
 Dependencies: T03–T05; can share T06 infrastructure but has different ranking.
 
 Deliver: prequalification, reverse-price bidding or disclosed scoring, farmer-consented production capacity, provisional award, bilateral confirmation and contract/milestone fields. Whole-lot/split awards explicitly configured.
 
 Acceptance: lowest comparable eligible quote wins unless a prepublished score applies; infeasible/unsupported capacity cannot bind; no plot tranche is double-awarded; quantity/price/payment/acceptance/default terms are recorded; stale forecasts trigger review. Weather and cancellation risk are allocated, not guaranteed away. Live terms require qualified operating/legal review.
+
+Implementation slice on `feature/procurement-bidding` (16 November 2026): `server/service.py` implements exporter drafts/publication, FPO proposals against consented/reviewed synthetic capacity, withdraw/reject, explicit exporter-selected award and linked provisional Part 3 contracts. It deliberately does not auto-select the cheapest proposal; the existing reverse auction remains a separate workflow with its published lowest-offer rule. Full-quantity proposals only; partial awards, shared Part 2 capacity, verified evidence upload, real identity and production terms review are absent. Checks: `npm test` (27 passed), `npm run build` (passed with bundle-size advisory), `python -m pytest server/tests tests/part3_acceptance -q` (73 passed, 1 skipped). Manual browser comparison/award journey and PostgreSQL concurrency remain UNVERIFIED. T07 remains `IN_PROGRESS`.
 
 ### T08 Cultivation tracking and projection updates — TODO
 

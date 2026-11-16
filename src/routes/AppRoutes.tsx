@@ -30,10 +30,12 @@ import ExporterRequirementForm from '../exporter/pages/RequirementForm'
 import ExporterRequirementDetails from '../exporter/pages/RequirementDetails'
 import ExporterMarketplace from '../exporter/pages/Marketplace'
 import ExporterOrders from '../exporter/pages/Orders'
+import TradeRoutes from './TradeRoutes'
 
 export default function AppRoutes() {
   return <Routes>
     <Route path="/" element={<SegmentSelection />} />
+    <Route path="/trade/*" element={<TradeRoutes />} />
     <Route path="/fpo" element={<Overview />} />
     <Route path="/exporter" element={<ExporterLayout><ExporterDashboard /></ExporterLayout>} />
     <Route path="/exporter/requirements" element={<ExporterLayout><ExporterRequirements /></ExporterLayout>} />

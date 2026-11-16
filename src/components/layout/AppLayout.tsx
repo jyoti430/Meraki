@@ -18,7 +18,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id)
   }, [pathname, hash])
 
-  if (pathname === '/' || pathname.startsWith('/exporter')) return <>{children}</>
+  if (pathname === '/' || pathname.startsWith('/exporter') || pathname.startsWith('/trade')) return <>{children}</>
 
   return <div className="m-shell">
     <Sidebar pathname={pathname} />

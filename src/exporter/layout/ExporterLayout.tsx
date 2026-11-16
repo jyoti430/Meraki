@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { ArrowLeftRight, ClipboardList, Home, PackageSearch, Truck } from 'lucide-react'
+import { ArrowLeftRight, ClipboardList, Home, PackageSearch, Truck, Handshake } from 'lucide-react'
 import { MerakiMark } from '../../components/ui'
 
 const links = [
@@ -8,6 +8,7 @@ const links = [
   { to: '/exporter/requirements', label: 'Procurement & demand', icon: ClipboardList, end: false },
   { to: '/exporter/marketplace', label: 'FPO marketplace', icon: PackageSearch, end: false },
   { to: '/exporter/orders', label: 'Orders & fulfilment', icon: Truck, end: false },
+  { to: '/trade/requirements', label: 'Proposals & bids', icon: Handshake, end: false },
 ]
 
 export default function ExporterLayout({ children }: { children: ReactNode }) {

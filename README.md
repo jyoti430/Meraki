@@ -68,12 +68,14 @@ Data persists in this browser's local storage with an in-memory fallback. It is 
 | Planning regression tests and CI | `src/planning/engine.test.ts`, `.github/workflows/ci.yml` | 15 tests and build passed at baseline; no service/concurrency/E2E coverage established |
 | Lots, lab review, shipments, claims, settlements | Five pages wrapping `ModulePlaceholder` | Placeholders only |
 | Shared API/backend | `server/meraki/`, `server/alembic/` | Initial Part 2 foundation; identity provider, PostgreSQL concurrency and operations remain unverified |
-| Marketplace discovery | `GET /api/v1/market/listings` | Basic consented-capacity feed; exporter intake/matching and both auction engines remain planned |
+| Marketplace and trade execution | `server/app.py`, `server/service.py`, `src/trade/` on `feature/procurement-bidding` | Isolated synthetic Part 3 service: harvested-lot spot bids, forward requests, buyer requirements/proposals, provisional contracts and fulfilment records; not connected to the Part 2 authoritative identity/capacity service |
 | Government APIs, OCR and validated ML | No implementation in inspected tree | Planned; access/data gates apply |
 
 Source inspection establishes implementation presence, not operational or agronomic validation. See [the ledger](Agent.md) for task-level evidence and acceptance criteria.
 
 The `feature/part2-backend` branch now contains an **in-progress** shared API foundation in `server/meraki/`. It includes organisation-scoped sessions/permissions, projection version and consent records, listing/capacity/reservation APIs, document metadata with local file storage, audit/idempotency, Alembic migrations and an expiry job worker. It is not production-ready: no external identity provider or object store is configured, PostgreSQL concurrency has not been verified, and the existing Part 3 trade service has not been adapted to the shared transaction boundary. See [Part 2 backend setup and contracts](docs/PART2_BACKEND.md).
+
+The current `feature/procurement-bidding` branch adds an isolated synthetic trade workflow in `server/` and `src/trade/`. Run it locally with `npm run dev:trade` after installing the pinned backend dependencies. It supports explicit exporter requirement publication, capacity-backed FPO proposals and human-selected awards; harvested lots require QC release before spot bidding. Its SQLite/development capacity and identity are separate from the Part 2 ledger. Do not use it for real trade or treat the workflows as production-ready; see [Part 3 operations](docs/PART3_OPERATIONS.md).
 
 ## Current and target stack
 

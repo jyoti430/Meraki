@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { CalendarDays, Filter, MapPin, PackageSearch, ShieldAlert } from 'lucide-react'
 import DemoNotice from '../components/DemoNotice'
 import ExporterPageHeader from '../components/ExporterPageHeader'
@@ -30,7 +31,7 @@ export default function Marketplace() {
 
   return <div className="e-page">
     <ExporterPageHeader eyebrow="Supply discovery" title="FPO marketplace" description="Compare illustrative weekly projections against a requirement. Forecasts are not harvested or available-to-reserve stock." />
-    <DemoNotice>Marketplace cards are synthetic examples. FPO labels and regions are placeholders, consent and eligibility are not verified, and no farmer or private organisation details are shown. Live reservation is disabled.</DemoNotice>
+    <DemoNotice>Marketplace cards are synthetic forecast examples. FPO labels and regions are placeholders, consent and eligibility are not verified, and no farmer or private organisation details are shown. Live reservation is disabled. For harvested lots and bids, open <Link to="/trade">Trade market & bids</Link>.</DemoNotice>
     {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void loadProjections()}>Retry</button></div>}
     <section className="e-panel e-market-filters">
       <div className="e-filter-heading"><Filter size={18} /><strong>Compare supply examples</strong><span>Filters only narrow the displayed sample rows; they do not evaluate eligibility.</span></div>
