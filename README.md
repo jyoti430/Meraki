@@ -17,7 +17,9 @@ Meraki helps FPOs propose feasible crops, coordinate farmer-approved production 
 
 ## Frontend scope
 
-The primary FPO navigation is Overview, Plans, Demand, Farmers, Messages, Trade, Auctions and Sensors. Experimental farm-data, yield POC, public-data and later-module screens are disabled; their old URLs return to the overview. Exporter examples redirect to shared procurement. Their source and backend adapters are retained for future development. Sensors uses the merged BLE/local gateway; cloud hosting cannot access laptop hardware. Change workspace is available in the FPO footer and Trade navigation; Trade profile changes remain explicit synthetic sessions. This frontend simplification does not complete production or field-validation gates.
+The primary FPO navigation is Overview, Plans, Yield POC, Demand, Farmers, Messages, Trade, Auctions and Sensors. Experimental farm-data, public-data and later-module screens are disabled; their old URLs return to the overview. Exporter examples redirect to shared procurement. Their source and backend adapters are retained for future development. Sensors uses the merged BLE/local gateway; cloud hosting cannot access laptop hardware. Change workspace is available in the FPO footer and Trade navigation; Trade profile changes remain explicit synthetic sessions. This frontend simplification does not complete production or field-validation gates.
+
+The FPO Yield POC tab restores the existing interactive model at `/yield-poc`. It uses fitted synthetic-data coefficients in the browser and retains its simulation, uncertainty and no-real-farm-validation labels.
 
 ## Product journey
 

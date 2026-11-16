@@ -8,6 +8,7 @@ import { LANGUAGES, useI18n, type TKey } from '../../i18n'
 export const navigation: { labelKey: TKey; shortKey: TKey; to: string; icon: any }[] = [
   { labelKey: 'nav_overview', shortKey: 'short_overview', to: '/fpo', icon: Home },
   { labelKey: 'nav_plans', shortKey: 'short_plans', to: '/plan', icon: Sprout },
+  { labelKey: 'nav_yield_poc', shortKey: 'short_yield_poc', to: '/yield-poc', icon: Sprout },
   { labelKey: 'nav_demand', shortKey: 'short_demand', to: '/demand', icon: ShoppingBag },
   { labelKey: 'nav_farmers', shortKey: 'short_farmers', to: '/farmers', icon: UsersRound },
   { labelKey: 'nav_messages', shortKey: 'short_messages', to: '/messages', icon: MessageSquareText },
