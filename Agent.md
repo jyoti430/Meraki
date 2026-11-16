@@ -157,3 +157,7 @@ Product completion requires all applicable acceptance gates, not only green test
 ## S01 — Optional live crate sensors (15 November 2026)
 
 Software implemented: `server/sensors.py`, `src/pages/LiveSensors.tsx`, LAN launcher, device upload example and `docs/LIVE_SENSORS.md`. POST/GET, polling, persistence, warning clearing and stale detection checked. 25 frontend and 71 API tests pass; production build passes. Browser received explicit test upload without reload. Hardware/firmware, deployed routing and lot association remain UNVERIFIED. No automatic release or actuation.
+
+## 16 November 2026 team integration audit
+
+Agricultural foundation history and `feature/planning` are merged into `Kireeti` through functional revision `83d4bc9`. T09 now also has browser-local receipt/inspection and laboratory-review workflows with 16 incoming service tests; these are separate from server-backed trade lots and do not complete shared QC integration. T04 and T11 are partial implementations despite the historical TODO headings: the trade API/database and auction worker exist, while shared farm identity/persistence and full operational acceptance remain unfinished. All parent completion gates remain open. See [ordered remaining tasks](docs/REMAINING_TASKS.md) and the latest work-log checkpoint.

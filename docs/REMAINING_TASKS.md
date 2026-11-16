@@ -1,0 +1,35 @@
+# Remaining work after team integration
+
+Audit date: 16 November 2026. Integration branch: `Kireeti`; functional merge revision: `83d4bc97ed28f9b190eb51eceaae98ccf26e5534`. This audit supplements the acceptance criteria in [Agent.md](../Agent.md); it does not mark any parent task complete.
+
+## Integrated work
+
+- `ca44a68`: merged agricultural foundation history through `7e0d134`; retained the already-imported implementation and its newer module-import, test-collection and validation fixes. No duplicate data refresh or replacement dataset was introduced.
+- `83d4bc9`: merged `feature/planning` through `26ddcc1`: receipt/inspection, lots, laboratory reports, requirement reviews, explicit release decisions and reservation reconciliation. Existing farm, public-data, sensor and trade routes/providers remain present. Existing decimal price entry is retained. Both the Vitest and incoming Node test suites run through `npm test`.
+- Main, documentation handoff, Part 3 and evidence-contract branch tips were already ancestors. All fetched remote branch tips are ancestors after these merges. This does not close GitHub PRs into main or deploy the result.
+
+## Ordered remaining tasks
+
+1. **T04: verified shared identity and persistence.** Implement real organisation-scoped identity/permissions, linked-entity verification, authoritative farmer-consented production capacity, and shared farm/planning/QC records. Reuse the existing trade API/database rather than starting another backend. Finish private evidence storage, schema migrations and target-environment restore acceptance. The current trade service deliberately blocks production; farm and incoming QC records are browser-local.
+2. **T02/T09: join planning, lot intake, QC and trade.** Define one authoritative ID/version contract and an explicit migration/import boundary between the incoming local lot/lab workflows and server trade lots. Carry plot/cycle/order/specification/sample/report/release linkage through dispatch and settlement. Require server permissions, retry safety and audit; a local release must not silently release server stock. Resolve navigation/help text now describing local intake pages as Trade API screens and include the incoming local stores in a reviewed demo-reset policy.
+3. **T01/T02: complete source and farm evidence ingestion.** Finish crop/cluster scope, intended-use/access register and no-orders analysis across the journey. Add reviewed PDF extraction/import when needed; connect authorised laboratory, location, irrigation and farm records. Preserve methods, units, depths, dates and unknowns. Public regional weather is already available separately; it is not farm water access or a soil test.
+4. **T03: complete reviewed crop alternatives and planning.** Compare locally appropriate crop/variety options, resource constraints, costs and market access; reconcile proposed, accepted and planted allocations across the order workflow. Review synthetic agronomy and picking curves with qualified local expertise. Preserve grade/week/location gaps, consent withdrawal and shared-shock shortfalls.
+5. **T05: exporter and discovery workspace.** Complete exporter intake, public/member market views, evidence/freshness states, matching and duplicate-enquiry checks. Keep forecasts/enquiries separate from obligations and private customer/plot/payment information permissioned.
+6. **T08: cultivation review and shortfall management.** Add adviser review, milestone tasks, affected-order alerts and explicit backup/replan decisions; link revised projections to consented procurement capacity. Notification integration is unfinished.
+7. **T06/T07: production auction/procurement acceptance.** Connect verified identity/capacity/linked-entity adapters, approve published rules and commercial responsibility, and validate target-environment concurrency/recovery/performance. Whole-award development workflows exist; split awards and draft-shipment cancellation are not implemented and require an explicit product decision if needed.
+8. **T09/T10: operational QC, delivery and reconciliation.** Integrate private reports/documents, agree QC/logistics/claims/finance responsibilities, and validate actual collection, capacity, receipt, dispute and member reconciliation. Software records do not certify export safety or transfer funds. Live payment-provider integration is separately scoped.
+9. **T11/S01: operational readiness and hardware.** Complete durable import/projection jobs, transactional notification outbox, monitoring/stale-feed visibility, deployment/routing, secrets and backup/restore procedures. An auction-close worker already exists. Verify real ESP firmware/uploads, lot association and hosted sensor routing; synthetic uploads are not hardware acceptance. Broaden browser/device/accessibility coverage.
+10. **T12: independent model evaluation and pilot.** Obtain consented, linked measured plot-season outcomes and verified reuse/training rights; agree crop/region holdouts, error budgets, agronomic review and uncertainty protocol. Run shadow evaluation and a prospective pilot measuring accepted-on-time supply, failed orders, costs, farmer returns/payment delay and coordinator time. Current validator accepts zero farm outcomes, emits no performance scores and disallows promotion.
+
+## Relevant Atlas research
+
+Reviewed the hosted [Crop Trade Atlas](https://crop-trade-atlas.kireeti696.chatgpt.site/) HTML on 16 November 2026. The page labels its research cutoff 14 November 2026. Relevant source-discovery modules include soil reports and physical properties, groundwater/aquifer reports, crop/horticulture statistics and reference calendars, crop-window weather, and recent farm outcomes. These can inform T01/T02/T03/T12 source audits; no new Atlas dataset, adapter or product requirement was added in this merge pass.
+
+Follow each original source and check geography, crop, sampling time, methods, rights and decision-date availability before importing. Historical or regional statistics, research trials and modelled weather do not automatically qualify as current consented farm labels. The Atlas's separate product/design proposals do not replace Meraki's execution plan.
+
+## Validation and limits
+
+- Agricultural history merge: 54 frontend tests, build, 21 agricultural pipeline tests and artifact reproducibility passed.
+- Final functional merge: 54 Vitest tests and 16 Node lab-review tests passed; TypeScript/Vite build passed; 134 Python tests plus 10 subtests passed on local SQLite; agricultural artifact and model-report checks passed. Model readiness remains blocked. Existing bundle-size and upstream TestClient deprecation warnings remain.
+- Browser: incoming lot list, receive-produce no-confirmed-plan guard, lab-review empty state and preserved farm-intelligence route rendered. This was a representative route/guard check, not an end-to-end receipt/lab/dispatch exercise. Incoming service tests cover laboratory release constraints.
+- PostgreSQL and fresh CI: see the delivery checkpoint in [WORK_LOG.md](WORK_LOG.md). Local SQLite results alone do not establish PostgreSQL acceptance.
