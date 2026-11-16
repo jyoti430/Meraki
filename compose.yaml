@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: meraki
+      POSTGRES_PASSWORD: ${MERAKI_POSTGRES_PASSWORD:?Set MERAKI_POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: meraki
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meraki -d meraki"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment: &backend-environment
+      MERAKI_DATABASE_URL: postgresql+psycopg://meraki:${MERAKI_POSTGRES_PASSWORD}@db:5432/meraki
+      MERAKI_PASSWORD_AUTH: "1"
+      MERAKI_ALLOW_REGISTRATION: "1"
+      MERAKI_ENV: development
+      MERAKI_DEV_AUTH: "0"
+      MERAKI_DOCUMENT_ROOT: /app/var/documents
+    command: ["sh", "-c", "alembic -c server/alembic.ini upgrade head && uvicorn server.meraki.app:app --host 0.0.0.0 --port 8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - documents:/app/var/documents
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  worker:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment: *backend-environment
+    command: ["python", "-m", "server.meraki.worker", "--interval", "1"]
+    depends_on:
+      api:
+        condition: service_healthy
+volumes:
+  postgres-data:
+  documents:

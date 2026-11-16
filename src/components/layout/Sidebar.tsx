@@ -14,6 +14,7 @@ export const navigation: { labelKey: TKey; shortKey: TKey; to: string; icon: any
   { labelKey: 'nav_yield_poc', shortKey: 'short_yield_poc', to: '/yield-poc', icon: Sprout },
   { labelKey: 'nav_public_data', shortKey: 'short_public_data', to: '/live-data', icon: Database },
   { labelKey: 'nav_messages', shortKey: 'short_messages', to: '/messages', icon: MessageSquareText },
+  { labelKey: 'nav_auctions', shortKey: 'short_auctions', to: '/auctions', icon: Gavel },
   { labelKey: 'nav_trade', shortKey: 'short_trade', to: '/trade', icon: Gavel },
   { labelKey: 'nav_sensors', shortKey: 'short_sensors', to: '/sensors', icon: Activity },
 ]

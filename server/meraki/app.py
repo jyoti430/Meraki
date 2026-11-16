@@ -28,12 +28,22 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
     sessions = sessionmaker(bind=engine, expire_on_commit=False)
     storage = storage or LocalStorage()
     app = FastAPI(title="Meraki Shared Backend", version="v1", description="Shared organisation-scoped services for Meraki Parts 1 and 3.")
+    from fastapi.middleware.cors import CORSMiddleware
+    origins = [value.strip() for value in os.getenv("MERAKI_CORS_ORIGINS", "").split(",") if value.strip()]
+    if origins:
+        if "*" in origins: raise RuntimeError("CORS origins must be explicit")
+        app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST"],
+            allow_headers=["Authorization", "Content-Type", "X-Organisation-ID", "Idempotency-Key", "X-Request-ID"],
+            expose_headers=["X-Request-ID"])
     app.state.engine = engine
     app.state.sessions = sessions
     app.state.storage = storage
     development_auth_enabled = environment == "development" and os.getenv("MERAKI_DEV_AUTH") == "1"
     app.state.identity_provider = identity_provider if identity_provider is not None else (
         DevelopmentSessionIdentityProvider() if development_auth_enabled else None)
+    if identity_provider is None and os.getenv("MERAKI_PASSWORD_AUTH") == "1":
+        from .accounts import PasswordSessionIdentityProvider
+        app.state.identity_provider = PasswordSessionIdentityProvider()
     if create_schema is None:
         create_schema = environment != "production" and os.getenv("MERAKI_AUTO_CREATE_SCHEMA", "0") == "1"
     if environment == "production" and create_schema:
@@ -81,7 +91,8 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
         org_id = request.headers.get("X-Organisation-ID")
         membership = db.scalar(select(Membership).where(Membership.user_id == user.id,
             Membership.organisation_id == org_id, Membership.status == "active")) if user and org_id else None
-        if not user or user.status != "active" or not membership:
+        organisation = db.get(Organization, org_id) if org_id else None
+        if not user or user.status != "active" or not membership or not organisation or organisation.status != "active":
             raise HTTPException(403, "Active organisation membership required")
         return {"user_id": user.id, "organisation_id": org_id, "role": membership.role,
                 "permissions": set(membership.permissions or [])}
@@ -491,6 +502,11 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             db.add(job); db.flush()
             return as_dict(job)
         return commit_idempotent(request, db, user, idempotency_key, data, op)
+
+    from .accounts import install_accounts
+    from .auction_routes import install_auctions
+    install_accounts(app, db_session, actor, environment)
+    install_auctions(app, db_session, actor, allowed, commit_idempotent)
 
     @app.get("/api/v1/openapi.json")
     def openapi():

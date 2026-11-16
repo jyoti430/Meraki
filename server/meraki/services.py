@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 from uuid import uuid4
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 from .models import AuditEvent, Capacity, ConsentEvent, IdempotencyRecord, Job, Listing, Projection, Reservation, ReservationEvent
 
@@ -84,6 +84,9 @@ def idempotent(db: Session, actor: dict, key: str, payload: dict, operation):
         raise HTTPException(400, "A valid Idempotency-Key (1-200 characters) is required")
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     fingerprint = hashlib.sha256(canonical.encode()).hexdigest()
+    if db.bind.dialect.name == "postgresql":
+        lock_key = hashlib.sha256((actor["organisation_id"] + ":" + actor["user_id"] + ":" + key).encode()).hexdigest()
+        db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": int(lock_key[:15], 16)})
     prior = db.scalar(select(IdempotencyRecord).where(
         IdempotencyRecord.organisation_id == actor["organisation_id"],
         IdempotencyRecord.actor_user_id == actor["user_id"], IdempotencyRecord.key == key))

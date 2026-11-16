@@ -138,6 +138,21 @@ def test_one_worker_error_is_visible_and_does_not_kill_supervision(hosted_env, m
         assert state["running"] is True and state["last_error"] is None
 
 
+def test_hosted_password_account_and_auction_namespace(hosted_env, monkeypatch):
+    monkeypatch.setenv("MERAKI_PASSWORD_AUTH", "1")
+    app = create_hosted_app(run_workers=False)
+    with TestClient(app) as client:
+        schema = client.get('/api/v1/openapi.json').json()
+        assert '/api/v1/auctions' in schema['paths']
+        result = client.post('/api/v1/auth/register', json={"username":"hosted-auction-user", "password":"Synthetic-hosted-password!",
+            "display_name":"Synthetic account", "organisation_name":"Synthetic FPO", "role":"fpo"})
+        assert result.status_code == 201
+        account = result.json()
+        headers = {"Authorization":"Bearer " + account['access_token'], "X-Organisation-ID":account['organisation_id']}
+        assert client.get('/api/v1/auth/me', headers=headers).json()['role'] == 'fpo'
+        assert client.get('/api/v1/auctions', headers=headers).json() == {"items":[]}
+
+
 @pytest.mark.parametrize("namespace", ["trade", "shared"])
 def test_database_outage_returns_safe_json_with_cors_and_recovers(hosted_env, monkeypatch, namespace):
     app = create_hosted_app(run_workers=False)
