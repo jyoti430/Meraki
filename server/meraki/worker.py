@@ -11,6 +11,8 @@ from uuid import uuid4
 
 
 def run_once(sessions):
+    from .auctions import tick_auction
+    if tick_auction(sessions): return True
     db = sessions()
     try:
         now = utcnow()
