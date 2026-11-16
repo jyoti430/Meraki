@@ -97,18 +97,20 @@ function SessionControl() {
   </div>
 }
 
-export function TradeFrame({ title, subtitle, eyebrow, children }: { title: string; subtitle: string; eyebrow?: string; children: ReactNode }) {
+export function TradeFrame({ title, subtitle, eyebrow, children, demo = false, controls }: { title: string; subtitle: string; eyebrow?: string; children: ReactNode; demo?: boolean; controls?: ReactNode }) {
   const { workspace, health, loading, refreshing, error, refresh } = useTrade()
   const { t } = useI18n()
   return <div className="m-page t-page">
-    <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div><button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button></header>
+    <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div>{!demo && <button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button>}</header>
     <nav className="t-nav" aria-label="Trade workflow">{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
-    <SessionControl />
-    {error && <Notice error>{error}{workspace && <p>Displayed records are from {timestamp(workspace.server_time)}. Refresh before submitting another action.</p>}</Notice>}
-    {loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>{t('loading_trade')}</p></div>}
-    {(health || workspace) && !(workspace?.production_ready ?? health?.production_ready) && <div className="t-gate"><ShieldCheck size={17} aria-hidden="true" /><span><strong>Development workflow.</strong> Live trading is blocked until verified identity, capacity and production acceptance are connected.</span></div>}
-    {!loading && !workspace && <Panel title="Connect to continue" subtitle="Records, permissions and deadlines come from the trade service."><p>{health?.synthetic ? 'Use “Connect synthetic workspace” above to select an FPO, exporter, QC reviewer or finance reviewer. Each actor sees only its permitted records.' : 'Start the configured trade API and refresh this page. Production requires the verified identity integration.'}</p>{health?.blockers?.length ? <ul className="t-bullets">{health.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}</Panel>}
-    {workspace && <Fragment key={`${workspace.principal.id}:${workspace.principal.organisation_id}:${workspace.principal.role}`}>{children}<footer className="t-footer">Server snapshot {timestamp(workspace.server_time)} · {workspace.synthetic ? 'Synthetic records' : 'Organisation-scoped records'} · Commands are validated and saved by the server.</footer></Fragment>}
+    {controls}
+    {!demo && <SessionControl />}
+    {!demo && error && <Notice error>{error}{workspace && <p>Displayed records are from {timestamp(workspace.server_time)}. Refresh before submitting another action.</p>}</Notice>}
+    {!demo && loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>{t('loading_trade')}</p></div>}
+    {!demo && (health || workspace) && !(workspace?.production_ready ?? health?.production_ready) && <div className="t-gate"><ShieldCheck size={17} aria-hidden="true" /><span><strong>Development workflow.</strong> Live trading is blocked until verified identity, capacity and production acceptance are connected.</span></div>}
+    {!demo && !loading && !workspace && <Panel title="Connect to continue" subtitle="Records, permissions and deadlines come from the trade service."><p>{health?.synthetic ? 'Use “Connect synthetic workspace” above to select an FPO, exporter, QC reviewer or finance reviewer. Each actor sees only its permitted records.' : 'Start the configured trade API and refresh this page. Production requires the verified identity integration.'}</p>{health?.blockers?.length ? <ul className="t-bullets">{health.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}</Panel>}
+    {demo && children}
+    {!demo && workspace && <Fragment key={`${workspace.principal.id}:${workspace.principal.organisation_id}:${workspace.principal.role}`}>{children}<footer className="t-footer">Server snapshot {timestamp(workspace.server_time)} · {workspace.synthetic ? 'Synthetic records' : 'Organisation-scoped records'} · Commands are validated and saved by the server.</footer></Fragment>}
   </div>
 }
 

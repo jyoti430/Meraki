@@ -92,3 +92,12 @@
 @media (prefers-reduced-motion: reduce) { .t-spin { animation: none; } }
 @media (max-width: 1100px) { .t-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .t-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .t-page .m-h1 { font-size: 28px; } .t-page .m-lead { font-size: 14px; } .t-page .m-card { padding: 18px; } .t-fields, .t-details { grid-template-columns: 1fr; } .t-nav { flex-wrap: nowrap; overflow-x: auto; } .t-nav a { white-space: nowrap; } .t-metric { padding: 13px; } .t-metric strong { font-size: 21px; } .t-session { padding: 13px; } .t-member-row { grid-template-columns: 1fr 1fr; } .t-member-row button { grid-column: 1 / -1; justify-self: end; } .t-opportunity { padding: 17px; } .t-filter { align-items: stretch; } .t-filter label { flex: 1; } .t-filter input, .t-filter select { width: 100%; min-width: 0; } .t-disclosure > div { padding: 14px; } }
+
+.demo-offer { display: grid; gap: 12px; }
+.demo-offer input { width: 100%; min-width: 0; min-height: 48px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; font: inherit; font-size: 16px; }
+@media (max-width: 640px) {
+  .t-filter label { flex: 1 1 100%; min-width: 0; }
+  .t-filter input, .t-filter select { font-size: 16px; min-height: 44px; }
+}
+.t-panel, .t-list { min-width: 0; }
+@media (max-width: 1100px) { .t-grid { grid-template-columns: minmax(0, 1fr); } }

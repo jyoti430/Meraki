@@ -1,3 +1,5 @@
+import ExporterLayout from '../../exporter/layout/ExporterLayout'
+import { useAuth } from '../../auth/context'
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
@@ -11,6 +13,7 @@ import { LANGUAGES, useI18n } from '../../i18n'
 import GoogleTranslate from '../../i18n/GoogleTranslate'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  const { account, preview } = useAuth()
   const { pathname, hash } = useLocation()
   const badge = useMessageBadge()
   const { t, lang, setLang } = useI18n()
@@ -21,7 +24,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id)
   }, [pathname, hash])
 
-  if (pathname === '/' || pathname.startsWith('/exporter') || pathname.startsWith('/trade')) return <>{children}</>
+  if ((pathname.startsWith('/trade') || pathname === '/auctions') && (account?.role ?? preview) === 'exporter') return <ExporterLayout>{children}</ExporterLayout>
+
+  if (pathname === '/' || pathname.startsWith('/exporter')) return <>{children}</>
 
   return <div className="m-shell">
     <GoogleTranslate />

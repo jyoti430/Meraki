@@ -17,7 +17,7 @@ export default function SegmentSelection() {
           <span>Plan crops, coordinate farmer participation and review buyer demand.</span>
           <span className="e-segment-cta">Enter FPO workspace <ArrowRight size={17} /></span>
         </Link>
-        <Link to="/trade/requirements" className="e-segment-card e-segment-exporter">
+        <Link to="/exporter" className="e-segment-card e-segment-exporter">
           <span className="e-segment-icon"><Building2 size={25} /></span>
           <span className="e-eyebrow">Procurement workspace</span>
           <strong>Exporter Portal</strong>

@@ -134,6 +134,7 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
                 "identity_provider": "unconfigured" if app.state.identity_provider is None else "configured",
                 "development_auth_enabled": development_auth_enabled,
                 "password_auth_enabled": password_auth_enabled,
+                "mobile_auth_enabled": password_auth_enabled,
                 "registration_enabled": (password_auth_enabled and os.getenv("MERAKI_ALLOW_REGISTRATION", "1" if environment == "development" else "0") == "1"),
                 "auction_mutations_enabled": environment == "development" and engine.dialect.name == "postgresql",
                 "production_ready": False}

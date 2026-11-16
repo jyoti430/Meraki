@@ -903,3 +903,8 @@ body { background: linear-gradient(180deg, #f7f9f4 0%, #f3f6ef 100%); }
   .m-resp em { display: none; }
   .m-resp { gap: 8px; }
 }
+/* Keep all seven primary destinations visible on narrow demo screens. */
+@media (max-width: 900px) {
+  .m-tabbar { grid-auto-flow: initial; grid-auto-columns: initial; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .m-tabbar a { min-width: 0; min-height: 44px; font-size: 9px; }
+}

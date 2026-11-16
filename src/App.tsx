@@ -1,3 +1,4 @@
+import { AuthProvider, AccountGate } from './auth/AuthProvider'
 import AppRoutes from './routes/AppRoutes'
 import AppLayout from './components/layout/AppLayout'
 import { BuyerOrdersProvider } from './context/BuyerOrdersContext'
@@ -10,7 +11,7 @@ import { SupplyPlanningProvider } from './context/SupplyPlanningContext'
 
 export default function App() {
   return (
-    <BuyerOrdersProvider>
+    <AuthProvider><AccountGate><BuyerOrdersProvider>
       <FarmersProvider>
         <FarmIntelligenceProvider>
           <SupplyPlanningProvider>
@@ -26,6 +27,6 @@ export default function App() {
           </SupplyPlanningProvider>
         </FarmIntelligenceProvider>
       </FarmersProvider>
-    </BuyerOrdersProvider>
+    </BuyerOrdersProvider></AccountGate></AuthProvider>
   )
 }
