@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Activity, Droplets, Thermometer, TriangleAlert } from 'lucide-react'
+import { Activity, DoorOpen, Droplets, Thermometer, TriangleAlert } from 'lucide-react'
 import { useI18n } from '../i18n'
 import './LiveSensors.css'
 
-type Device = { id: number; device_id: string; temperature: number; humidity: number; warnings: string[]; received_at: number; stale: boolean }
+type Device = { id: number; device_id: string; temperature: number; humidity: number; opened_count?: number | null; closed_count?: number | null; warnings: string[]; received_at: number; stale: boolean }
 type Snapshot = { server_time: number; stale_after_seconds: number; devices: Device[] }
 
 export default function LiveSensors() {
@@ -42,11 +42,11 @@ export default function LiveSensors() {
       return <section key={device.device_id} className="m-card sensor-device">
         <div className="sensor-heading"><h2>{device.device_id}</h2><span className={`m-tag ${error || stale ? 'm-tag-neutral' : 'm-tag-success'}`}>{error ? t('disconnected') : stale ? t('stale_check') : t('receiving')}</span></div>
         <p className="m-small">{t('last_received', { time: new Date(device.received_at * 1000).toLocaleString(), sec: Math.max(0, Math.floor(snapshot.server_time + age - device.received_at)) })}</p>
-        <div className="sensor-metrics"><div><Thermometer /><span>{t('temperature')}</span><strong>{device.temperature.toFixed(1)} <small>°C</small></strong></div><div><Droplets /><span>{t('humidity')}</span><strong>{device.humidity.toFixed(1)} <small>% RH</small></strong></div><div><TriangleAlert /><span>{t('device_warnings')}</span><strong>{device.warnings.length}</strong></div></div>
+        <div className="sensor-metrics"><div><Thermometer /><span>{t('temperature')}</span><strong>{device.temperature.toFixed(1)} <small>°C</small></strong></div><div><Droplets /><span>{t('humidity')}</span><strong>{device.humidity.toFixed(1)} <small>% RH</small></strong></div><div><DoorOpen /><span>Door open / closed</span><strong>{(device.opened_count ?? '—')} / {(device.closed_count ?? '—')}</strong></div><div><TriangleAlert /><span>{t('device_warnings')}</span><strong>{device.warnings.length}</strong></div></div>
         <div className="sensor-warnings"><h3>{t('warnings_reported')}</h3>{device.warnings.length ? <ul>{device.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul> : <p>{stale || error ? t('no_warnings_unknown') : t('no_warnings_latest')}</p>}</div>
       </section>
     })}</div>
     <section className="m-card"><h2>{t('extra_visibility')}</h2><p>{t('extra_visibility_desc')}</p><p className="m-small">{t('extra_visibility_note')}</p></section>
-    <details className="m-card sensor-setup"><summary>{t('esp_details')}</summary><p>{t('esp_desc', { url: endpoint })}</p><pre>{JSON.stringify({ device_id: 'crate-01', temperature: 26.4, humidity: 72, warnings: ['Inspect crate airflow'] }, null, 2)}</pre><p>{t('esp_desc2')}</p></details>
+    <details className="m-card sensor-setup"><summary>{t('esp_details')}</summary><p>USB mode (recommended): connect the sensor device to this system and start the gateway with <code>SENSOR_SERIAL_PORT=COM3</code> (Windows) or <code>/dev/ttyUSB0</code> and optional <code>SENSOR_BAUD</code> (default 9600). The device should send lines like:</p><pre>{`@SENSOR ${JSON.stringify({ device_id: 'crate-01', temperature: 26.4, humidity: 72.0, opened_count: 12, closed_count: 11, warnings: ['Temperature outside selected crop range', 'Crate door is OPEN'] }, null, 2)}`}</pre><p>HTTP push is also supported at <code>{endpoint}</code> with header <code>X-Sensor-Key</code> (see gateway logs for token).</p></details>
   </div>
 }
