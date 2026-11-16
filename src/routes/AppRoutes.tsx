@@ -2,13 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Auctions from '../pages/Auctions'
 import Overview from '../pages/Overview'
-import LiveSensors from '../pages/LiveSensors'
 import BuyerOrders from '../pages/BuyerOrders'
 import FarmersPlots from '../pages/FarmersPlots'
-import FarmIntelligence from '../pages/FarmIntelligence'
 import PlantingPlan from '../pages/PlantingPlan'
 import Messages from '../pages/Messages'
-import LaterModules from '../pages/LaterModules'
 import LotsInspection from '../pages/LotsInspection'
 import LabReleaseReview from '../pages/LabReleaseReview'
 import CratesShipments from '../pages/CratesShipments'
@@ -30,17 +27,8 @@ import LotReceive from '../pages/LotReceive'
 import LotDetails from '../pages/LotDetails'
 import LabReviewDetails from '../pages/LabReviewDetails'
 import SegmentSelection from '../exporter/pages/SegmentSelection'
-import ExporterLayout from '../exporter/layout/ExporterLayout'
-import ExporterDashboard from '../exporter/pages/Dashboard'
-import ExporterRequirements from '../exporter/pages/Requirements'
-import ExporterRequirementForm from '../exporter/pages/RequirementForm'
-import ExporterRequirementDetails from '../exporter/pages/RequirementDetails'
-import ExporterMarketplace from '../exporter/pages/Marketplace'
-import ExporterOrders from '../exporter/pages/Orders'
 import { useI18n } from '../i18n'
 const TradeRoutes = lazy(() => import('./TradeRoutes'))
-const LiveData = lazy(() => import('../pages/LiveData'))
-const YieldPoc = lazy(() => import('../pages/YieldPoc'))
 
 export default function AppRoutes() {
   const { t } = useI18n()
@@ -48,23 +36,17 @@ export default function AppRoutes() {
     <Route path="/" element={<SegmentSelection />} />
     <Route path="/auctions" element={<Auctions />} />
     <Route path="/exporter/auctions" element={<Navigate to="/auctions" replace />} />
+    <Route path="/exporter/*" element={<Navigate to="/trade/requirements" replace />} />
     <Route path="/fpo" element={<Overview />} />
-    <Route path="/exporter" element={<ExporterLayout><ExporterDashboard /></ExporterLayout>} />
-    <Route path="/exporter/requirements" element={<ExporterLayout><ExporterRequirements /></ExporterLayout>} />
-    <Route path="/exporter/requirements/new" element={<ExporterLayout><ExporterRequirementForm /></ExporterLayout>} />
-    <Route path="/exporter/requirements/:requirementId/edit" element={<ExporterLayout><ExporterRequirementForm /></ExporterLayout>} />
-    <Route path="/exporter/requirements/:requirementId" element={<ExporterLayout><ExporterRequirementDetails /></ExporterLayout>} />
-    <Route path="/exporter/marketplace" element={<ExporterLayout><ExporterMarketplace /></ExporterLayout>} />
-    <Route path="/exporter/orders" element={<ExporterLayout><ExporterOrders /></ExporterLayout>} />
-    <Route path="/sensors" element={<LiveSensors />} />
+    <Route path="/sensors" element={<Navigate to="/fpo" replace />} />
     <Route path="/demand" element={<BuyerOrders />} />
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
-    <Route path="/farm-intelligence" element={<FarmIntelligence />} />
-    <Route path="/yield-poc" element={<Suspense fallback={<p className="m-page" role="status">Loading synthetic yield demo…</p>}><YieldPoc /></Suspense>} />
-    <Route path="/live-data" element={<Suspense fallback={<p className="m-page" role="status">{t('loading_public')}</p>}><LiveData /></Suspense>} />
+    <Route path="/farm-intelligence" element={<Navigate to="/fpo" replace />} />
+    <Route path="/yield-poc" element={<Navigate to="/fpo" replace />} />
+    <Route path="/live-data" element={<Navigate to="/fpo" replace />} />
     <Route path="/messages" element={<Messages />} />
-    <Route path="/later" element={<LaterModules />} />
+    <Route path="/later" element={<Navigate to="/fpo" replace />} />
     <Route path="/trade/*" element={<Suspense fallback={<p className="m-page" role="status">{t('loading_trade')}</p>}><TradeRoutes /></Suspense>} />
     {/* Previous URLs keep working */}
     <Route path="/buyer-orders" element={<Navigate to="/demand" replace />} />
