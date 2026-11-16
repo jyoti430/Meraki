@@ -84,7 +84,7 @@ function SessionControl() {
   }
   return <div className="t-session">
     <div className="t-session-summary"><FlaskConical size={22} aria-hidden="true" /><div><strong>{workspace ? workspace.principal.display_name : 'Trade workspace'}</strong><span>{workspace ? `${workspace.principal.organisation_id} · ${workspace.principal.role.replace(/_/g, ' ')} · synthetic development session` : 'Choose an explicitly enabled development identity to explore the workflow.'}</span></div>
-      {health?.synthetic && <button className="m-btn m-btn-secondary m-btn-sm" type="button" onClick={() => { void open() }} disabled={pending}>{workspace ? 'Switch synthetic actor' : 'Connect synthetic workspace'}</button>}
+      {health?.synthetic && <button className="m-btn m-btn-secondary m-btn-sm" type="button" onClick={() => { void open() }} disabled={pending}>{workspace ? 'Change profile (synthetic actor)' : 'Connect synthetic workspace'}</button>}
       {workspace && <button className="m-btn m-btn-ghost m-btn-sm" type="button" onClick={() => cancel(true)}>End session</button>}
     </div>
     {expanded && <form onSubmit={(event) => { void submit(event) }} className="t-session-form">
@@ -102,7 +102,7 @@ export function TradeFrame({ title, subtitle, eyebrow, children }: { title: stri
   const { t } = useI18n()
   return <div className="m-page t-page">
     <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div><button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button></header>
-    <nav className="t-nav" aria-label="Trade workflow">{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
+    <nav className="t-nav" aria-label="Trade workflow"><Link to="/">Change workspace</Link><Link to="/fpo">FPO dashboard</Link>{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
     <SessionControl />
     {error && <Notice error>{error}{workspace && <p>Displayed records are from {timestamp(workspace.server_time)}. Refresh before submitting another action.</p>}</Notice>}
     {loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>{t('loading_trade')}</p></div>}

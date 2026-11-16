@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Gavel, Handshake, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
+import { Activity, ArrowLeftRight, Gavel, Handshake, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
@@ -13,6 +13,7 @@ export const navigation: { labelKey: TKey; shortKey: TKey; to: string; icon: any
   { labelKey: 'nav_messages', shortKey: 'short_messages', to: '/messages', icon: MessageSquareText },
   { labelKey: 'nav_trade', shortKey: 'short_trade', to: '/trade', icon: Handshake },
   { labelKey: 'nav_auctions', shortKey: 'short_auctions', to: '/auctions', icon: Gavel },
+  { labelKey: 'nav_sensors', shortKey: 'short_sensors', to: '/sensors', icon: Activity },
 ]
 
 export function useMessageBadge() {
@@ -45,6 +46,7 @@ export default function Sidebar({ pathname }: { pathname: string }) {
       </NavLink>)}
     </nav>
     <div className="m-sidebar-foot">
+      <NavLink to="/"><ArrowLeftRight size={15} /> Change workspace</NavLink>
       <div className="m-synthetic-note">{t('synthetic_note')}</div>
       <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} /> {t('reset_demo')}</button>
     </div>
