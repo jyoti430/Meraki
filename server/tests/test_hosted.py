@@ -250,3 +250,13 @@ def test_hosted_capabilities_match_identity_and_database(hosted_env, monkeypatch
         assert health['auction_mutations_enabled'] is False  # SQLite cannot arbitrate auctions.
         if password_auth:
             assert client.post('/api/v1/dev/sessions', json={}).status_code == 404
+
+
+def test_hosted_bluetooth_capability_cannot_enable_cloud_radio(hosted_env):
+    app = create_hosted_app(run_workers=False)
+    with TestClient(app) as client:
+        capability = client.get('/api/sensors/bluetooth').json()
+        assert capability['available'] is False and capability['enabled'] is False
+        assert capability['status'] == 'unavailable'
+        assert 'local gateway' in capability['reason']
+        assert client.post('/api/sensors/bluetooth', json={'enabled': True}).status_code == 503
