@@ -70,7 +70,7 @@ Acceptance: farmer decline and overlapping plots prevent allocation; timing/grad
 
 Part 1 slice (`src/farmdata/agronomy.ts`, `projections.ts`): explainable consent/timing/water/soil reasons, low/base/high weekly projections with grade loss applied once and additive columns, and decision-date filtering. Crop alternatives, accepted-versus-planted distinctions across the order journey and reviewed local agronomy remain unfinished; labels state that confidence is not calibrated.
 
-### T04 Backend organisation access and ledger — IN_PROGRESS (shared foundation on main; integration pending)
+### T04 Backend organisation access and ledger — IN_PROGRESS (shared foundation merged; application wiring pending)
 
 Dependencies: T01 schema. Required before live multi-user transactions.
 
@@ -78,7 +78,7 @@ Deliver: FastAPI service, migrations, PostgreSQL/PostGIS where needed, private d
 
 Acceptance: two organisations cannot access each other's private records; concurrent reservations cannot oversell; retries cannot duplicate allocations; expiry/cancellation releases correctly; malformed amounts and units fail; backup restore works. Tests must use a real database. Preserve useful frontend workflows via an explicit API boundary.
 
-### T05 Exporter workspace and market discovery — IN_PROGRESS (discovery API on main)
+### T05 Exporter workspace and market discovery — IN_PROGRESS (discovery API merged)
 
 Dependencies: T01; T04 for shared persistence.
 
@@ -128,7 +128,7 @@ Deliver: acceptance/downgrade/rejection reasons, dispute and reinspection flow, 
 
 Acceptance: weights and money reconcile; claims do not silently rewrite dispatch evidence; payment screenshots remain unverified until reconciled; refunds/adjustments are auditable; FPO receipt and farmer disbursal are distinct; cosmetic recovery does not imply unsafe produce is saleable.
 
-### T11 Worker reliability and operational readiness — IN_PROGRESS (expiry foundation on main; auction worker on Kireeti)
+### T11 Worker reliability and operational readiness — IN_PROGRESS (expiry and auction workers merged)
 
 Dependencies: T04; deliver incrementally alongside T02/T06/T08–T10.
 
@@ -165,3 +165,7 @@ Agricultural foundation history and `feature/planning` are merged into `Kireeti`
 ## 16 November 2026 Part 2 remote update audit
 
 Reviewed main `e27051d` / Part 2 `496f97b`, merged via [PR #6](https://github.com/jyoti430/Meraki/pull/6). Shared foundation code exists in `server/meraki/` with Alembic and projection/reservation fixtures; T04/T05/T11 are partial implementations. This code is not yet integrated into the audited Kireeti application. [Main CI 43790402925](https://github.com/jyoti430/Meraki/actions/runs/43790402925) passed 10 backend tests with one skipped, then separately passed the configured PostgreSQL concurrent-reservation test. This supersedes the remote documentation's unverified claim for that specific check, not for full production acceptance. External identity, production document storage, farm/QC/trade adapters and shared atomic transaction integration remain unfinished. Preserve existing Part 1/3 status evidence; the older main ledger does not include all Kireeti implementations. See [updated remaining tasks](docs/REMAINING_TASKS.md).
+
+## 16 November 2026 Part 2 integration result
+
+Merged main `e27051d` into Kireeti in `5dd2b23`, including Part 2 `496f97b`. Both API implementations/CI jobs and current dependency pins are preserved; added Alembic/multipart and Uvicorn extras. Shared foundation is now in this branch, superseding the earlier remote-only audit. Local validation: 70 frontend tests/build, 144 Python tests plus 10 subtests with one PostgreSQL-only skip, agricultural/model report checks, and disposable SQLite migration upgrade/downgrade/upgrade passed. Fresh CI results belong to the latest work-log checkpoint. T04/T05/T11 remain IN_PROGRESS: merging source does not connect frontend farm/QC records or Part 3 identity/capacity/reservations to the shared backend. Next: the projection publisher, verified identity/capacity adapters and one shared atomic reservation transaction boundary. Production and field gates remain open.

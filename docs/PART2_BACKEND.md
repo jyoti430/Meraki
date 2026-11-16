@@ -40,7 +40,7 @@ In production, set `MERAKI_ENV=production`, configure the database and run migra
 ## Run API and worker
 
 ```sh
-uvicorn server.meraki.app:app --reload --port 8000 --env-file .env
+uvicorn server.meraki.app:app --reload --port 8003 --env-file .env
 python -m server.meraki.worker --interval 1
 ```
 
@@ -101,3 +101,9 @@ Verification note (16 November 2026): user reported 7 passed, 1 skipped with Pyt
 - Harvested lot release is not bound to Kireeti's QC records; trust boundary needs a shared transaction adapter.
 - Worker handles expiry jobs only; broader imports, notifications and projection tasks need domain-owned handlers.
 - No successful PostgreSQL concurrency, migration upgrade, backup/restore, performance, security or deployment evidence in this workspace yet.
+
+## Kireeti integration checkpoint (16 November 2026)
+
+Part 2 is merged into Kireeti in `5dd2b23`. Port 8003 above avoids the separate trade API on 8000. Both services still have independent application/transaction boundaries; no frontend projection publisher or trusted trade identity/capacity/QC adapter was added by the merge. Existing dependency pins are retained with Alembic/multipart and Uvicorn extras added.
+
+The earlier local-only limitations above are historical: upstream main CI 43790402925 passed the dedicated PostgreSQL reservation concurrency test. On merged Kireeti, 144 Python tests plus 10 subtests passed locally with the PostgreSQL-only test skipped; disposable SQLite Alembic upgrade/downgrade/upgrade passed. Fresh merged PostgreSQL CI is recorded in WORK_LOG.md. These checks do not establish production migration, backup/restore, identity-provider, object-store or deployment acceptance.
