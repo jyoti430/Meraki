@@ -1,4 +1,5 @@
-"""Sensor gateway. Reads USB serial (@SENSOR JSON) and/or LAN HTTP pushes; independent of synthetic trade identities."""
+"""Sensor gateway. Reads BLE (@SENSOR JSON) and/or LAN HTTP pushes; independent of synthetic trade identities."""
+import asyncio
 import hmac
 import os
 import sqlite3
@@ -11,6 +12,9 @@ from typing import Annotated, Optional
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 
+DEVICE_NAME = os.getenv('SENSOR_BLE_NAME', 'AgriTrust-Nexus')
+TX_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+
 class Reading(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     device_id: Annotated[str, Field(pattern=r'^[A-Za-z0-9_-]{1,64}$')] = 'crate-01'
@@ -20,10 +24,9 @@ class Reading(BaseModel):
     closed_count: Optional[Annotated[int, Field(strict=True, ge=0, le=10_000_000)]] = None
     warnings: list[Annotated[StrictStr, Field(min_length=1, max_length=200)]] = Field(max_length=20)
 
-class SerialConnect(BaseModel):
+class BleConnect(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    port: Annotated[str, Field(max_length=120)] = ''
-    baud: Annotated[int, Field(strict=True, ge=1200, le=921600)] = 115200
+    enabled: bool = True
 
 def _store_reading(database_path, clock, reading: Reading):
     received_at = clock()
@@ -32,109 +35,114 @@ def _store_reading(database_path, clock, reading: Reading):
         db.execute('DELETE FROM readings WHERE device_id=? AND id NOT IN (SELECT id FROM readings WHERE device_id=? ORDER BY id DESC LIMIT 120)', (reading.device_id, reading.device_id))
     return received_at
 
-def _list_ports():
+async def _ble_main(database_path, clock, get_enabled, state, state_lock, stop_event: threading.Event):
     try:
-        from serial.tools import list_ports
-        return [dict(port=p.device, description=p.description or '', hwid=p.hwid or '') for p in list_ports.comports()]
-    except Exception:
-        return []
-
-def _serial_loop(database_path, clock, get_config, state, state_lock, stop_event: threading.Event):
-    try:
-        import serial
+        from bleak import BleakScanner, BleakClient
     except Exception as e:
         with state_lock:
             state['status'] = 'error'
-            state['error'] = f'pyserial not installed: {e}'
+            state['error'] = f'bleak not installed: {e}'
         return
     while not stop_event.is_set():
-        port, baud = get_config()
-        if not port:
+        if not get_enabled():
             with state_lock:
-                if state['status'] not in ('disconnected',):
-                    state['status'] = 'disconnected'
+                state['status'] = 'disconnected'
                 state['error'] = ''
-            if stop_event.wait(1):
-                break
+            await asyncio.sleep(1)
             continue
-        ser = None
         try:
-            ser = serial.Serial(port, baudrate=baud, timeout=1)
             with state_lock:
-                state['status'] = 'connected'
+                state['status'] = 'scanning'
                 state['error'] = ''
-                state['port'] = port
-                state['baud'] = baud
-            print(f'[sensors] USB serial connected: {port} @ {baud}')
-            while not stop_event.is_set():
-                cur_port, cur_baud = get_config()
-                if cur_port != port or cur_baud != baud:
-                    break
-                raw = ser.readline()
-                if not raw:
-                    continue
-                try:
-                    line = raw.decode('utf-8', errors='ignore').strip()
-                except Exception:
-                    continue
-                if '@SENSOR' not in line:
-                    continue
-                payload = line.split('@SENSOR', 1)[1].strip()
-                if not payload:
-                    continue
-                try:
-                    data = json.loads(payload)
-                    reading = Reading.model_validate(data)
-                    _store_reading(database_path, clock, reading)
-                    with state_lock:
-                        state['last_ok_at'] = clock()
-                except Exception as e:
-                    with state_lock:
-                        state['error'] = f'Ignored invalid reading: {e}'
-        except Exception as e:
-            if not stop_event.is_set():
+            print(f'[sensors] Scanning for {DEVICE_NAME}...')
+            device = await BleakScanner.find_device_by_name(DEVICE_NAME, timeout=10)
+            if device is None:
                 with state_lock:
-                    state['status'] = 'connecting'
+                    state['status'] = 'not_found'
+                    state['error'] = 'Device not found. Check power and Bluetooth.'
+                await asyncio.sleep(3)
+                continue
+            with state_lock:
+                state['status'] = 'connecting'
+            print(f'[sensors] Found: {device.name}; connecting...')
+            async with BleakClient(device, disconnected_callback=lambda _c: None) as client:
+                with state_lock:
+                    state['status'] = 'connected'
+                    state['device'] = device.name or DEVICE_NAME
+                    state['error'] = ''
+                print('[sensors] BLE CONNECTED; waiting for sensor data')
+
+                def on_data(_sender, data: bytearray):
+                    try:
+                        message = data.decode('utf-8', errors='replace').strip()
+                    except Exception:
+                        return
+                    if '@SENSOR' not in message:
+                        return
+                    payload = message.split('@SENSOR', 1)[1].strip()
+                    if not payload:
+                        return
+                    try:
+                        reading = Reading.model_validate(json.loads(payload))
+                        _store_reading(database_path, clock, reading)
+                        with state_lock:
+                            state['last_ok_at'] = clock()
+                    except Exception as e:
+                        with state_lock:
+                            state['error'] = f'Ignored invalid reading: {e}'
+
+                await client.start_notify(TX_UUID, on_data)
+                while client.is_connected and not stop_event.is_set() and get_enabled():
+                    await asyncio.sleep(1)
+                try:
+                    if client.is_connected:
+                        await client.stop_notify(TX_UUID)
+                except Exception:
+                    pass
+        except Exception as e:
+            if not stop_event.is_set() and get_enabled():
+                with state_lock:
+                    state['status'] = 'error'
                     state['error'] = str(e)
-                print(f'[sensors] Serial {port} unavailable: {e}; retrying in 2s')
-        finally:
-            try:
-                if ser and ser.is_open:
-                    ser.close()
-            except Exception:
-                pass
-        cur_port, _ = get_config()
-        if not stop_event.is_set() and cur_port == port:
-            stop_event.wait(2)
+                print(f'[sensors] BLE error: {e}; retrying')
+        if not stop_event.is_set() and get_enabled():
+            await asyncio.sleep(2)
     with state_lock:
         state['status'] = 'disconnected'
 
-def create_app(database_path=None, token=None, clock=time.time, serial_port=None, serial_baud=None):
+def _ble_thread(database_path, clock, get_enabled, state, state_lock, stop_event):
+    try:
+        asyncio.run(_ble_main(database_path, clock, get_enabled, state, state_lock, stop_event))
+    except Exception as e:
+        with state_lock:
+            state['status'] = 'error'
+            state['error'] = str(e)
+
+def create_app(database_path=None, token=None, clock=time.time, ble_enabled=None):
     database_path = str(database_path or os.getenv('SENSOR_DATABASE_PATH', 'server/sensors.sqlite3'))
     token = token if token is not None else os.getenv('SENSOR_PUSH_TOKEN', '')
-    env_port = serial_port if serial_port is not None else os.getenv('SENSOR_SERIAL_PORT', '').strip()
-    env_baud = int(serial_baud if serial_baud is not None else os.getenv('SENSOR_BAUD', '115200'))
+    initial_enabled = str(os.getenv('SENSOR_BLE_ENABLED', '1' if ble_enabled is None else ('1' if ble_enabled else '0'))).lower() in ('1','true','yes','on')
     Path(database_path).parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(database_path) as db:
         db.execute('CREATE TABLE IF NOT EXISTS readings (id INTEGER PRIMARY KEY AUTOINCREMENT, device_id TEXT NOT NULL, received_at REAL NOT NULL, payload TEXT NOT NULL)')
 
     cfg_lock = threading.Lock()
-    serial_cfg = {'port': env_port, 'baud': env_baud}
+    cfg = {'enabled': initial_enabled}
     state_lock = threading.Lock()
-    serial_state = {'status': 'disconnected', 'port': env_port, 'baud': env_baud, 'error': '', 'last_ok_at': None}
+    ble_state = {'status': 'disconnected', 'device': DEVICE_NAME, 'error': '', 'last_ok_at': None}
     stop_event = threading.Event()
     thread = None
 
-    def get_config():
+    def get_enabled():
         with cfg_lock:
-            return serial_cfg['port'], serial_cfg['baud']
+            return cfg['enabled']
 
     def start_thread():
         nonlocal thread
         if thread and thread.is_alive():
             return
         stop_event.clear()
-        thread = threading.Thread(target=_serial_loop, args=(database_path, clock, get_config, serial_state, state_lock, stop_event), daemon=True)
+        thread = threading.Thread(target=_ble_thread, args=(database_path, clock, get_enabled, ble_state, state_lock, stop_event), daemon=True)
         thread.start()
 
     @asynccontextmanager
@@ -143,7 +151,7 @@ def create_app(database_path=None, token=None, clock=time.time, serial_port=None
         yield
         stop_event.set()
         if thread:
-            thread.join(timeout=2)
+            thread.join(timeout=3)
 
     app = FastAPI(title='Meraki live crate sensors', lifespan=lifespan)
 
@@ -163,29 +171,36 @@ def create_app(database_path=None, token=None, clock=time.time, serial_port=None
         now = clock()
         return {'server_time': now, 'stale_after_seconds': 30, 'devices': [dict(json.loads(payload), id=key, received_at=stamp, stale=now-stamp>30) for key, stamp, payload in rows]}
 
-    @app.get('/api/sensors/serial')
-    def serial_status():
+    @app.get('/api/sensors/bluetooth')
+    def ble_status():
         with state_lock:
-            st = dict(serial_state)
+            st = dict(ble_state)
         with cfg_lock:
-            st['port'] = serial_cfg['port']
-            st['baud'] = serial_cfg['baud']
-        st['ports'] = _list_ports()
+            st['enabled'] = cfg['enabled']
+        st['device_name'] = DEVICE_NAME
+        st['tx_uuid'] = TX_UUID
         return st
 
-    @app.post('/api/sensors/serial')
-    def serial_connect(cfg: SerialConnect):
-        port = (cfg.port or '').strip()
+    @app.post('/api/sensors/bluetooth')
+    def ble_connect(cfg_in: BleConnect):
         with cfg_lock:
-            serial_cfg['port'] = port
-            serial_cfg['baud'] = int(cfg.baud)
+            cfg['enabled'] = bool(cfg_in.enabled)
         with state_lock:
-            serial_state['port'] = port
-            serial_state['baud'] = int(cfg.baud)
-            serial_state['status'] = 'connecting' if port else 'disconnected'
-            serial_state['error'] = ''
+            ble_state['status'] = 'scanning' if cfg_in.enabled else 'disconnected'
+            if not cfg_in.enabled:
+                ble_state['error'] = ''
         start_thread()
-        return serial_status()
+        return ble_status()
+
+    # compatibility
+    @app.get('/api/sensors/serial')
+    def serial_status_compat():
+        st = ble_status()
+        return {'status': st.get('status'), 'port': st.get('device_name'), 'baud': 0, 'error': st.get('error'), 'ports': [], 'last_ok_at': st.get('last_ok_at')}
+
+    @app.post('/api/sensors/serial')
+    def serial_connect_compat():
+        return serial_status_compat()
 
     return app
 

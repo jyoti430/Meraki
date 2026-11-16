@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Activity, DoorOpen, Droplets, Plug, RefreshCw, Thermometer, TriangleAlert } from 'lucide-react'
+import { Activity, Bluetooth, DoorOpen, Droplets, RefreshCw, Thermometer, TriangleAlert } from 'lucide-react'
 import { useI18n } from '../i18n'
 import './LiveSensors.css'
 import { apiUrl } from '../api/config'
-import { fetchSensorSnapshot, type SensorSnapshot as Snapshot, type SerialState } from '../sensors/client'
+import { fetchSensorSnapshot, type SensorSnapshot as Snapshot } from '../sensors/client'
+
+type BleState = { status: string; enabled: boolean; device: string; device_name: string; tx_uuid: string; error: string; last_ok_at: number | null }
 
 export default function LiveSensors() {
   const { t } = useI18n()
@@ -11,35 +13,24 @@ export default function LiveSensors() {
   const [error, setError] = useState('')
   const [refresh, setRefresh] = useState(0)
   const [age, setAge] = useState(0)
-  const [serial, setSerial] = useState<SerialState | null>(null)
-  const [selPort, setSelPort] = useState('')
-  const [selBaud, setSelBaud] = useState('115200')
-  const [serialBusy, setSerialBusy] = useState(false)
-  const [serialError, setSerialError] = useState('')
+  const [ble, setBle] = useState<BleState | null>(null)
+  const [busy, setBusy] = useState(false)
 
-  async function loadSerial() {
+  async function loadBle() {
     try {
-      const r = await fetch(apiUrl('/api/sensors/serial'), { cache: 'no-store' })
-      if (!r.ok) throw new Error(`USB gateway returned HTTP ${r.status}. USB devices require a local gateway.`)
-      const d: SerialState = await r.json()
-      if (!Array.isArray(d.ports) || typeof d.status !== 'string') throw new Error('Invalid USB gateway response.')
-      setSerial(d); setSerialError('')
-      setSelPort(p => p || d.port || '')
-    } catch (cause) { setSerial(null); setSerialError(cause instanceof Error ? cause.message : 'USB gateway unavailable.') }
+      const r = await fetch(apiUrl('/api/sensors/bluetooth'), { cache: 'no-store' })
+      if (r.ok) setBle(await r.json())
+    } catch {}
+  }
+  async function setBleEnabled(enabled: boolean) {
+    setBusy(true)
+    try {
+      const r = await fetch(apiUrl('/api/sensors/bluetooth'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) })
+      if (r.ok) setBle(await r.json())
+    } finally { setBusy(false) }
   }
 
-  async function connectSerial(port: string) {
-    const baud = Number(selBaud)
-    if (!Number.isSafeInteger(baud) || baud < 1200 || baud > 921600) { setSerialError('Baud must be a whole number between 1200 and 921600.'); return }
-    setSerialBusy(true)
-    try {
-      const r = await fetch(apiUrl('/api/sensors/serial'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ port, baud }) })
-      if (!r.ok) throw new Error(`USB connection was not accepted (HTTP ${r.status}).`)
-      const d: SerialState = await r.json(); setSerial(d); setSelPort(d.port || ''); setSelBaud(String(d.baud)); setSerialError('')
-    } catch (cause) { setSerialError(cause instanceof Error ? cause.message : 'USB connection failed.') } finally { setSerialBusy(false) }
-  }
-
-  useEffect(() => { loadSerial(); const tmr = setInterval(loadSerial, 3000); return () => clearInterval(tmr) }, [])
+  useEffect(() => { loadBle(); const tmr = setInterval(loadBle, 3000); return () => clearInterval(tmr) }, [])
 
   useEffect(() => {
     let stopped = false
@@ -60,35 +51,22 @@ export default function LiveSensors() {
 
   const sensorEndpoint = apiUrl('/api/sensors')
   const endpoint = typeof window === 'undefined' ? sensorEndpoint : new URL(sensorEndpoint, window.location.origin).href
-  const ports = serial?.ports || []
-  const hasSel = ports.some(p => p.port === selPort)
 
   return <div className="m-page sensor-page">
     <header><div className="m-eyebrow">{t('nav_sensors')}</div><h1 className="m-h1">{t('sensors_title')}</h1><p className="m-lead">{t('sensors_sub')}</p></header>
 
-    <section className="m-card" aria-label="USB serial connection">
+    <section className="m-card" aria-label="Bluetooth connection">
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Plug size={22} /><div><strong>USB serial (COM port)</strong><div className="m-small">Select the device port and baud (default 115200) to read <code>@SENSOR</code> data.</div></div></div>
-        <span className={`m-tag ${serial?.status === 'connected' ? 'm-tag-success' : 'm-tag-neutral'}`}>{serial?.status || 'unknown'}</span>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Bluetooth size={22} /><div><strong>Bluetooth (BLE)</strong><div className="m-small">Scans and connects to <code>{ble?.device_name || 'AgriTrust-Nexus'}</code> (Nordic UART TX <code>{ble?.tx_uuid || '6E400003-B5A3-F393-E0A9-E50E24DCCA9E'}</code>) and reads <code>@SENSOR</code> data.</div></div></div>
+        <span className={`m-tag ${ble?.status === 'connected' ? 'm-tag-success' : 'm-tag-neutral'}`}>{ble?.status || 'unknown'}</span>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
-        <select aria-label="USB serial port" disabled={!serial || serial.available === false} value={hasSel || !selPort ? selPort : selPort} onChange={e => setSelPort(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, minWidth: 220 }}>
-          <option value="">-- Select COM port --</option>
-          {selPort && !hasSel && <option value={selPort}>{selPort} (current)</option>}
-          {ports.map(p => <option key={p.port} value={p.port}>{p.port}{p.description ? ` — ${p.description}` : ''}</option>)}
-        </select>
-        <label className="m-small" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>Baud
-          <input disabled={!serial || serial.available === false} value={selBaud} onChange={e => setSelBaud(e.target.value)} list="baud-options" style={{ width: 110, padding: '8px 10px', borderRadius: 8 }} />
-        </label>
-        <datalist id="baud-options">{['9600','19200','38400','57600','115200','230400','460800','921600'].map(b => <option key={b} value={b} />)}</datalist>
-        <button type="button" className="m-btn" disabled={serialBusy || !selPort || !serial || serial.available === false} onClick={() => connectSerial(selPort)}>Connect</button>
-        <button type="button" className="m-btn" disabled={serialBusy || !serial || serial.available === false} onClick={() => connectSerial('')}>Disconnect</button>
-        <button type="button" className="m-btn" onClick={loadSerial}><RefreshCw size={15} /> Refresh ports</button>
+        <button type="button" className="m-btn" disabled={busy} onClick={() => setBleEnabled(true)}>Connect / Scan</button>
+        <button type="button" className="m-btn" disabled={busy} onClick={() => setBleEnabled(false)}>Disconnect</button>
+        <button type="button" className="m-btn" onClick={loadBle}><RefreshCw size={15} /> Refresh status</button>
       </div>
-      {serial?.available === false && <p role="note" className="m-small">{serial.reason || 'USB ports belong to a local gateway. Render cannot access the laptop USB device.'}</p>}
-      {serialError && <p role="alert" className="sensor-alert">{serialError}</p>}
-      {serial?.error && <p role="alert" className="sensor-alert" style={{ marginTop: 8 }}>{serial.error}</p>}
-      {serial?.port && <p className="m-small" style={{ marginTop: 6 }}>Configured: <strong>{serial.port}</strong> @ {serial.baud} baud</p>}
+      {ble?.error && <p role="alert" className="sensor-alert" style={{ marginTop: 8 }}>{ble.error}</p>}
+      <p className="m-small" style={{ marginTop: 6 }}>Device: <strong>{ble?.device || ble?.device_name || 'AgriTrust-Nexus'}</strong> · Enabled: {String(ble?.enabled ?? true)}{ble?.last_ok_at ? ` · Last reading: ${new Date(ble.last_ok_at * 1000).toLocaleString()}` : ''}</p>
     </section>
 
     <section className="m-card sensor-status" aria-label="Gateway status"><Activity size={22} /><div><strong>{error ? t('sensors_status_disconnected') : snapshot ? t('sensors_status_active') : t('sensors_status_connecting')}</strong><p className="m-small">{t('sensors_status_desc')}</p></div><button type="button" className="m-btn" onClick={() => setRefresh(value => value + 1)}>{t('reconnect')}</button></section>
@@ -104,8 +82,6 @@ export default function LiveSensors() {
       </section>
     })}</div>
     <section className="m-card"><h2>{t('extra_visibility')}</h2><p>{t('extra_visibility_desc')}</p><p className="m-small">{t('extra_visibility_note')}</p></section>
-    <details className="m-card sensor-setup"><summary>{t('esp_details')}</summary>
-      {serial?.available === false ? <p>{serial.reason || 'This hosted API has no connected sensor gateway.'} Device uploads are unavailable here. Run the authorised local gateway to use USB or HTTP sensor ingestion.</p> : serial ? <><p>USB mode: choose the COM port above (baud default <strong>115200</strong>). The device should send lines like:</p><pre>{`@SENSOR ${JSON.stringify({ device_id: 'crate-01', temperature: 26.4, humidity: 72.0, opened_count: 12, closed_count: 11, warnings: ['Temperature outside selected crop range', 'Crate door is OPEN'] }, null, 2)}`}</pre><p>The local gateway supports HTTP push at <code>{endpoint}</code> with header <code>X-Sensor-Key</code> (see gateway logs for token).</p></> : <p>Connect to the sensor gateway before configuring device uploads. No sensor readings are substituted while the gateway is unavailable.</p>}
-    </details>
+    <details className="m-card sensor-setup"><summary>{t('esp_details')}</summary><p>Bluetooth mode: gateway scans for <strong>AgriTrust-Nexus</strong> and subscribes to Nordic UART TX (<code>6E400003-B5A3-F393-E0A9-E50E24DCCA9E</code>). Device should send notifications like:</p><pre>{`@SENSOR ${JSON.stringify({ device_id: 'crate-01', temperature: 26.4, humidity: 72.0, opened_count: 12, closed_count: 11, warnings: ['Temperature outside selected crop range', 'Crate door is OPEN'] }, null, 2)}`}</pre><p>HTTP push is also supported at <code>{endpoint}</code> with header <code>X-Sensor-Key</code> (see gateway logs for token).</p></details>
   </div>
 }
