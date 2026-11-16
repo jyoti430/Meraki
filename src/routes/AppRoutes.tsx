@@ -22,10 +22,26 @@ import SupplyPlanning from '../pages/SupplyPlanning'
 import SupplyPlanCreate from '../pages/SupplyPlanCreate'
 import SupplyPlanPreview from '../pages/SupplyPlanPreview'
 import SupplyPlanDetails from '../pages/SupplyPlanDetails'
+import SegmentSelection from '../exporter/pages/SegmentSelection'
+import ExporterLayout from '../exporter/layout/ExporterLayout'
+import ExporterDashboard from '../exporter/pages/Dashboard'
+import ExporterRequirements from '../exporter/pages/Requirements'
+import ExporterRequirementForm from '../exporter/pages/RequirementForm'
+import ExporterRequirementDetails from '../exporter/pages/RequirementDetails'
+import ExporterMarketplace from '../exporter/pages/Marketplace'
+import ExporterOrders from '../exporter/pages/Orders'
 
 export default function AppRoutes() {
   return <Routes>
-    <Route path="/" element={<Overview />} />
+    <Route path="/" element={<SegmentSelection />} />
+    <Route path="/fpo" element={<Overview />} />
+    <Route path="/exporter" element={<ExporterLayout><ExporterDashboard /></ExporterLayout>} />
+    <Route path="/exporter/requirements" element={<ExporterLayout><ExporterRequirements /></ExporterLayout>} />
+    <Route path="/exporter/requirements/new" element={<ExporterLayout><ExporterRequirementForm /></ExporterLayout>} />
+    <Route path="/exporter/requirements/:requirementId/edit" element={<ExporterLayout><ExporterRequirementForm /></ExporterLayout>} />
+    <Route path="/exporter/requirements/:requirementId" element={<ExporterLayout><ExporterRequirementDetails /></ExporterLayout>} />
+    <Route path="/exporter/marketplace" element={<ExporterLayout><ExporterMarketplace /></ExporterLayout>} />
+    <Route path="/exporter/orders" element={<ExporterLayout><ExporterOrders /></ExporterLayout>} />
     <Route path="/demand" element={<BuyerOrders />} />
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />

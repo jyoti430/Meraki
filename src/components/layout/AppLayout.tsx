@@ -18,11 +18,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id)
   }, [pathname, hash])
 
+  if (pathname === '/' || pathname.startsWith('/exporter')) return <>{children}</>
+
   return <div className="m-shell">
     <Sidebar pathname={pathname} />
     <div>
       <header className="m-mobile-bar">
-        <NavLink to="/" className="m-brand"><MerakiMark size={30} /><div className="m-brand-name" style={{ fontSize: 21 }}>Meraki</div></NavLink>
+        <NavLink to="/fpo" className="m-brand"><MerakiMark size={30} /><div className="m-brand-name" style={{ fontSize: 21 }}>Meraki</div></NavLink>
         <span className="m-tag m-tag-neutral">{SEASON_LABEL}</span>
       </header>
       <main className="m-main">{children}</main>
