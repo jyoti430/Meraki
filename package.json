@@ -17,7 +17,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run --exclude tests/labReviewService.test.cjs && npm run test:lab",
-    "test:lab": "node scripts/runLabReviewTests.cjs"
+    "test:lab": "node scripts/runLabReviewTests.cjs",
+    "model:poc:train": "python scripts/train_synthetic_yield.py",
+    "model:poc:check": "python scripts/train_synthetic_yield.py --check"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

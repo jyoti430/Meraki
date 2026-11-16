@@ -49,3 +49,7 @@ Latest Part 2 merge: 54 Vitest tests plus 16 Node tests, TypeScript/Vite build, 
 - Final functional merge: 54 Vitest tests and 16 Node lab-review tests passed; TypeScript/Vite build passed; 134 Python tests plus 10 subtests passed on local SQLite; agricultural artifact and model-report checks passed. Model readiness remains blocked. Existing bundle-size and upstream TestClient deprecation warnings remain.
 - Browser: incoming lot list, receive-produce no-confirmed-plan guard, lab-review empty state and preserved farm-intelligence route rendered. This was a representative route/guard check, not an end-to-end receipt/lab/dispatch exercise. Incoming service tests cover laboratory release constraints.
 - PostgreSQL and fresh CI: see the delivery checkpoint in [WORK_LOG.md](WORK_LOG.md). Local SQLite results alone do not establish PostgreSQL acceptance.
+
+## Synthetic trained yield POC update — 16 November 2026
+
+The requested dummy-data trained demonstration now exists at `/yield-poc`: deterministic generation, real coefficient fitting, separate farm/time validation and test splits, downloadable dataset/model card, browser prediction/explanations and dummy supply adjustments. See [SYNTHETIC_YIELD_POC.md](SYNTHETIC_YIELD_POC.md). This completes a synthetic demonstration slice only. T12's real-data training, permissions, independent evaluation, calibrated uncertainty and pilot tasks above remain unchanged; this does not supply any eligible real farm outcomes or connect predictions to actual reservations/plans.

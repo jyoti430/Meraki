@@ -20,6 +20,8 @@ const en = {
   nav_demand: "Buyer Demand",
   nav_farmers: "Farmers & Farms",
   nav_farm_data: "Farm intelligence",
+  nav_yield_poc: "Yield model POC",
+  short_yield_poc: "Yield POC",
   nav_public_data: "Public data & models",
   nav_messages: "Messages",
   nav_trade: "Trade & fulfilment",

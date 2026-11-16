@@ -45,6 +45,7 @@ jobs:
       - run: python -m pip install -r server/requirements.txt
       - run: python scripts/build_agricultural_data.py --check
       - run: python -m model_validation --check
+      - run: python scripts/train_synthetic_yield.py --check
       - run: python -m pytest server/tests tests -q
 
   backend-tests:

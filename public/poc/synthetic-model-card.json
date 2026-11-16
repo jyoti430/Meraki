@@ -1,0 +1,528 @@
+{
+  "version": "synthetic-okra-ridge-v1",
+  "synthetic": true,
+  "production_allowed": false,
+  "seed": 4727,
+  "crop": "Okra",
+  "region": "Fictional demonstration region",
+  "target": "Gross harvest kg/ha before sowing",
+  "algorithm": "Standardized ridge regression with engineered pH and temperature terms",
+  "features": [
+    "pH deviation squared",
+    "Organic carbon",
+    "Available nitrogen",
+    "Planned irrigation",
+    "Prior rainfall",
+    "Temperature deviation squared"
+  ],
+  "inputs": [
+    {
+      "key": "soil_ph",
+      "label": "Soil pH",
+      "unit": "pH",
+      "min": 5.0,
+      "max": 8.0,
+      "default": 6.5
+    },
+    {
+      "key": "organic_carbon_pct",
+      "label": "Organic carbon",
+      "unit": "%",
+      "min": 0.3,
+      "max": 2.5,
+      "default": 1.2
+    },
+    {
+      "key": "available_n_mg_kg",
+      "label": "Available nitrogen",
+      "unit": "mg/kg",
+      "min": 40.0,
+      "max": 280.0,
+      "default": 180.0
+    },
+    {
+      "key": "planned_irrigation_pct",
+      "label": "Planned irrigation coverage",
+      "unit": "%",
+      "min": 30.0,
+      "max": 100.0,
+      "default": 80.0
+    },
+    {
+      "key": "historical_rain_mm",
+      "label": "Prior climate reference rainfall",
+      "unit": "mm / growing window",
+      "min": 250.0,
+      "max": 1000.0,
+      "default": 650.0
+    },
+    {
+      "key": "historical_temp_c",
+      "label": "Prior climate reference temperature",
+      "unit": "\u00b0C",
+      "min": 22.0,
+      "max": 33.0,
+      "default": 27.0
+    }
+  ],
+  "model": {
+    "means": [
+      0.7687367521,
+      1.4125604167,
+      149.503,
+      66.75563125,
+      615.1423645833,
+      9.8500081771
+    ],
+    "scales": [
+      0.666630885,
+      0.6160485747,
+      66.567605798,
+      20.9722084049,
+      211.7858401665,
+      9.4564800188
+    ],
+    "coefficients": [
+      8394.4645333333,
+      -416.4378202311,
+      612.884929871,
+      631.747573057,
+      401.5860996618,
+      192.932118089,
+      -818.0026251331
+    ],
+    "lambda": 10.0
+  },
+  "baseline_kg_ha": 8540.575,
+  "split": {
+    "train": {
+      "rows": 480,
+      "farms": 160,
+      "seasons": [
+        2021,
+        2022,
+        2023
+      ],
+      "zero_harvests": 9
+    },
+    "validation": {
+      "rows": 40,
+      "farms": 40,
+      "seasons": [
+        2024
+      ],
+      "zero_harvests": 1
+    },
+    "test": {
+      "rows": 40,
+      "farms": 40,
+      "seasons": [
+        2025
+      ],
+      "zero_harvests": 1
+    },
+    "excluded": {
+      "rows": 640,
+      "farms": 240,
+      "seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "zero_harvests": 5
+    }
+  },
+  "validation_candidates": [
+    {
+      "lambda": 0.1,
+      "mae_kg_ha": 724.18
+    },
+    {
+      "lambda": 1.0,
+      "mae_kg_ha": 724.12
+    },
+    {
+      "lambda": 10.0,
+      "mae_kg_ha": 723.53
+    },
+    {
+      "lambda": 100.0,
+      "mae_kg_ha": 724.875
+    }
+  ],
+  "test_metrics": {
+    "mae_kg_ha": 623.801,
+    "rmse_kg_ha": 1360.668,
+    "bias_kg_ha": -28.735,
+    "r2": 0.6037
+  },
+  "baseline_test_metrics": {
+    "mae_kg_ha": 1539.931,
+    "rmse_kg_ha": 2161.438,
+    "bias_kg_ha": -23.948,
+    "r2": -0.0001
+  },
+  "validation_residual_band_kg_ha": 1006.022,
+  "test_results": [
+    {
+      "record_id": "SYN-200-2025",
+      "actual": 11501.29,
+      "predicted": 10203.664
+    },
+    {
+      "record_id": "SYN-201-2025",
+      "actual": 10260.614,
+      "predicted": 9946.084
+    },
+    {
+      "record_id": "SYN-202-2025",
+      "actual": 12568.683,
+      "predicted": 11983.315
+    },
+    {
+      "record_id": "SYN-203-2025",
+      "actual": 9194.343,
+      "predicted": 8628.521
+    },
+    {
+      "record_id": "SYN-204-2025",
+      "actual": 7618.555,
+      "predicted": 7701.208
+    },
+    {
+      "record_id": "SYN-205-2025",
+      "actual": 8073.047,
+      "predicted": 7611.805
+    },
+    {
+      "record_id": "SYN-206-2025",
+      "actual": 10001.286,
+      "predicted": 9872.04
+    },
+    {
+      "record_id": "SYN-207-2025",
+      "actual": 7280.329,
+      "predicted": 7393.746
+    },
+    {
+      "record_id": "SYN-208-2025",
+      "actual": 9999.545,
+      "predicted": 9478.206
+    },
+    {
+      "record_id": "SYN-209-2025",
+      "actual": 8630.776,
+      "predicted": 7370.786
+    },
+    {
+      "record_id": "SYN-210-2025",
+      "actual": 11105.285,
+      "predicted": 10963.062
+    },
+    {
+      "record_id": "SYN-211-2025",
+      "actual": 8080.463,
+      "predicted": 8583.928
+    },
+    {
+      "record_id": "SYN-212-2025",
+      "actual": 7810.362,
+      "predicted": 8051.809
+    },
+    {
+      "record_id": "SYN-213-2025",
+      "actual": 8252.338,
+      "predicted": 7041.656
+    },
+    {
+      "record_id": "SYN-214-2025",
+      "actual": 8663.83,
+      "predicted": 8384.438
+    },
+    {
+      "record_id": "SYN-215-2025",
+      "actual": 9622.783,
+      "predicted": 10313.358
+    },
+    {
+      "record_id": "SYN-216-2025",
+      "actual": 10812.614,
+      "predicted": 10284.775
+    },
+    {
+      "record_id": "SYN-217-2025",
+      "actual": 8844.432,
+      "predicted": 8365.693
+    },
+    {
+      "record_id": "SYN-218-2025",
+      "actual": 7801.692,
+      "predicted": 7641.848
+    },
+    {
+      "record_id": "SYN-219-2025",
+      "actual": 6781.571,
+      "predicted": 6921.24
+    },
+    {
+      "record_id": "SYN-220-2025",
+      "actual": 7826.333,
+      "predicted": 7659.298
+    },
+    {
+      "record_id": "SYN-221-2025",
+      "actual": 9089.568,
+      "predicted": 8984.733
+    },
+    {
+      "record_id": "SYN-222-2025",
+      "actual": 5259.47,
+      "predicted": 5637.146
+    },
+    {
+      "record_id": "SYN-223-2025",
+      "actual": 8251.903,
+      "predicted": 7973.994
+    },
+    {
+      "record_id": "SYN-224-2025",
+      "actual": 8169.155,
+      "predicted": 7584.082
+    },
+    {
+      "record_id": "SYN-225-2025",
+      "actual": 10523.149,
+      "predicted": 9223.157
+    },
+    {
+      "record_id": "SYN-226-2025",
+      "actual": 9211.639,
+      "predicted": 9188.914
+    },
+    {
+      "record_id": "SYN-227-2025",
+      "actual": 9985.409,
+      "predicted": 10285.083
+    },
+    {
+      "record_id": "SYN-228-2025",
+      "actual": 5925.914,
+      "predicted": 6721.782
+    },
+    {
+      "record_id": "SYN-229-2025",
+      "actual": 8085.455,
+      "predicted": 8021.065
+    },
+    {
+      "record_id": "SYN-230-2025",
+      "actual": 9977.0,
+      "predicted": 9639.086
+    },
+    {
+      "record_id": "SYN-231-2025",
+      "actual": 7660.788,
+      "predicted": 7525.186
+    },
+    {
+      "record_id": "SYN-232-2025",
+      "actual": 7970.562,
+      "predicted": 8268.921
+    },
+    {
+      "record_id": "SYN-233-2025",
+      "actual": 11203.999,
+      "predicted": 9916.518
+    },
+    {
+      "record_id": "SYN-234-2025",
+      "actual": 0.0,
+      "predicted": 7823.643
+    },
+    {
+      "record_id": "SYN-235-2025",
+      "actual": 5025.073,
+      "predicted": 5221.582
+    },
+    {
+      "record_id": "SYN-236-2025",
+      "actual": 7872.641,
+      "predicted": 7828.382
+    },
+    {
+      "record_id": "SYN-237-2025",
+      "actual": 9377.786,
+      "predicted": 8876.307
+    },
+    {
+      "record_id": "SYN-238-2025",
+      "actual": 11515.057,
+      "predicted": 11226.914
+    },
+    {
+      "record_id": "SYN-239-2025",
+      "actual": 6746.184,
+      "predicted": 7084.558
+    }
+  ],
+  "parity_cases": [
+    {
+      "input": {
+        "soil_ph": 7.202,
+        "organic_carbon_pct": 1.015,
+        "available_n_mg_kg": 268.781,
+        "planned_irrigation_pct": 56.083,
+        "historical_rain_mm": 896.016,
+        "historical_temp_c": 26.808
+      },
+      "prediction": 10203.66358
+    },
+    {
+      "input": {
+        "soil_ph": 5.477,
+        "organic_carbon_pct": 2.467,
+        "available_n_mg_kg": 120.374,
+        "planned_irrigation_pct": 75.335,
+        "historical_rain_mm": 846.691,
+        "historical_temp_c": 28.782
+      },
+      "prediction": 9946.084137
+    },
+    {
+      "input": {
+        "soil_ph": 6.822,
+        "organic_carbon_pct": 2.193,
+        "available_n_mg_kg": 275.921,
+        "planned_irrigation_pct": 77.729,
+        "historical_rain_mm": 837.932,
+        "historical_temp_c": 26.114
+      },
+      "prediction": 11983.314632
+    },
+    {
+      "input": {
+        "soil_ph": 7.532,
+        "organic_carbon_pct": 0.8,
+        "available_n_mg_kg": 208.798,
+        "planned_irrigation_pct": 70.55,
+        "historical_rain_mm": 889.211,
+        "historical_temp_c": 24.138
+      },
+      "prediction": 8628.520509
+    }
+  ],
+  "sample_rows": [
+    {
+      "record_id": "SYN-000-2021",
+      "farm_id": "SYN-FARM-000",
+      "season": 2021,
+      "crop": "okra",
+      "region": "fictional demonstration region",
+      "synthetic": true,
+      "source": "synthetic-okra-ridge-v1",
+      "decision_at": "2021-05-01",
+      "feature_available_at": "2021-04-30",
+      "label_available_at": "2021-10-01",
+      "soil_ph": 6.232,
+      "organic_carbon_pct": 2.276,
+      "available_n_mg_kg": 198.8,
+      "planned_irrigation_pct": 64.423,
+      "historical_rain_mm": 697.429,
+      "historical_temp_c": 29.592,
+      "yield_kg_ha": 10701.638,
+      "split": "train"
+    },
+    {
+      "record_id": "SYN-000-2022",
+      "farm_id": "SYN-FARM-000",
+      "season": 2022,
+      "crop": "okra",
+      "region": "fictional demonstration region",
+      "synthetic": true,
+      "source": "synthetic-okra-ridge-v1",
+      "decision_at": "2022-05-01",
+      "feature_available_at": "2022-04-30",
+      "label_available_at": "2022-10-01",
+      "soil_ph": 6.661,
+      "organic_carbon_pct": 2.451,
+      "available_n_mg_kg": 149.307,
+      "planned_irrigation_pct": 39.855,
+      "historical_rain_mm": 878.446,
+      "historical_temp_c": 26.358,
+      "yield_kg_ha": 10780.388,
+      "split": "train"
+    },
+    {
+      "record_id": "SYN-000-2023",
+      "farm_id": "SYN-FARM-000",
+      "season": 2023,
+      "crop": "okra",
+      "region": "fictional demonstration region",
+      "synthetic": true,
+      "source": "synthetic-okra-ridge-v1",
+      "decision_at": "2023-05-01",
+      "feature_available_at": "2023-04-30",
+      "label_available_at": "2023-10-01",
+      "soil_ph": 6.854,
+      "organic_carbon_pct": 0.503,
+      "available_n_mg_kg": 94.139,
+      "planned_irrigation_pct": 79.483,
+      "historical_rain_mm": 459.914,
+      "historical_temp_c": 26.514,
+      "yield_kg_ha": 8748.522,
+      "split": "train"
+    },
+    {
+      "record_id": "SYN-001-2021",
+      "farm_id": "SYN-FARM-001",
+      "season": 2021,
+      "crop": "okra",
+      "region": "fictional demonstration region",
+      "synthetic": true,
+      "source": "synthetic-okra-ridge-v1",
+      "decision_at": "2021-05-01",
+      "feature_available_at": "2021-04-30",
+      "label_available_at": "2021-10-01",
+      "soil_ph": 7.152,
+      "organic_carbon_pct": 0.876,
+      "available_n_mg_kg": 246.074,
+      "planned_irrigation_pct": 37.287,
+      "historical_rain_mm": 829.943,
+      "historical_temp_c": 30.808,
+      "yield_kg_ha": 7996.193,
+      "split": "train"
+    },
+    {
+      "record_id": "SYN-001-2022",
+      "farm_id": "SYN-FARM-001",
+      "season": 2022,
+      "crop": "okra",
+      "region": "fictional demonstration region",
+      "synthetic": true,
+      "source": "synthetic-okra-ridge-v1",
+      "decision_at": "2022-05-01",
+      "feature_available_at": "2022-04-30",
+      "label_available_at": "2022-10-01",
+      "soil_ph": 5.902,
+      "organic_carbon_pct": 0.582,
+      "available_n_mg_kg": 109.028,
+      "planned_irrigation_pct": 38.434,
+      "historical_rain_mm": 376.596,
+      "historical_temp_c": 24.633,
+      "yield_kg_ha": 7637.662,
+      "split": "train"
+    }
+  ],
+  "limitations": [
+    "Every farm, feature and harvest is invented. No real or public farm dataset was used.",
+    "Scores measure recovery of the invented generator, not agricultural accuracy.",
+    "The residual band is a synthetic validation-error illustration, not calibrated farm uncertainty.",
+    "Historical climate inputs are fictional prior reference values, not future observed weather.",
+    "Training/test farms are disjoint; later seasons are held out and unused rows are excluded.",
+    "No production promotion, consent, capacity reservation or planting action is enabled."
+  ],
+  "dataset_sha256": "8e6f436a14bf7ff7efd4bdae90a807da4455712e98a93d499e556621aee42186",
+  "dataset_rows": 1200
+}

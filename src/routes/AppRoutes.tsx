@@ -39,6 +39,7 @@ import ExporterOrders from '../exporter/pages/Orders'
 import { useI18n } from '../i18n'
 const TradeRoutes = lazy(() => import('./TradeRoutes'))
 const LiveData = lazy(() => import('../pages/LiveData'))
+const YieldPoc = lazy(() => import('../pages/YieldPoc'))
 
 export default function AppRoutes() {
   const { t } = useI18n()
@@ -57,6 +58,7 @@ export default function AppRoutes() {
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
     <Route path="/farm-intelligence" element={<FarmIntelligence />} />
+    <Route path="/yield-poc" element={<Suspense fallback={<p className="m-page" role="status">Loading synthetic yield demo…</p>}><YieldPoc /></Suspense>} />
     <Route path="/live-data" element={<Suspense fallback={<p className="m-page" role="status">{t('loading_public')}</p>}><LiveData /></Suspense>} />
     <Route path="/messages" element={<Messages />} />
     <Route path="/later" element={<LaterModules />} />

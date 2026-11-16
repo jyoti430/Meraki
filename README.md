@@ -158,3 +158,7 @@ Run `npm run dev:sensors` for the separate live sensor tab and ESP upload gatewa
 ## Shared Part 2 backend foundation
 
 The [Part 2 guide](docs/PART2_BACKEND.md) describes `server/meraki/`, Alembic migrations and Part 1/3 projection/reservation contracts. It provides development identity, scoped projection/consent/capacity/listing/reservation/document services and an expiry worker. The existing trade API remains `server.app:app`. To run both locally, use a separate port (for example `uvicorn server.meraki.app:app --port 8003`) for Part 2; the trade launcher uses 8000. Frontend farm/QC writes and trade identity/reservations are not yet wired to Part 2. See [remaining integration tasks](docs/REMAINING_TASKS.md).
+
+## Trained yield POC with dummy data
+
+Open `/yield-poc` or FPO navigation → Yield model POC for an isolated trained regression demo: generated farm seasons, validation/test metrics, downloadable data/weights, interactive predictions and a weekly supply illustration. Train/reproduce with `python scripts/train_synthetic_yield.py` and verify with `--check`. All data and accuracy figures are synthetic; the real farm-model registry remains blocked. See [setup, method and limits](docs/SYNTHETIC_YIELD_POC.md).
