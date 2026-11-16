@@ -222,3 +222,31 @@ def test_readiness_reports_database_failure_and_recovery(hosted_env, monkeypatch
         assert "private-" not in response.text
         monkeypatch.setattr(engine, "connect", connect)
         assert client.get("/api/health").status_code == 200
+
+def test_hosted_password_account_and_auction_namespace(hosted_env, monkeypatch):
+    monkeypatch.setenv("MERAKI_PASSWORD_AUTH", "1")
+    app = create_hosted_app(run_workers=False)
+    with TestClient(app) as client:
+        schema = client.get('/api/v1/openapi.json').json()
+        assert '/api/v1/auctions' in schema['paths']
+        result = client.post('/api/v1/auth/register', json={"username":"hosted-auction-user", "password":"Synthetic-hosted-password!",
+            "display_name":"Synthetic account", "organisation_name":"Synthetic FPO", "role":"fpo"})
+        assert result.status_code == 201
+        account = result.json()
+        headers = {"Authorization":"Bearer " + account['access_token'], "X-Organisation-ID":account['organisation_id']}
+        assert client.get('/api/v1/auth/me', headers=headers).json()['role'] == 'fpo'
+        assert client.get('/api/v1/auctions', headers=headers).json() == {"items":[]}
+
+
+@pytest.mark.parametrize("password_auth", [False, True])
+def test_hosted_capabilities_match_identity_and_database(hosted_env, monkeypatch, password_auth):
+    monkeypatch.setenv("MERAKI_PASSWORD_AUTH", "1" if password_auth else "0")
+    app = create_hosted_app(run_workers=False)
+    with TestClient(app) as client:
+        health = client.get('/api/v1/health').json()
+        assert health['password_auth_enabled'] is password_auth
+        assert health['registration_enabled'] is password_auth
+        assert health['development_auth_enabled'] is not password_auth
+        assert health['auction_mutations_enabled'] is False  # SQLite cannot arbitrate auctions.
+        if password_auth:
+            assert client.post('/api/v1/dev/sessions', json={}).status_code == 404

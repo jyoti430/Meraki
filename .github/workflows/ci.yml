@@ -70,7 +70,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -r server/requirements.txt
+      - run: alembic -c server/alembic.ini upgrade head
+        env:
+          MERAKI_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/meraki_test
       - run: python -m pytest server/tests -q
-      - run: python -m pytest server/tests/test_shared_backend.py -q -k postgresql
         env:
           MERAKI_TEST_POSTGRES_URL: postgresql+psycopg://postgres:postgres@localhost:5432/meraki_test

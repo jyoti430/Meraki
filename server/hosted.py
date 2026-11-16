@@ -111,7 +111,8 @@ async def background_loop(app, stop, interval):
         # five seconds per expiry at the default interval, even with a backlog.
         # Keep each pass bounded so trade closing and shutdown still get time.
         for _ in range(100):
-            if stop.is_set() or not shared_expiry(app.state.shared.state.sessions):
+            if stop.is_set() or not shared_expiry(app.state.shared.state.sessions,
+                                                allow_auction_work=app.state.hosted_mode == "demo"):
                 break
 
     app.state.worker_status["running"] = True
@@ -196,7 +197,8 @@ def create_hosted_app(*, trade_app=None, shared_app=None, live_app=None, run_wor
     app.state.trade, app.state.shared, app.state.live = trade_app, shared_app, live_app
     app.state.worker_status = {"running": False, "last_error": None, "last_completed_at": None,
         "trade": "enabled_for_synthetic_demo" if mode == "demo" else "disabled_pending_verified_adapters",
-        "shared_expiry": "enabled", "supervision": "single_process_lifespan; pauses_when_host_is_stopped"}
+        "shared_expiry": "enabled", "shared_auctions": "enabled_for_synthetic_demo" if mode == "demo" else "disabled_pending_verified_adapters",
+        "supervision": "single_process_lifespan; pauses_when_host_is_stopped"}
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Organisation-ID", "X-Request-ID"],
         expose_headers=["X-Request-ID"])

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import Auctions from '../pages/Auctions'
 import Overview from '../pages/Overview'
 import LiveSensors from '../pages/LiveSensors'
 import BuyerOrders from '../pages/BuyerOrders'
@@ -45,6 +46,8 @@ export default function AppRoutes() {
   const { t } = useI18n()
   return <Routes>
     <Route path="/" element={<SegmentSelection />} />
+    <Route path="/auctions" element={<Auctions />} />
+    <Route path="/exporter/auctions" element={<Navigate to="/auctions" replace />} />
     <Route path="/fpo" element={<Overview />} />
     <Route path="/exporter" element={<ExporterLayout><ExporterDashboard /></ExporterLayout>} />
     <Route path="/exporter/requirements" element={<ExporterLayout><ExporterRequirements /></ExporterLayout>} />

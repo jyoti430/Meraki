@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+.venv*
+node_modules
+dist
+.runtime
+.npm-cache
+.test-build
+playwright-report
+test-results
+var
+**/__pycache__
+**/*.sqlite*

@@ -25,6 +25,8 @@ const en = {
   short_yield_poc: "Yield POC",
   nav_public_data: "Public data & models",
   nav_messages: "Messages",
+  nav_auctions: "Crop auctions",
+  short_auctions: "Auctions",
   nav_trade: "Trade & fulfilment",
   nav_sensors: "Live sensor data",
   nav_later: "Later modules",

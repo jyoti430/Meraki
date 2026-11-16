@@ -48,4 +48,20 @@ Local final regression: **91 Vitest +16 Node tests**, production build, **198 Py
 
 ## Material limits
 
+## Late auction-branch integration
+
+After the first tested release (`1fe5cf5`, [CI43813869787](https://github.com/jyoti430/Meraki/actions/runs/43813869787)) reached Render/Vercel, a new teammate branch arrived: `feature/auction-backend` through `db61283`. It was merged and tested in an isolated checkout before main integration. The first release passed107 frontend tests/build,265 Python cases+10 subtests with trade PostgreSQL coverage, and dedicated shared PostgreSQL checks.
+
+Additional defects corrected in the new branch:
+
+- Shared-auction polling/identity races, stale writes, swallowed refresh failure, permission403 incorrectly treated as logout, malformed responses and optional storage failure.
+- Award decisions now require the correct commercial side role and recheck linked-party membership before confirmation. Shared auction holds commit exactly once without minting a duplicate ordinary reservation.
+- New auction mutations and workers stay disabled outside development until verified adapters are accepted; ordinary expiry continues. Auction backlogs/failures cannot starve ordinary jobs.
+- Migration preflight detects duplicate physical harvested-lot sources before DDL, preserves records, and requires explicit operator reconciliation. Fresh and retained-data upgrades/rollback/forward tests preserve valid projection tranches.
+- Shared health advertises effective password/registration/write capabilities. Password mode cannot also issue unusable development tokens. The hosted demo keeps password registration disabled; the frontend shows that limit. Shared awards remain separate from Part3 contracts/shipments/settlement. The exporter alias redirects to the canonical shared workspace rather than labelling it local examples.
+
+Merged local checks: clean `npm ci`, **101 Vitest+16 Node tests**, production build, **222 Python cases+10 subtests**, and0 npm audit findings. The34 skipped cases require PostgreSQL and must be exercised by the dedicated configured CI jobs. Browser with an isolated SQLite account backend rejected a wrong password, accepted a synthetic test login, retained it across navigation, redirected `/exporter/auctions` to `/auctions` without the examples banner, disabled PostgreSQL-only auction writes, and signed out correctly. No hosted registration was enabled. Docker binary/runtime and true phone/cross-browser acceptance remain unverified.
+
+## Remaining acceptance limits
+
 Required custom criteria remain blocked pending scoped assessment; no measurement or approval is fabricated. Production identity/capacity/QC bridging, private partner entitlements, durable object storage and real sensor gateway linkage remain unfinished. The free Render instance sleeps, pausing in-process workers; the demo database expires16December2026. Live provider rate limits remain explicit errors. The real yield model still has zero eligible farm outcomes and cannot be promoted.

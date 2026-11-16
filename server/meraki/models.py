@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -107,7 +107,7 @@ class ConsentEvent(Base):
 
 class Capacity(Base):
     __tablename__ = "capacities"
-    __table_args__ = (CheckConstraint("quantity_g > 0 AND reserved_g >= 0 AND committed_g >= 0 AND reserved_g + committed_g <= quantity_g", name="ck_capacity_nonnegative"),)
+    __table_args__ = (Index("uq_capacity_source", "organisation_id", "source_id", unique=True, postgresql_where=text("source_type = 'harvested_lot'"), sqlite_where=text("source_type = 'harvested_lot'")), CheckConstraint("quantity_g > 0 AND reserved_g >= 0 AND committed_g >= 0 AND reserved_g + committed_g <= quantity_g", name="ck_capacity_nonnegative"),)
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
     organisation_id: Mapped[str] = mapped_column(ForeignKey("organisations.id"), nullable=False, index=True)
     source_type: Mapped[str] = mapped_column(String(30), nullable=False)  # projection or harvested_lot
@@ -203,3 +203,90 @@ class Job(Base):
     locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class PasswordCredential(Base):
+    __tablename__ = "password_credentials"
+    username: Mapped[str] = mapped_column(String(80), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(300), nullable=False)
+
+
+class Auction(Base):
+    __tablename__ = "auctions"
+    __table_args__ = (
+        CheckConstraint("quantity_g > 0 AND limit_price > 0 AND increment > 0", name="ck_auction_amounts"),
+        Index("ix_auction_deadline", "status", "closes_at"),)
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(ForeignKey("organisations.id"), nullable=False)
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
+    mode: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), default="open", nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    crop: Mapped[str] = mapped_column(String(120), nullable=False)
+    variety: Mapped[str] = mapped_column(String(120), nullable=False)
+    grade: Mapped[str] = mapped_column(String(80), nullable=False)
+    week_start: Mapped[str] = mapped_column(String(10), nullable=False)
+    week_end: Mapped[str] = mapped_column(String(10), nullable=False)
+    quantity_g: Mapped[int] = mapped_column(Integer, nullable=False)
+    capacity_id: Mapped[str | None] = mapped_column(ForeignKey("capacities.id"))
+    currency: Mapped[str] = mapped_column(String(3), default="INR", nullable=False)
+    limit_price: Mapped[int] = mapped_column(Integer, nullable=False)  # paise per kg
+    increment: Mapped[int] = mapped_column(Integer, nullable=False)
+    opens_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    closes_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    original_closes_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    extension_window_s: Mapped[int] = mapped_column(Integer, nullable=False)
+    extension_s: Mapped[int] = mapped_column(Integer, nullable=False)
+    extension_cap_s: Mapped[int] = mapped_column(Integer, nullable=False)
+    confirmation_hours: Mapped[int] = mapped_column(Integer, nullable=False)
+    terms: Mapped[dict] = mapped_column(JSON, nullable=False)
+    eligible_org_ids: Mapped[list] = mapped_column(JSON, nullable=False)
+    rule_version: Mapped[str] = mapped_column(String(40), default="whole-lot-v1", nullable=False)
+    bid_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class AuctionBid(Base):
+    __tablename__ = "auction_bids"
+    __table_args__ = (UniqueConstraint("auction_id", "sequence"), CheckConstraint("price > 0", name="ck_bid_positive"))
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    auction_id: Mapped[str] = mapped_column(ForeignKey("auctions.id"), index=True, nullable=False)
+    organisation_id: Mapped[str] = mapped_column(ForeignKey("organisations.id"), nullable=False)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
+    capacity_id: Mapped[str | None] = mapped_column(ForeignKey("capacities.id"))
+    price: Mapped[int] = mapped_column(Integer, nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class AuctionHold(Base):
+    __tablename__ = "auction_holds"
+    __table_args__ = (UniqueConstraint("auction_id", "organisation_id"),)
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    auction_id: Mapped[str] = mapped_column(ForeignKey("auctions.id"), nullable=False, index=True)
+    organisation_id: Mapped[str] = mapped_column(ForeignKey("organisations.id"), nullable=False)
+    capacity_id: Mapped[str] = mapped_column(ForeignKey("capacities.id"), nullable=False)
+    quantity_g: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(24), default="held", nullable=False)
+
+
+class AuctionAward(Base):
+    __tablename__ = "auction_awards"
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    auction_id: Mapped[str] = mapped_column(ForeignKey("auctions.id"), unique=True, nullable=False)
+    bid_id: Mapped[str] = mapped_column(ForeignKey("auction_bids.id"), nullable=False)
+    buyer_org_id: Mapped[str] = mapped_column(ForeignKey("organisations.id"), nullable=False)
+    seller_org_id: Mapped[str] = mapped_column(ForeignKey("organisations.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), default="provisional", nullable=False)
+    buyer_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    seller_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class AuthThrottle(Base):
+    __tablename__ = "auth_throttles"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False)
+    resets_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
