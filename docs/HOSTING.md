@@ -1,5 +1,7 @@
 # Render backend and Vercel frontend
 
+16 November live-auction rollout: the existing service now enables `MERAKI_PASSWORD_AUTH=1` and `MERAKI_ALLOW_REGISTRATION=1` in `HOSTED_MODE=demo`, with exact Vercel CORS. DATABASE_URL and the PostgreSQL instance are preserved. Effective shared password auth replaces shared development-token auth; the separate `/api/trade` synthetic sessions still work. Dedicated synthetic accounts/stock and both auction modes were verified live; see QA_ROUNDTRIP_REPORT.md. No passwords are stored in repository documentation.
+
 Configured backend: [meraki-api-lpof.onrender.com](https://meraki-api-lpof.onrender.com/api/health). Render service `srv-dbt9bmec6qcc73b4c6m0` deploys `main` from `jyoti430/Meraki`, in Singapore. The free PostgreSQL16 database `meraki-demo-db` expires on 16 December2026. Frontend: [Meraki on Vercel](https://meraki-tau-opal.vercel.app/), deployed by the repository's existing Vercel integration. Deployment verification/results are recorded separately in WORK_LOG.md.
 
 The composite backend starts with `python -m server.start_hosted` from the repository root. Build with `pip install -r server/requirements.txt`; Python is pinned in `.python-version`. The start command applies shared Alembic migrations before Uvicorn binds to `0.0.0.0:$PORT`. Trade tables use the existing trade schema manager. Use one instance/process: its lifespan supervises shared expiry and synthetic trade closing jobs. Jobs pause when the host stops and resume on startup; this is not an always-on worker guarantee.

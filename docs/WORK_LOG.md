@@ -411,3 +411,11 @@ Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build pa
 User clarified that Trade and Auctions belong in the main tabs. Promoted both into the shared desktop/mobile primary navigation and removed duplicate footer links. Seven main destinations remain; experimental routes stay disabled. Trade uses a handshake icon to distinguish procurement/fulfilment from crop auctions. This supersedes the preceding five-tab navigation decision.
 Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build passed; existing bundle advisory remains. Shared navigation drives both sidebar and mobile bar; the existing horizontal overflow supports seven mobile destinations.
 
+
+## 16 November 2026 live auctions delivered
+
+Requested existing-service rollout completed on release71c85fa after successful CI43816683347. Preserved latest main navigation, PR8, all progressive QA fixes and BLE changes. Existing Render service/SGPostgreSQL and DATABASE_URL retained; build/start unchanged. Saved explicitdemo password/registration flags and exactVercelCORS. Startup applied additivePostgreSQL migrations0001→bcd→e24 successfully; no reset/replacementinfrastructure.
+
+Vercel-domain root/shared health and OpenAPI login/auction routes verified. Suppliedseedmodule created only syntheticFPO/exporteraccounts and100kg stock/projection fixtures. Published labelledspot/forward100kg testauctions; accepted bids/receipts; livebrowserimprovedspotto24INR/kg, forwardquote18INR/kg. Both closed automatically onserverdeadline. Separatebrowserbuyer/sellerconfirmedspot; APIconfirmedforwardbothsides. Fullycommittedsourcesarenotadvertisedavailable. Added100kg eachofspare syntheticstock/projection foruser testing. Legacy/tradesession/workspacehealthy;tokensnamespaceisolated. Noemails,payments,realstockQC bypass or privatecustomerdata. Credentialsdeliveredonlyinchat/localignoredmanifest, neverrepository.
+
+Detailed evidence: QA_ROUNDTRIP_REPORT.md. PrimaryCIincludes307Pythonpasses+10subtests withtradePGcoverage; dedicatedsharedsuite172passesincludingPGauctions, and104Vitest+16Node/build. Counts overlap. Known mobile/hardware/container/production gates remainopen. Firstcorefixrelease1fe5cf5also passed bothKireeti/mainCI andwaslivebeforelaterbranchesarrived. Final livewebsite: https://meraki-tau-opal.vercel.app/auctions.
