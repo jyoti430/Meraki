@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { demoBid, demoOpportunities, filterDemoOpportunities } from './demoOpportunities'
 import type { DemoOpportunity } from './demoOpportunities'
@@ -14,6 +14,8 @@ export function DemoTradeBoard() {
   const [selected, setSelected] = useState<string | null>(null)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
+  const details = useRef<HTMLDivElement>(null)
+  useEffect(() => { if (selected) { details.current?.focus({ preventScroll: true }); details.current?.scrollIntoView({ block: 'nearest' }) } }, [selected])
   const active = items.find(item => item.id === selected)
   const filtered = filterDemoOpportunities(items, query, mode, status)
   function bid(event: FormEvent<HTMLFormElement>) {
@@ -42,12 +44,12 @@ export function DemoTradeBoard() {
         <p>{item.organisation}</p><dl className="t-details"><Detail label="Handover">{item.location}</Detail><Detail label="Delivery">{item.delivery}</Detail><Detail label="Sample offers">{item.bids}</Detail></dl>
         <div className="t-opportunity-foot"><div className="t-opportunity-price">{money(item.pricePaise)}<small> / kg · sample price</small></div><button type="button" className="m-btn m-btn-secondary" aria-expanded={selected === item.id} onClick={() => { setSelected(item.id); setError(''); setNotice('') }}>View {item.crop} demo</button></div>
       </article>)}{!filtered.length && <Empty>No demo opportunities match. Try another crop or clear the filters.</Empty>}</div>
-    </Panel><Panel title={active ? `${active.crop} demo details` : 'Try a demo offer'}>
+    </Panel><div ref={details} tabIndex={-1} role="region" aria-label="Demo opportunity details"><Panel title={active ? `${active.crop} demo details` : 'Try a demo offer'}>
       {!active ? <p>Select an opportunity to review its sample terms and try bidding.</p> : <>
         <p>{active.organisation} · {active.quantityKg.toLocaleString('en-IN')} kg · whole {active.mode === 'spot' ? 'lot' : 'request'}.</p>
         <dl className="t-details"><Detail label="Handover">{active.location}; sample price includes packing.</Detail><Detail label="Quality">Grade A; sample inspection at collection.</Detail><Detail label="Payment">Illustrative bank transfer within 7 days of acceptance.</Detail><Detail label="Cancellation">Both parties review any cancellation before dispatch.</Detail><Detail label="Bidding rule">{active.mode === 'spot' ? 'Highest buyer bid' : 'Lowest FPO offer'}; minimum step {money(active.stepPaise)} / kg.</Detail><Detail label="Current sample price">{money(active.pricePaise)} / kg</Detail></dl>
         {active.status === 'open' ? <form key={active.id} className="demo-offer" onSubmit={bid} style={{ marginTop: 20 }}><label htmlFor="demo-offer-price">Your demo {active.mode === 'spot' ? 'buyer bid' : 'FPO offer'} (₹/kg)</label><input id="demo-offer-price" name="price" type="number" min="0.01" max="100000" step="0.01" required /><button className="m-btn m-btn-primary" type="submit">Submit demo offer</button><p className="m-small">This changes sample data on this page only.</p></form> : <p>This sample opportunity is awarded. Choose an open opportunity to try an offer.</p>}
       </>}
-    </Panel></div>
+    </Panel></div></div>
   </>
 }
