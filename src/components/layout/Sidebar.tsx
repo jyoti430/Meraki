@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Gavel, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
+import { Gavel, Handshake, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
@@ -11,6 +11,8 @@ export const navigation: { labelKey: TKey; shortKey: TKey; to: string; icon: any
   { labelKey: 'nav_demand', shortKey: 'short_demand', to: '/demand', icon: ShoppingBag },
   { labelKey: 'nav_farmers', shortKey: 'short_farmers', to: '/farmers', icon: UsersRound },
   { labelKey: 'nav_messages', shortKey: 'short_messages', to: '/messages', icon: MessageSquareText },
+  { labelKey: 'nav_trade', shortKey: 'short_trade', to: '/trade', icon: Handshake },
+  { labelKey: 'nav_auctions', shortKey: 'short_auctions', to: '/auctions', icon: Gavel },
 ]
 
 export function useMessageBadge() {
@@ -44,8 +46,6 @@ export default function Sidebar({ pathname }: { pathname: string }) {
     </nav>
     <div className="m-sidebar-foot">
       <div className="m-synthetic-note">{t('synthetic_note')}</div>
-      <NavLink to="/trade/requirements"><Gavel size={15} /> {t('nav_trade')}</NavLink>
-      <NavLink to="/auctions"><Gavel size={15} /> {t('nav_auctions')}</NavLink>
       <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} /> {t('reset_demo')}</button>
     </div>
   </aside>

@@ -401,3 +401,9 @@ User authorised disabling experimental frontend features, integrating progressiv
 Desktop and mobile primary navigation now contain only Overview, Plans, Demand, Farmers and Messages. Trade and Auctions remain separate secondary links. Removed the exporter-example entry link. Corrected incoming dev:trade script to start the trade API rather than the sensor service; the sensor script remains available explicitly.
 
 Validation: 94 Vitest and 16 Node lab cases passed; TypeScript/Vite production build passed with existing bundle-size advisory. Combined Python suite passed 199 tests plus 10 subtests; 34 database-dependent cases skipped locally. Hosted CI must cover PostgreSQL. Browser inspected five main navigation links and the Messages layout; yield POC showed the overview and exporter examples redirected to shared procurement. No real messages, bids, awards or payments were submitted. Phone viewport acceptance was not exercised.
+
+
+## 16 November 2026 primary Trade and Auctions correction
+
+User clarified that Trade and Auctions belong in the main tabs. Promoted both into the shared desktop/mobile primary navigation and removed duplicate footer links. Seven main destinations remain; experimental routes stay disabled. Trade uses a handshake icon to distinguish procurement/fulfilment from crop auctions. This supersedes the preceding five-tab navigation decision.
+Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build passed; existing bundle advisory remains. Shared navigation drives both sidebar and mobile bar; the existing horizontal overflow supports seven mobile destinations.
