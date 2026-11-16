@@ -211,3 +211,8 @@ T04 remains IN_PROGRESS. Mobile/password accounts now support both FPO and expor
 ### 16 November shared-gateway authentication regression
 
 Live mobile and browser bids passed after deploying PR #10. Repeated end-to-end tests then exposed shared-IP login throttling across distinct organisations. A narrow backend fix preserves the ten-attempt account limit while giving the coarse gateway/login and signup checks separate finite allowances (100/20 per 15 minutes); no UI or forwarded-header trust changes. Targeted account regressions: 14 passed. T04 remains IN_PROGRESS; final regression, CI and deployed verification follow delivery.
+
+
+### 16 November shared Trade board default
+
+Authenticated Trade now defaults to the existing shared auction service; hardcoded sample listings are read-only. This addresses a local-only sample offer being mistaken for a cross-account bid. Procurement authority remains separate and parent T04/T11 gates stay open. Frontend 119 Vitest +16 Node cases/build passed; no additional user bids submitted. See latest WORK_LOG checkpoint for delivery.
