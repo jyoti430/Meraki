@@ -46,3 +46,30 @@ jobs:
       - run: python scripts/build_agricultural_data.py --check
       - run: python -m model_validation --check
       - run: python -m pytest server/tests tests -q
+
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: meraki_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d meraki_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r server/requirements.txt
+      - run: python -m pytest server/tests -q
+      - run: python -m pytest server/tests/test_shared_backend.py::test_postgresql_concurrent_reservations_do_not_oversell -q
+        env:
+          MERAKI_TEST_POSTGRES_URL: postgresql+psycopg://postgres:postgres@localhost:5432/meraki_test

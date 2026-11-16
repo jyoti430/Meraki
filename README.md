@@ -154,3 +154,7 @@ The repository currently has no `LICENSE` file. Do not infer permission to reuse
 ## Live crate sensor checkpoint
 
 Run `npm run dev:sensors` for the separate live sensor tab and ESP upload gateway. See [LAN setup, API contract and ESP example](docs/LIVE_SENSORS.md). This is an optional final handling checkpoint after the exporter/FPO workflow; hardware connectivity and hosted deployment remain unverified.
+
+## Shared Part 2 backend foundation
+
+The [Part 2 guide](docs/PART2_BACKEND.md) describes `server/meraki/`, Alembic migrations and Part 1/3 projection/reservation contracts. It provides development identity, scoped projection/consent/capacity/listing/reservation/document services and an expiry worker. The existing trade API remains `server.app:app`. To run both locally, use a separate port (for example `uvicorn server.meraki.app:app --port 8003`) for Part 2; the trade launcher uses 8000. Frontend farm/QC writes and trade identity/reservations are not yet wired to Part 2. See [remaining integration tasks](docs/REMAINING_TASKS.md).

@@ -20,3 +20,15 @@ test-results/
 server/runtime-sensor*
 
 .test-build/
+
+.venv*/
+*.py[cod]
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+*.sqlite3-journal
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+var/
