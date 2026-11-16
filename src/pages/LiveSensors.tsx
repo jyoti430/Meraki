@@ -4,6 +4,7 @@ import { useI18n } from '../i18n'
 import './LiveSensors.css'
 import { apiUrl } from '../api/config'
 import { fetchSensorSnapshot, type SensorSnapshot as Snapshot, type SerialState } from '../sensors/client'
+import SmsAlerts from '../sensors/SmsAlerts'
 
 export default function LiveSensors() {
   const { t } = useI18n()
@@ -93,12 +94,14 @@ export default function LiveSensors() {
 
     <section className="m-card sensor-status" aria-label="Gateway status"><Activity size={22} /><div><strong>{error ? t('sensors_status_disconnected') : snapshot ? t('sensors_status_active') : t('sensors_status_connecting')}</strong><p className="m-small">{t('sensors_status_desc')}</p></div><button type="button" className="m-btn" onClick={() => setRefresh(value => value + 1)}>{t('reconnect')}</button></section>
     {error && <p role="alert" className="sensor-alert">{error} {t('previous_retained')}</p>}
+    <SmsAlerts />
     {snapshot && snapshot.devices.length === 0 && <section className="m-card"><h2>{t('waiting_first')}</h2><p>{t('waiting_first_desc')}</p></section>}
     <div className="sensor-devices">{snapshot?.devices.map(device => {
       const stale = device.stale || snapshot.server_time + age - device.received_at > snapshot.stale_after_seconds
       return <section key={device.device_id} className="m-card sensor-device">
         <div className="sensor-heading"><h2>{device.device_id}</h2><span className={`m-tag ${error || stale ? 'm-tag-neutral' : 'm-tag-success'}`}>{error ? t('disconnected') : stale ? t('stale_check') : t('receiving')}</span></div>
         <p className="m-small">{t('last_received', { time: new Date(device.received_at * 1000).toLocaleString(), sec: Math.max(0, Math.floor(snapshot.server_time + age - device.received_at)) })}</p>
+        {device.range_configured ? device.range_problems?.map((problem, index) => <p className="sensor-alert" key={index}>{problem}</p>) : <p className="m-small">SMS handling limits have not been set for this crate.</p>}
         <div className="sensor-metrics"><div><Thermometer /><span>{t('temperature')}</span><strong>{device.temperature.toFixed(1)} <small>°C</small></strong></div><div><Droplets /><span>{t('humidity')}</span><strong>{device.humidity.toFixed(1)} <small>% RH</small></strong></div><div><DoorOpen /><span>Door open / closed</span><strong>{(device.opened_count ?? '—')} / {(device.closed_count ?? '—')}</strong></div><div><TriangleAlert /><span>{t('device_warnings')}</span><strong>{device.warnings.length}</strong></div></div>
         <div className="sensor-warnings"><h3>{t('warnings_reported')}</h3>{device.warnings.length ? <ul>{device.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul> : <p>{stale || error ? t('no_warnings_unknown') : t('no_warnings_latest')}</p>}</div>
       </section>

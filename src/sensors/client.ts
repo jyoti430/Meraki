@@ -1,6 +1,6 @@
 import { apiUrl } from '../api/config'
 
-export type Device = { id: number; device_id: string; temperature: number; humidity: number; opened_count?: number | null; closed_count?: number | null; warnings: string[]; received_at: number; stale: boolean }
+export type Device = { id: number; device_id: string; temperature: number; humidity: number; opened_count?: number | null; closed_count?: number | null; warnings: string[]; received_at: number; stale: boolean; range_configured?: boolean; range_problems?: string[] }
 export type SensorSnapshot = { server_time: number; stale_after_seconds: number; devices: Device[] }
 export type SerialPort = { port: string; description: string; hwid: string }
 export type SerialState = { available?: boolean; reason?: string; status: string; port: string; baud: number; error: string; last_ok_at: number | null; ports: SerialPort[] }
@@ -14,6 +14,8 @@ export function parseSensorSnapshot(value: unknown): SensorSnapshot {
       || row.humidity < 0 || row.humidity > 100 || !finite(row.received_at) || row.received_at <= 0 || typeof row.stale !== 'boolean'
       || !Array.isArray(row.warnings) || row.warnings.some(item => typeof item !== 'string')) throw new Error('Invalid sensor measurement. No mock readings were substituted.')
     for (const key of ['opened_count', 'closed_count']) if (row[key] != null && (!Number.isSafeInteger(row[key]) || Number(row[key]) < 0)) throw new Error('Invalid sensor event count.')
+    if (row.range_configured !== undefined && typeof row.range_configured !== 'boolean') throw new Error('Invalid crate range status.')
+    if (row.range_problems !== undefined && (!Array.isArray(row.range_problems) || row.range_problems.some(item => typeof item !== 'string'))) throw new Error('Invalid crate range warnings.')
   }
   return value as unknown as SensorSnapshot
 }

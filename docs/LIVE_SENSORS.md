@@ -39,3 +39,54 @@ This is a trusted-LAN development setup using HTTP and LAN-readable telemetry. D
 ## Verification
 
 25 frontend tests and the TypeScript/Vite build passed. 71 SQLite API/acceptance tests passed, including sensor authentication, numeric/schema bounds, multiple devices, clearing warnings, stale state and persistence after restart. Browser verification observed the empty state and an explicit TEST upload updating temperature, humidity and warning text without reload. Test upload was removed afterward. Physical ESP connectivity, firmware compilation and target-network firewall/client isolation remain unverified.
+
+## Automatic FPO SMS alerts (local gateway)
+
+The gateway now sends SMS when an HTTP **or USB** reading contains the device warnings already shown in the app (`warnings` is non-empty). Custom server-side temperature/humidity limits can also be enabled, but are not required. An FPO alert profile stores a phone number in international E.164 format. Each crate is assigned to exactly one profile; multiple crates and FPOs are supported. These are local gateway notification profiles, separate from shared auction/login accounts. An authenticated account-to-gateway identity bridge is not implemented. Phone numbers are never returned by the public telemetry endpoint.
+
+### Credentials and start
+
+Only **Twilio Programmable Messaging** is required as an external API. Use an SMS-capable sender or Messaging Service. Configure these in the ignored `.env` (never in `VITE_` variables or committed files):
+
+```dotenv
+TWILIO_ACCOUNT_SID=AC_REPLACE_WITH_YOUR_ACCOUNT_SID
+TWILIO_AUTH_TOKEN=REPLACE_LOCALLY
+TWILIO_FROM_NUMBER=REPLACE_WITH_SMS_CAPABLE_SENDER
+# Alternative to TWILIO_FROM_NUMBER:
+# TWILIO_MESSAGING_SERVICE_SID=MG_REPLACE_WITH_SERVICE_SID
+```
+
+The launcher loads `.env` on Node 20.12+; exported environment variables take precedence. Restart `npm run dev:sensors` after changing credentials. The launcher prints separate upload and admin keys; use the **admin key** in `/sensors` → Automatic SMS alerts → Open alert settings. Give only the upload key to firmware. Set `SENSOR_PUSH_TOKEN` / `SENSOR_ADMIN_TOKEN` in `.env` for stable keys. Direct Uvicorn invocation requires exporting/loading the environment separately.
+
+1. Save the FPO ID, name and phone (including country code). SMS can be paused per FPO.
+2. Save the exact sensor `device_id` and responsible FPO. Device warnings are enabled by default; no temperature/humidity limits need to be entered. Optionally enable custom handling limits using reviewed crop values. Values exactly on a custom limit are within range. Location is optional text, not automatic GPS.
+3. Keep the gateway running with internet access. New incoming readings create alerts even when no browser is open. Refresh status to view recent activity.
+
+Example SMS from an existing warning: `Meraki alert: Crate crate-01. Temperature outside selected crop range. Location: Collection centre.` Location is omitted if blank. Warning text is bounded; messages may use multiple billed SMS segments. This sends a caution, not a safety certification or shipment release.
+
+Twilio accepts `To`, `Body`, and `From` or `MessagingServiceSid` through [its Message API](https://www.twilio.com/docs/messaging/api/message-resource). [Trial accounts](https://www.twilio.com/docs/usage/tutorials/how-to-use-your-free-trial-account) generally require a verified recipient and suitable destination permissions; configure the recipient country in the provider account. India domestic sending has additional sender/template registration requirements; consult [Twilio's destination guidelines](https://www.twilio.com/en-us/guidelines/in/sms) for the chosen route. No geocoding, maps, email, WhatsApp, Redis or additional paid API is required for this slice.
+
+### Reliability and status
+
+The reading and SMS outbox entry commit atomically to the same ignored SQLite database. A worker checks every two seconds. The default minimum gap is 30 minutes **per crate**, configurable from 1 minute to 24 hours. A continuing problem generates a reminder on the next fresh reading after that gap; recovery/re-entry respects the same gap to limit flapping. Duplicate/concurrent uploads cannot create parallel pending messages for the same crate. If different sensors fail during a gap, the next eligible alert reflects the current reading.
+
+- `queued`: waiting for the provider/worker; unconfigured credentials never pretend success.
+- `sending`: a worker has claimed the alert.
+- `accepted`: Twilio returned a valid Message SID. **This does not mean handset delivery.** Check delivery status/errors in the Twilio console; delivery callbacks are not implemented.
+- `retry`: explicit HTTP 429 or 5xx rejection; backoff 60/120/240/480 seconds, maximum five attempts.
+- `failed`: terminal rejection or exhausted attempts; the error is visible. A later fresh reading after the cooldown may create a new reminder.
+- `uncertain`: timeout/invalid receipt or a restart during sending. That entry is never automatically retried, since the provider may already have accepted it. Reconcile its outcome in Twilio. Later scheduled reminders remain possible after the cooldown.
+- `cancelled`: recovery, profile change/pause or crate reassignment removed a pending alert. In-flight or accepted messages cannot be recalled.
+- `expired`: at dispatch, no reading for the crate has arrived in 30 seconds. Wait for fresh data; this permits a new current alert immediately. A stalled device is not itself an out-of-range reading.
+
+Queued/retry entries survive a restart. Edits apply to **new readings**, not a replay of historical readings. The latest 50 outbox entries are visible to the admin; underlying history is retained. The gateway is a single-process local service; do not run multiple Uvicorn processes against the same database. It stops sending when the laptop sleeps or the process stops. Hosted `/api/sensors` remains unavailable; no cloud deployment or GitHub publication is part of this change.
+
+### Protected settings API
+
+All these routes require `X-Sensor-Admin-Key`. The firmware upload key cannot read or change phone numbers.
+
+- `GET /api/sensors/alerts`: provider configuration status, profiles, crate rules and recent alert states.
+- `POST /api/sensors/alerts/profiles`: `{ "id": "fpo-01", "name": "Example FPO", "phone": "+15005550006", "sms_enabled": true }`; upserts by ID.
+- `POST /api/sensors/alerts/crates`: minimum warning-trigger configuration is `{ "device_id": "crate-01", "profile_id": "fpo-01" }`. Optional custom limits: `{ "device_id": "crate-01", "profile_id": "fpo-01", "temperature_min": 10, "temperature_max": 30, "humidity_min": 40, "humidity_max": 90, "location": "", "alert_on_warnings": true, "cooldown_seconds": 1800 }`; upserts by device ID. Limits here are examples, not crop recommendations.
+
+Unauthenticated access returns 401; no configured admin key returns 503. Unknown FPO, malformed phone, unpaired/reversed/nonfinite custom limits or invalid cooldown returns 422. Admin keys stay in memory in the browser and clear on reload/lock. This is operator-managed local configuration, not a multi-tenant FPO portal. Keep the existing trusted-LAN scope; production authentication/HTTPS, account linkage and durable hosted ingestion remain separate work.
