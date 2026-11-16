@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:sensors": "node scripts/dev-sensors.mjs",
-    "dev:trade": "node scripts/dev-trade.mjs",
+    "dev:trade": "node scripts/dev-sensors.mjs",
+    "dev:trade:app": "node scripts/dev-trade.mjs",
     "dev:live": "node scripts/dev-live.mjs",
     "data:build": "python scripts/build_agricultural_data.py",
     "data:check": "python scripts/build_agricultural_data.py --check",
