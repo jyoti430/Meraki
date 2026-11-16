@@ -29,6 +29,15 @@ describe('versioned commercial terms', () => {
     const html = renderToStaticMarkup(<TermsView terms={snapshot} />)
     for (const text of ['Ventilated 5 kg crates', 'Collection appointment required', 'Length', 'cm', '12', 'Sample at collection', 'Colour', 'Buyer preference only', 'Optional']) expect(html).toContain(text)
     expect(html).toContain('<td>0</td>')
+    expect(html).toContain('not proof they are satisfied')
+    expect(html).toContain('Shipment creation and dispatch are blocked')
+  })
+
+  it('does not describe optional preferences as a shipment block', () => {
+    const html = renderToStaticMarkup(<TermsView terms={{ ...snapshot, quality_specification: snapshot.quality_specification?.map(item => ({ ...item, required: false })) }} />)
+    expect(html).toContain('Length')
+    expect(html).toContain('not proof they are satisfied')
+    expect(html).not.toContain('Shipment creation and dispatch are blocked')
   })
 
   it('rejects malformed criteria instead of silently clearing them', () => {

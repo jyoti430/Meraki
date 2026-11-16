@@ -662,11 +662,19 @@ class TradeService:
         self.audit(session, principal, 'contract.harvest_converted', contract, dict(lot_id=lot['id']))
         return lot
 
+    def check_buyer_quality_scope(self, contract):
+        # A generic grade/protocol release does not assess arbitrary buyer
+        # criteria. Keep these obligations recorded and fail closed until a
+        # scoped assessment adapter can bind evidence to the current terms.
+        require(not any(item.get('required', False) for item in contract['terms'].get('quality_specification', [])),
+                'Required buyer criteria are unassessed; a scoped review adapter is required before shipment')
+
     def create_shipment(self, session, principal, body):
         self.role(principal, 'fpo')
         contract = self.get(session, 'contracts', body.get('contract_id'))
         self.own(contract, principal)
         require(contract['status'] == 'confirmed', 'Both parties must confirm contract before shipment')
+        self.check_buyer_quality_scope(contract)
         lot = self.get(session, 'lots', body.get('lot_id'))
         self.own(lot, principal)
         require(lot['id'] == contract['lot_id'] and lot['buyer_org'] == contract['buyer_org'], 'Lot does not belong to this contract')
@@ -700,6 +708,7 @@ class TradeService:
             lot = self.get(session, 'lots', shipment['lot_id'])
             contract = self.get(session, 'contracts', shipment['contract_id'])
             require(lot['qc_status'] == 'released' and contract['status'] == 'confirmed', 'QC hold or unconfirmed contract prevents dispatch')
+            self.check_buyer_quality_scope(contract)
             require(lot['inspections'][-1]['protocol'] == contract['terms']['grade_protocol'], 'QC evidence does not cover contracted grade protocol')
             require(self.now() <= timestamp(lot['pickup_deadline']), 'Lot pickup deadline passed')
             require(self.now() <= timestamp(contract['terms']['delivery_end']), 'Contract delivery window has ended')

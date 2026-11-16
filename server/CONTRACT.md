@@ -64,4 +64,6 @@ Frozen frontend contract, version 1. All routes have `/api/trade` prefix. JSON u
 
 ## Operation and gates
 
+Required custom `quality_specification` criteria are preserved commercial obligations, not assessed measurements. Until a criterion-specific review adapter binds evidence to the current terms and inspection, shipment creation and dispatch reject contracts with any required custom criterion. Optional preferences remain visible but do not assert compliance. Do not remove or downgrade a requirement merely to bypass review; legitimate changes use versioned bilateral amendment and confirmation.
+
 App `server.app:app`, worker `python -m server.worker` (repeat interval configurable; `--once` for one durable recovery pass). `TRADE_DATABASE_URL=sqlite:///./server/trade-dev.sqlite3` by default. `TRADE_DEMO_MODE=1` explicitly enables synthetic sessions/capacity. `TRADE_ENV=production` rejects demo and all trade commands until real Part 2 identity/capacity adapters are installed. PostgreSQL target URL `postgresql+psycopg://...`. Every command's state change, audit event and idempotency response commit in one database transaction. PostgreSQL row locking serialises trade writes; SQLite uses BEGIN IMMEDIATE solely for local development/tests. No browser is needed to close or expire awards.

@@ -10,11 +10,12 @@ import logging
 import os
 from urllib.parse import urlsplit
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.docs import get_swagger_ui_html
 from sqlalchemy import text
+from sqlalchemy.exc import DisconnectionError, InterfaceError, OperationalError, TimeoutError as DatabaseTimeoutError
 
 LOG = logging.getLogger(__name__)
 SERIAL_UNAVAILABLE = {
@@ -105,11 +106,19 @@ class NamespaceDispatcher:
 
 async def background_loop(app, stop, interval):
     from .meraki.worker import run_once as shared_expiry
+    def drain_shared_jobs():
+        # run_once claims at most one job. Sleeping after each claim would add
+        # five seconds per expiry at the default interval, even with a backlog.
+        # Keep each pass bounded so trade closing and shutdown still get time.
+        for _ in range(100):
+            if stop.is_set() or not shared_expiry(app.state.shared.state.sessions):
+                break
+
     app.state.worker_status["running"] = True
     try:
         while not stop.is_set():
             failures = []
-            operations = [("shared", lambda: shared_expiry(app.state.shared.state.sessions))]
+            operations = [("shared", drain_shared_jobs)]
             if app.state.hosted_mode == "demo":
                 operations.insert(0, ("trade", app.state.trade.state.service.tick))
             for name, operation in operations:
@@ -146,6 +155,24 @@ def create_hosted_app(*, trade_app=None, shared_app=None, live_app=None, run_wor
     if live_app is None:
         from .live_data import create_app
         live_app = create_app()
+
+    async def database_unavailable(request: Request, exc):
+        # Register on the domain apps before their middleware stacks are built.
+        # Catching outside a child would be too late: its server-error handler
+        # may already have emitted a plain-text 500. Never return SQL/DSN text.
+        LOG.warning("Hosted database operation unavailable (%s)", type(exc).__name__)
+        problem = {"code": "database_unavailable",
+                   "message": "The database is temporarily unavailable. Refresh before retrying the same action."}
+        if request.url.path.startswith("/api/v1/"):
+            problem["request_id"] = getattr(request.state, "correlation_id", None)
+            content = {"error": problem}
+        else:
+            content = {"detail": problem}
+        return JSONResponse(content, status_code=503)
+
+    for child in (trade_app, shared_app):
+        for exception in (DisconnectionError, InterfaceError, OperationalError, DatabaseTimeoutError):
+            child.add_exception_handler(exception, database_unavailable)
 
     @asynccontextmanager
     async def lifespan(app):

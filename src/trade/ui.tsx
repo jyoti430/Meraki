@@ -1,4 +1,4 @@
-import { Fragment, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { AlertCircle, ArrowRight, CheckCircle2, ChevronDown, FlaskConical, Gavel, Handshake, Landmark, LoaderCircle, PackageCheck, RefreshCw, ShieldCheck, Truck } from 'lucide-react'
 import { useTrade } from './TradeProvider'
@@ -40,25 +40,57 @@ function SessionControl() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [expanded, setExpanded] = useState(false)
+  const generation = useRef(0)
+  const operation = useRef<'loading' | 'connecting' | null>(null)
+  useEffect(() => () => {
+    generation.current += 1
+    if (operation.current === 'connecting') disconnect()
+  }, [disconnect])
+  const cancel = (endSession = false) => {
+    generation.current += 1
+    const connecting = operation.current === 'connecting'
+    operation.current = null
+    setExpanded(false); setPending(false); setChoices([]); setActor(''); setConsent(false); setError('')
+    if (connecting || endSession) disconnect()
+  }
   const open = async () => {
-    setExpanded(true); setPending(true); setError('')
-    try { const results = await principals(); setChoices(results); setActor(results[0]?.id || '') } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not load development identities.') } finally { setPending(false) }
+    if (operation.current) return
+    const request = ++generation.current
+    operation.current = 'loading'
+    setChoices([]); setActor(''); setConsent(false); setExpanded(true); setPending(true); setError('')
+    try {
+      const results = await principals()
+      if (request === generation.current) setChoices(results)
+    } catch (cause) {
+      if (request === generation.current) setError(cause instanceof Error ? cause.message : 'Could not load development identities.')
+    } finally {
+      if (request === generation.current) { operation.current = null; setPending(false) }
+    }
   }
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!consent || !actor || pending) return
+    if (!consent || !actor || operation.current || !choices.some((choice) => choice.id === actor)) return
+    const request = ++generation.current
+    operation.current = 'connecting'
     setPending(true); setError('')
-    try { await connect(actor); setExpanded(false); setConsent(false) } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not start the development session.') } finally { setPending(false) }
+    try {
+      await connect(actor)
+      if (request === generation.current) { setExpanded(false); setChoices([]); setActor(''); setConsent(false) }
+    } catch (cause) {
+      if (request === generation.current) setError(cause instanceof Error ? cause.message : 'Could not start the development session.')
+    } finally {
+      if (request === generation.current) { operation.current = null; setPending(false) }
+    }
   }
   return <div className="t-session">
     <div className="t-session-summary"><FlaskConical size={22} aria-hidden="true" /><div><strong>{workspace ? workspace.principal.display_name : 'Trade workspace'}</strong><span>{workspace ? `${workspace.principal.organisation_id} · ${workspace.principal.role.replace(/_/g, ' ')} · synthetic development session` : 'Choose an explicitly enabled development identity to explore the workflow.'}</span></div>
       {health?.synthetic && <button className="m-btn m-btn-secondary m-btn-sm" type="button" onClick={() => { void open() }} disabled={pending}>{workspace ? 'Switch synthetic actor' : 'Connect synthetic workspace'}</button>}
-      {workspace && <button className="m-btn m-btn-ghost m-btn-sm" type="button" onClick={disconnect}>End session</button>}
+      {workspace && <button className="m-btn m-btn-ghost m-btn-sm" type="button" onClick={() => cancel(true)}>End session</button>}
     </div>
     {expanded && <form onSubmit={(event) => { void submit(event) }} className="t-session-form">
-      <label className="t-field"><span>Synthetic actor</span><select value={actor} onChange={(event) => setActor(event.target.value)} required><option value="">Choose an actor</option>{choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.display_name} · {choice.role.replace(/_/g, ' ')}</option>)}</select></label>
-      <label className="t-check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>I understand this uses synthetic organisations, capacity and trade records. No money moves.</span></label>
-      <div className="m-row"><button className="m-btn m-btn-primary m-btn-sm" disabled={pending || !consent || !actor}>{pending ? 'Connecting…' : 'Start synthetic session'}</button><button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => setExpanded(false)}>Cancel</button></div>
+      <label className="t-field"><span>Synthetic actor</span><select aria-label="Synthetic actor" value={actor} disabled={pending} onChange={(event) => { if (!operation.current) setActor(event.target.value) }} required><option value="">Choose an actor</option>{choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.display_name} · {choice.role.replace(/_/g, ' ')}</option>)}</select></label>
+      <label className="t-check"><input type="checkbox" checked={consent} disabled={pending} onChange={(event) => { if (!operation.current) setConsent(event.target.checked) }} required /><span>I understand this uses synthetic organisations, capacity and trade records. No money moves.</span></label>
+      <div className="m-row"><button className="m-btn m-btn-primary m-btn-sm" disabled={pending || !consent || !actor}>{pending ? 'Connecting…' : 'Start synthetic session'}</button><button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => cancel()}>Cancel</button></div>
     </form>}
     {error && <Notice error>{error}</Notice>}
     {health && !health.synthetic && !workspace && <p className="m-small">Development identities are disabled. A verified Part 2 identity adapter is required.</p>}
@@ -214,6 +246,7 @@ function CriteriaInput({ id, value, onChange }: { id: string; value: string; onC
 
 export function TermsView({ terms }: { terms: CommercialTerms }) {
   return <><dl className="t-details"><Detail label="Handover">{terms.handover}</Detail><Detail label="Grade protocol">{terms.grade_protocol}</Detail><Detail label="Delivery window">{timestamp(terms.delivery_start)} – {timestamp(terms.delivery_end)}</Detail><Detail label="Payment">{terms.payment_terms} · {terms.payment_due_days} days</Detail><Detail label="Downgraded price">{terms.downgrade_bps / 100}% of contracted price</Detail><Detail label="Transit shortfall">{terms.shortfall_liability} liability</Detail><Detail label="Cancellation / default">{terms.cancellation_terms}</Detail><Detail label="Production risk">{terms.production_risk}</Detail><Detail label="Disputes">{terms.dispute_procedure}</Detail><Detail label="Packaging">{terms.packaging_requirements || 'Not specified'}</Detail><Detail label="Additional requirements">{terms.additional_requirements || 'Not specified'}</Detail></dl>
-    {terms.quality_specification?.length ? <div className="t-table-wrap" style={{ marginTop: 16 }}><table className="t-table"><caption>Buyer quality criteria for this terms version</caption><thead><tr><th>Attribute</th><th>Unit</th><th>Minimum</th><th>Maximum</th><th>Required</th><th>Notes</th></tr></thead><tbody>{terms.quality_specification.map((item, index) => <tr key={index}><td>{item.attribute}</td><td>{item.unit || '—'}</td><td>{item.minimum ?? '—'}</td><td>{item.maximum ?? '—'}</td><td>{item.required ? 'Yes' : 'Optional'}</td><td>{item.notes || '—'}</td></tr>)}</tbody></table></div> : <p className="m-small">No additional buyer quality criteria specified.</p>}
+    {terms.quality_specification?.some(item => item.required) && <Notice>Required buyer criteria are preserved in these terms, but a criterion-specific assessment adapter is not connected. Shipment creation and dispatch are blocked until a verified review adapter is available.</Notice>}
+    {terms.quality_specification?.length ? <><p className="m-small">Recorded buyer criteria are requirements, not proof they are satisfied. Generic grade or protocol release alone does not establish compliance with these criteria.</p><div className="t-table-wrap" style={{ marginTop: 16 }}><table className="t-table"><caption>Buyer quality criteria for this terms version</caption><thead><tr><th>Attribute</th><th>Unit</th><th>Minimum</th><th>Maximum</th><th>Required</th><th>Notes</th></tr></thead><tbody>{terms.quality_specification.map((item, index) => <tr key={index}><td>{item.attribute}</td><td>{item.unit || '—'}</td><td>{item.minimum ?? '—'}</td><td>{item.maximum ?? '—'}</td><td>{item.required ? 'Yes' : 'Optional'}</td><td>{item.notes || '—'}</td></tr>)}</tbody></table></div></> : <p className="m-small">No additional buyer quality criteria specified.</p>}
   </>
 }

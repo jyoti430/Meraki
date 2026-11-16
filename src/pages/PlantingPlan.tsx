@@ -105,8 +105,8 @@ export default function PlantingPlan() {
   const pending = result.farmersInvolved.filter((id) => { const s = replyStateFor(id, responses, result.allocations); return s === 'not-sent' || s === 'needs-update' })
 
   function finalize() {
-    // Finalizing saves the current plan as the agreed version; sending instructions is a separate, explicit step.
-    if (window.confirm(`Finalize this ${presetFor(scenario)?.label.toLowerCase() ?? 'custom'} plan (${result.totalAcres.toFixed(1)} ac across ${result.farmersInvolved.length} farmers)? You can still change it later – Meraki will flag that it changed.`)) finalizePlan()
+    // Finalizing records the current proposal; buyer commitment and farmer acceptance remain separate.
+    if (window.confirm(`Finalize this ${presetFor(scenario)?.label.toLowerCase() ?? 'custom'} proposal (${result.totalAcres.toFixed(1)} ac across ${result.farmersInvolved.length} farmers)? Buyer commitment and farmer acceptance are still required before planting. You can still change it later – Meraki will flag that it changed.`)) finalizePlan()
   }
 
   if (!plan) return <div className="m-page"><PageHeader title={t('planting_title')} subtitle={t('planting_sub')} /><Link to="/buyer-orders/new" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>{t('nav_demand')}</Link></div>
@@ -120,10 +120,10 @@ export default function PlantingPlan() {
   const cautions = [...new Set(plan.allocations.flatMap((a) => a.reasons.filter((r) => r.tone === 'caution').map((r) => r.text)))]
   const why = [
     plan.status === 'covered' ? { ok: true, title: 'Planned to meet buyer demand', text: `${fmtT(plan.expectedKg)} expected vs ${fmtT(plan.targetKg)} target (${fmtPct(plan.targetKg ? plan.expectedKg / plan.targetKg : 0)} coverage, incl. ${scenario.bufferPct}% buffer).` }
-      : plan.status === 'not-in-scenario' ? { ok: false, title: 'Indicative demand only', text: 'Not planted in this scenario. Confirm the order or switch to Balanced.' }
+      : plan.status === 'not-in-scenario' ? { ok: false, title: 'Indicative demand only', text: 'No new planting proposed in this scenario. Confirm the order or switch to Balanced.' }
         : { ok: false, title: `Short by ${fmtT(plan.shortfallKg || plan.gapKg)}`, text: `${fmtT(plan.expectedKg)} expected vs ${fmtT(plan.targetKg)} target. Add farmers, complete farm details or agree a lower volume.` },
     plan.allocations.length ? { ok: goodPlots === plan.allocations.length, title: goodPlots === plan.allocations.length ? 'High feasibility' : 'Mostly feasible', text: `${goodPlots} of ${plan.allocations.length} plots are high feasibility (free in time, water and soil suit the crop).${cautions.length ? ` Check: ${cautions.slice(0, 2).join('; ').toLowerCase()}.` : ''}` } : null,
-    plan.sowBy ? { ok: plan.window === 'open', title: plan.window === 'missed' ? 'Sowing window has passed' : plan.window === 'urgent' ? 'Sow this week' : 'Timed to the buyer window', text: plan.window === 'missed' ? `Needed sowing by ${fmtDay(plan.sowBy)}.` : `Sow ${fmtDay(plan.sowFrom)} – ${fmtDay(plan.sowBy)} so first harvest (${fmtDay(plan.harvestStart)}) matches delivery from ${fmtDay(plan.deliveryStart)}.` } : null,
+    plan.sowBy ? { ok: plan.window === 'open', title: plan.window === 'missed' ? 'Sowing window has passed' : plan.window === 'urgent' ? 'Review proposed sowing window this week' : 'Proposed timing for the buyer window', text: plan.window === 'missed' ? `Needed sowing by ${fmtDay(plan.sowBy)}.` : `Proposed sowing ${fmtDay(plan.sowFrom)} – ${fmtDay(plan.sowBy)} targets first harvest (${fmtDay(plan.harvestStart)}) for delivery from ${fmtDay(plan.deliveryStart)}. Confirm buyer commitment and farmer acceptance before planting.` } : null,
     farmerCount > 1 ? { ok: true, title: 'Spread across farmers', text: `${farmerCount} farmers share the area, so one farm’s problem doesn’t break the order.` } : null,
     plan.lines.length > 1 ? { ok: plan.lines.filter((l) => l.inScenario).every((l) => l.status === 'covered'), title: 'Checked order by order', text: `${plan.lines.length} buyer orders are planned separately – each with its own variety, quantity and sowing window – so a surplus on one never hides a shortfall on another.` } : null,
     plan.existingKg > 0 ? { ok: true, title: 'Uses crops already growing', text: `${fmtT(plan.existingKg)} from participating farmers’ crops already in the ground, counted once and only for matching varieties and dates.` } : null,

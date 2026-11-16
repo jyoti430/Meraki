@@ -564,7 +564,7 @@ function buildOpportunity(crop: CropProfile, plan: CropPlan | undefined, data: F
     why.unshift({ source: 'timing', tone: 'block', text: `Needed sowing by ${shortDate(plan.sowBy)}` })
   } else {
     verdict = score >= 3 ? 'strong' : score >= 1 ? 'consider' : 'caution'
-    if (plan?.window === 'urgent') why.unshift({ source: 'timing', tone: 'caution', text: `Sow by ${shortDate(plan.sowBy)} – ${daysBetween(PLANNING_DATE, plan.sowBy)} days left` })
+    if (plan?.window === 'urgent') why.unshift({ source: 'timing', tone: 'caution', text: `Proposed sowing deadline ${shortDate(plan.sowBy)} – ${daysBetween(PLANNING_DATE, plan.sowBy)} days left to review buyer commitment and farmer acceptance` })
     headline = verdict === 'strong' ? (plan?.confirmedKg ? 'Firm demand and suitable land – plan it' : 'Promising – confirm the buyer before sowing')
       : verdict === 'consider' ? (plan?.confirmedKg ? 'Demand exists, but check the risks' : 'Interest exists – firm up buyers before committing land')
       : signals.some((s) => s.regionalSupply === 'Oversupply risk') ? 'Forecast oversupply – avoid adding area' : 'Weak case this season'
@@ -581,12 +581,12 @@ function buildActions(result: PlanResult, data: FarmersData, responses: Record<s
 
   for (const p of result.plans.filter((x) => x.window === 'urgent' && x.allocations.length)) {
     const waiting = new Set(p.allocations.filter((a) => replyStateFor(a.farmerId, responses, result.allocations) !== 'confirmed').map((a) => a.farmerId)).size
-    if (waiting) actions.push({ id: `urgent-${p.crop.id}`, tone: 'urgent', title: `Sow ${p.crop.name.toLowerCase()} by ${shortDate(p.sowBy)}`, detail: `${waiting} of ${new Set(p.allocations.map((a) => a.farmerId)).size} farmers haven’t confirmed yet.`, to: '/messages', cta: 'Message farmers' })
+    if (waiting) actions.push({ id: `urgent-${p.crop.id}`, tone: 'urgent', title: `Review ${p.crop.name.toLowerCase()} proposal before ${shortDate(p.sowBy)}`, detail: `${waiting} of ${new Set(p.allocations.map((a) => a.farmerId)).size} farmers haven’t accepted the current proposal. Confirm buyer commitment and farmer acceptance before planting.`, to: '/messages', cta: 'Review proposals' })
   }
   const notSent = [...byFarmer.keys()].filter((id) => (responses[id]?.status ?? 'not-sent') === 'not-sent')
-  if (notSent.length) actions.push({ id: 'send', tone: 'attention', title: `Send planting instructions to ${notSent.length} farmer${notSent.length > 1 ? 's' : ''}`, detail: 'Instructions are drafted in each farmer’s language.', to: '/messages', cta: 'Review messages' })
+  if (notSent.length) actions.push({ id: 'send', tone: 'attention', title: `Review crop proposals for ${notSent.length} farmer${notSent.length > 1 ? 's' : ''}`, detail: 'Draft proposals are available in each farmer’s language. Ask for acceptance and confirm buyer commitment before planting.', to: '/messages', cta: 'Review messages' })
   const changed = [...byFarmer.keys()].filter((id) => replyStateFor(id, responses, result.allocations) === 'needs-update')
-  if (changed.length) actions.push({ id: 'resend', tone: 'attention', title: `Plan changed for ${changed.length} farmer${changed.length > 1 ? 's' : ''}`, detail: 'Their instructions are out of date. Send an update.', to: '/messages', cta: 'Send updates' })
+  if (changed.length) actions.push({ id: 'resend', tone: 'attention', title: `Plan changed for ${changed.length} farmer${changed.length > 1 ? 's' : ''}`, detail: 'Their crop proposals are out of date. Review changes and request renewed acceptance.', to: '/messages', cta: 'Review updates' })
   const constraints = Object.values(responses).filter((r) => r.status === 'constraint')
   if (constraints.length) actions.push({ id: 'constraints', tone: 'attention', title: `${constraints.length} farmer${constraints.length > 1 ? 's' : ''} reported a problem`, detail: 'Review how it changed the plan.', to: '/messages', cta: 'Review replies' })
   const flagged = Object.keys(flaggedPlots).length

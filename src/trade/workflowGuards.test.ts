@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { canWriteTrade, MAX_SNAPSHOT_AGE_MS, validateTradeWorkspace } from './workflowGuards'
+import { canWriteTrade, MAX_SNAPSHOT_AGE_MS, validateTradeHealth, validateTradeSession, validateTradeWorkspace } from './workflowGuards'
 import type { Workspace } from './types'
 
 const snapshot = { server_time: '2026-11-16T00:00:00Z', synthetic: true, production_ready: false, blockers: [],
@@ -13,5 +13,12 @@ it('allows commands only after a successful, fresh, authenticated snapshot', () 
 })
 it('rejects shared-API or malformed responses instead of treating them as trade state', () => {
   expect(validateTradeWorkspace(snapshot)).toEqual(snapshot)
-  for (const malformed of [{ items: [] }, { ...snapshot, principal: null }, { ...snapshot, lots: [{ quantity_g: 10 }] }, { ...snapshot, contracts: null }]) expect(() => validateTradeWorkspace(malformed)).toThrow()
+  for (const malformed of [{ items: [] }, { ...snapshot, principal: null }, { ...snapshot, principal: { ...snapshot.principal, role: 'admin' } }, { ...snapshot, blockers: [null] }, { ...snapshot, lots: [{ quantity_g: 10 }] }, { ...snapshot, lots: [{ id: 'lot-unversioned' }] }, { ...snapshot, contracts: null }]) expect(() => validateTradeWorkspace(malformed)).toThrow()
+})
+it('binds workspace identity and validates session and health envelopes', () => {
+  expect(validateTradeWorkspace(snapshot, snapshot.principal as Workspace['principal'])).toEqual(snapshot)
+  expect(() => validateTradeWorkspace(snapshot, { ...snapshot.principal, id: 'other' } as Workspace['principal'])).toThrow('different identity')
+  expect(() => validateTradeSession({ token: '', principal: snapshot.principal, synthetic: true }, 'actor-a')).toThrow('contract mismatch')
+  expect(() => validateTradeSession({ token: 'token', principal: snapshot.principal, synthetic: true }, 'actor-b')).toThrow('different identity')
+  expect(() => validateTradeHealth({ status: 'healthy', services: {} })).toThrow('contract mismatch')
 })
