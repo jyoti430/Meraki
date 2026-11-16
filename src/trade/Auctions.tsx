@@ -1,3 +1,5 @@
+import SharedAuctions from '../pages/Auctions'
+import { useAuth } from '../auth/context'
 import { DemoTradeBoard } from './DemoTradeBoard'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -25,7 +27,9 @@ const scheduleFields: FieldSpec[] = [
 
 export function TradeBoardPage() {
   const { workspace } = useTrade()
-  const [demo, setDemo] = useState(true)
+  const { account } = useAuth()
+  const [board, setBoard] = useState<'shared' | 'samples' | 'procurement'>(account ? 'shared' : 'samples')
+  const demo = board !== 'procurement'
   const [mode, setMode] = useState('all')
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
@@ -33,9 +37,10 @@ export function TradeBoardPage() {
   const auctions = (workspace?.auctions ?? []).filter((auction) => (mode === 'all' || auction.mode === mode) && (status === 'all' || auction.status === status) && `${auction.crop} ${auction.variety} ${auction.grade}`.toLowerCase().includes(query.toLowerCase()))
   const isFpo = workspace?.principal.role === 'fpo'
   const isExporter = workspace?.principal.role === 'exporter'
-  return <TradeFrame demo={demo} controls={<div className="t-filter" role="group" aria-label="Opportunity data source" style={{ marginBottom: 20 }}><button className="m-btn m-btn-secondary" type="button" aria-pressed={demo} onClick={() => setDemo(true)}>Demo examples</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={!demo} onClick={() => setDemo(false)}>Connected market</button></div>} title="Trade opportunities" subtitle="Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.">
+  return <TradeFrame demo={demo} controls={<div className="t-filter" role="group" aria-label="Opportunity data source" style={{ marginBottom: 20 }}><button className="m-btn m-btn-secondary" type="button" disabled={!account} aria-pressed={board === 'shared'} onClick={() => setBoard('shared')}>Shared auctions</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={board === 'samples'} onClick={() => setBoard('samples')}>Sample listings (read-only)</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={board === 'procurement'} onClick={() => setBoard('procurement')}>Procurement workflow</button></div>} title="Trade opportunities" subtitle="Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.">
 
-    {demo && <DemoTradeBoard />}
+    {board === 'shared' && account && <SharedAuctions embedded />}
+    {board === 'samples' && <DemoTradeBoard />}
     {!demo && workspace && <>
       <div className="t-metrics"><Metric label="Open opportunities" value={workspace.auctions.filter((auction) => auction.status === 'open').length} help="Server clock determines eligibility" /><Metric label="Provisional awards" value={workspace.contracts.filter((contract) => contract.status === 'provisional').length} help="Both parties must approve terms" /><Metric label="Confirmed contracts" value={workspace.contracts.filter((contract) => contract.status === 'confirmed').length} help="Ready for released-lot fulfilment" /><Metric label="Released lots" value={workspace.lots.filter((lot) => lot.qc_status === 'released').length} help="Scope-limited QC release" /></div>
       <div className="t-grid"><Panel title="Market board" subtitle="Published opportunities; private offers and evidence remain organisation scoped." aside={<Gavel size={23} color="var(--forest)" />}>
