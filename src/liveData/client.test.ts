@@ -36,14 +36,14 @@ describe('public data response boundary', () => {
   })
 
   it('does not turn an HTTP failure or malformed JSON into an empty successful snapshot', async () => {
-    await expect(fetchLiveSnapshot('nashik', 'tomato', undefined, async () => new Response('not available', { status: 503 }))).rejects.toThrow(/503/)
-    await expect(fetchLiveSnapshot('nashik', 'tomato', undefined, async () => new Response('not JSON'))).rejects.toThrow(/JSON/)
+    await expect(fetchLiveSnapshot('nashik', 'tomato', 'en', undefined, async () => new Response('not available', { status: 503 }))).rejects.toThrow(/503/)
+    await expect(fetchLiveSnapshot('nashik', 'tomato', 'en', undefined, async () => new Response('not JSON'))).rejects.toThrow(/JSON/)
   })
 
   it('sends only allowlisted public reference locations and crop names', async () => {
     let requested = ''
-    await fetchLiveSnapshot('pune', 'green_chilli', undefined, async (url) => { requested = String(url); return Response.json(fixture()) })
-    expect(requested).toBe('/api/live-data/snapshot?location=pune&crop=green_chilli')
-    await expect(fetchLiveSnapshot('private-farm' as never, 'tomato')).rejects.toThrow(/reference location/i)
+    await fetchLiveSnapshot('pune', 'green_chilli', 'en', undefined, async (url) => { requested = String(url); return Response.json(fixture()) })
+    expect(requested).toBe('/api/live-data/snapshot?location=pune&crop=green_chilli&lang=en')
+    await expect(fetchLiveSnapshot('private-farm' as never, 'tomato', 'en')).rejects.toThrow(/reference location/i)
   })
 })

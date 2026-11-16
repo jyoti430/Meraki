@@ -1,5 +1,6 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../i18n'
 import { AlertTriangle, ArrowRight, BarChart3, ChevronDown, Clock3, CloudRain, Info, ShoppingBag, Sprout, TrendingDown, UsersRound, Zap } from 'lucide-react'
 import { usePlan } from '../context/PlanContext'
 import { useFarmers } from '../context/FarmersContext'
@@ -42,6 +43,7 @@ function DemandBar({ o, max }: { o: Opportunity; max: number }) {
 }
 
 export default function Overview() {
+  const { t } = useI18n()
   const { result, responses } = usePlan()
   const { data } = useFarmers()
   const [open, setOpen] = useState<string | null>(null)
@@ -70,19 +72,19 @@ export default function Overview() {
   ].slice(0, 4)
 
   return <div className="m-page">
-    <PageHeader title="Crop forecast overview" subtitle="Turn buyer demand into a collective planting plan for your FPO." />
+    <PageHeader title={t('overview_title')} subtitle={t('overview_subtitle')} />
 
     <section className="m-stats" aria-label="Season summary">
-      <StatCard icon={<ShoppingBag size={24} />} label="Buyer demand" tip="All active buyer orders, committed and indicative" value={fmtT(demandKg)} sub={<>{fmtT(confirmedKg)} buyer-committed</>} />
-      <StatCard icon={<Sprout size={24} />} label="Expected supply" tip="Planned planting at the scenario's yield assumption plus crops already growing" value={fmtT(supplyKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
-      <StatCard icon={<AlertTriangle size={24} />} tone="warn" label="Supply gaps" tip="Buyer quantity not met by expected supply, checked order by order" value={fmtT(gapKg)} sub={<>≈ {fmtPct(demandKg ? gapKg / demandKg : 0)} of demand</>} />
-      <StatCard icon={<UsersRound size={24} />} label="Participating farms" value={eligible.length} sub={<>across {villages} villages</>} />
+      <StatCard icon={<ShoppingBag size={24} />} label={t('buyer_demand')} tip="All active buyer orders, committed and indicative" value={fmtT(demandKg)} sub={<>{fmtT(confirmedKg)} buyer-committed</>} />
+      <StatCard icon={<Sprout size={24} />} label={t('expected_supply')} tip="Planned planting at the scenario's yield assumption plus crops already growing" value={fmtT(supplyKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
+      <StatCard icon={<AlertTriangle size={24} />} tone="warn" label={t('supply_gaps')} tip="Buyer quantity not met by expected supply, checked order by order" value={fmtT(gapKg)} sub={<>≈ {fmtPct(demandKg ? gapKg / demandKg : 0)} of demand</>} />
+      <StatCard icon={<UsersRound size={24} />} label={t('participating_farms')} value={eligible.length} sub={<>across {villages} villages</>} />
     </section>
 
     <>
       <section className="m-panel" id="opportunities" aria-labelledby="opp-title">
         <div className="m-panel-head">
-          <div><h2 className="m-panel-title" id="opp-title">Top crop opportunities</h2><p className="m-panel-sub">Buyer demand, projected supply and recommended actions for this season.</p></div>
+          <div><h2 className="m-panel-title" id="opp-title">{t('opportunities_title')}</h2><p className="m-panel-sub">{t('opportunities_sub')}</p></div>
           <div className="m-legend2">
             <span><i style={{ background: '#2e7d32' }} />Committed <InfoTip text="Buyer has committed to quantity, window and price" /></span>
             <span><i style={{ background: '#9ccc65' }} />Indicative <InfoTip text="Buyer interest, not committed" /></span>
@@ -114,7 +116,7 @@ export default function Overview() {
 
       <div className="m-cols-even m-stretch">
         <section className="m-panel" aria-labelledby="next-title">
-          <h2 className="m-panel-title sm" id="next-title"><Zap size={24} />Next actions</h2>
+          <h2 className="m-panel-title sm" id="next-title"><Zap size={24} />{t('next_actions')}</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Keep your seasonal plan on track.</p>
           <ul className="m-checklist">{result.actions.slice(0, 5).map((a) => {
             const isDone = done.includes(a.id)
@@ -125,7 +127,7 @@ export default function Overview() {
           })}</ul>
         </section>
         <section className="m-panel" aria-labelledby="watch-title">
-          <h2 className="m-panel-title sm" id="watch-title"><AlertTriangle size={24} />Watchouts</h2>
+          <h2 className="m-panel-title sm" id="watch-title"><AlertTriangle size={24} />{t('watchouts')}</h2>
           <p className="m-panel-sub" style={{ marginBottom: 8 }}>Risks to monitor for this season.</p>
           <ul className="m-why2">{watchouts.map((w) => <li key={w.title}><span className={`m-roundico ${w.tone}`}>{w.icon}</span><div><strong>{w.title}</strong><span>{w.text}</span></div></li>)}</ul>
         </section>
@@ -134,7 +136,7 @@ export default function Overview() {
 
     {weeks.length > 0 && <section className="m-panel" aria-labelledby="sd-title">
       <div className="m-panel-head">
-        <div><h2 className="m-panel-title" id="sd-title"><BarChart3 size={24} color="var(--forest)" />Supply vs. demand <small>(delivery season, {weeks.length} weeks)</small></h2><p className="m-panel-sub">Projected weekly supply against total buyer demand across all crops.</p></div>
+        <div><h2 className="m-panel-title" id="sd-title"><BarChart3 size={24} color="var(--forest)" />{t('supply_vs_demand')} <small>(delivery season, {weeks.length} weeks)</small></h2><p className="m-panel-sub">Projected weekly supply against total buyer demand across all crops.</p></div>
         <div className="m-minis row">
           <div className="m-mini"><small>Demand (total)</small><strong>{fmtT(chartDemand)}</strong></div>
           <div className="m-mini"><small>Supply (projected)</small><strong>{fmtT(chartSupply)}</strong></div>

@@ -4,19 +4,20 @@ import { CloudSun, Database, FlaskConical, RefreshCw } from 'lucide-react'
 import { fetchLiveSnapshot } from '../liveData/client'
 import type { LiveSnapshot, MarketCrop, MarketRow, ReferenceLocation, SourceEnvelope, WeatherRow } from '../liveData/client'
 import validation from '../../reports/model_validation.json'
+import { useI18n } from '../i18n'
+import { translateDeep } from '../i18n/autoTranslate'
 import './LiveData.css'
 
-const locations = [{ id: 'nashik', name: 'Nashik reference point' }, { id: 'pune', name: 'Pune reference point' }, { id: 'satara', name: 'Satara reference point' }] as const
-const value = (number: number | null | undefined) => number == null ? 'Unknown' : number.toLocaleString('en-IN', { maximumFractionDigits: 2 })
-const utc = (stamp: string | null) => stamp ? `${new Date(stamp).toLocaleString('en-GB', { timeZone: 'UTC', hour12: false })} UTC` : 'Unknown'
-const publicUrl = (url: string) => /^https:\/\//.test(url) ? url : undefined
+const publicUrl = (url: string) => /^https?:\/\//.test(url) ? url : undefined
 
 function SourceDetails<T>({ source }: { source: SourceEnvelope<T> }) {
+  const { t } = useI18n()
+  const utc = (stamp: string | null) => stamp ? `${new Date(stamp).toLocaleString('en-GB', { timeZone: 'UTC', hour12: false })} UTC` : t('unknown')
   return <div className="ld-source-details">
-    <dl><div><dt>Retrieved</dt><dd>{utc(source.retrieved_at)}</dd></div><div><dt>Period in response</dt><dd>{source.observation_start ?? 'Unknown'} → {source.observation_end ?? 'Unknown'}</dd></div><div><dt>Source cache</dt><dd>{source.cache.hit ? 'Cached response' : 'Fetched from provider'} · expires {utc(source.cache.expires_at)}</dd></div></dl>
-    {source.error && <p role="alert" className="ld-warning">{source.error.message} No synthetic replacement was used.</p>}
+    <dl><div><dt>{t('ld_retrieved')}</dt><dd>{utc(source.retrieved_at)}</dd></div><div><dt>{t('ld_period')}</dt><dd>{source.observation_start ?? t('unknown')} → {source.observation_end ?? t('unknown')}</dd></div><div><dt>{t('ld_source_cache')}</dt><dd>{source.cache.hit ? t('ld_cached_response') : t('ld_fetched_provider')} · {t('ld_expires', { time: utc(source.cache.expires_at) })}</dd></div></dl>
+    {source.error && <p role="alert" className="ld-warning">{source.error.message} {t('ld_no_synthetic')}</p>}
     {source.warnings.length > 0 && <ul className="ld-caveats">{source.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>}
-    <p className="ld-attribution"><a href={publicUrl(source.source_url)} target="_blank" rel="noreferrer">{source.attribution}</a> · <a href={publicUrl(source.documentation_url)} target="_blank" rel="noreferrer">Provider documentation</a><br />{source.licence}{source.source_id.startsWith('open-meteo') && <> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0 licence</a> · <a href="https://open-meteo.com/en/terms" target="_blank" rel="noreferrer">Hosted-service terms</a></>}</p>
+    <p className="ld-attribution"><a href={publicUrl(source.source_url)} target="_blank" rel="noreferrer">{source.attribution}</a> · <a href={publicUrl(source.documentation_url)} target="_blank" rel="noreferrer">{t('ld_provider_doc')}</a><br />{source.licence}{source.source_id.startsWith('open-meteo') && <> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a> · <a href="https://open-meteo.com/en/terms" target="_blank" rel="noreferrer">Open-Meteo terms</a></>}</p>
   </div>
 }
 
@@ -25,45 +26,67 @@ function Status({ value: status }: { value: string }) {
 }
 
 function WeatherTable({ rows, forecast, dateBasis }: { rows: WeatherRow[]; forecast?: boolean; dateBasis: string }) {
-  if (!rows.length) return <p>No weather rows are available from this source.</p>
-  return <div className="ld-table-wrap"><table><caption>{forecast ? 'Daily regional forecasts.' : 'Most recent seven returned days; gridded historical estimates.'} Date basis: {dateBasis}.</caption><thead><tr><th>Date</th><th>Min °C</th><th>Max °C</th><th>Precipitation mm/day</th>{forecast && <th>Reference ET₀ mm/day</th>}</tr></thead><tbody>{(forecast ? rows : rows.slice(-7)).map(row => <tr key={row.date}><th scope="row">{row.date}</th><td>{value(row.t2m_min_c)}</td><td>{value(row.t2m_max_c)}</td><td>{value(row.precipitation_mm_day)}</td>{forecast && <td>{value(row.et0_mm_day)}</td>}</tr>)}</tbody></table></div>
+  const { t } = useI18n()
+  const value = (n: number | null | undefined) => n == null ? t('unknown') : n.toLocaleString('en-IN', { maximumFractionDigits: 2 })
+  if (!rows.length) return <p>{t('ld_no_weather_rows')}</p>
+  return <div className="ld-table-wrap"><table><caption>{t(forecast ? 'ld_weather_caption_forecast' : 'ld_weather_caption_history', { basis: dateBasis })}</caption><thead><tr><th>{t('ld_date')}</th><th>{t('ld_min_c')}</th><th>{t('ld_max_c')}</th><th>{t('ld_precip')}</th>{forecast && <th>{t('ld_et0')}</th>}</tr></thead><tbody>{(forecast ? rows : rows.slice(-7)).map(row => <tr key={row.date}><th scope="row">{row.date}</th><td>{value(row.t2m_min_c)}</td><td>{value(row.t2m_max_c)}</td><td>{value(row.precipitation_mm_day)}</td>{forecast && <td>{value(row.et0_mm_day)}</td>}</tr>)}</tbody></table></div>
 }
 
 function MarketTable({ source }: { source: SourceEnvelope<MarketRow> }) {
-  if (!source.data.length) return <p>No matching dated market observations are available.</p>
-  return <><p>{source.data.length} observations returned. Showing the first 25 rows. These are statewide reporting markets, independent of the selected weather reference point.</p><div className="ld-table-wrap"><table><caption>Wholesale reports in original units; these are neither farmgate offers nor buyer orders.</caption><thead><tr><th>Date / market</th><th>Commodity / variety</th><th>Min</th><th>Modal</th><th>Max</th><th>Price unit</th><th>Arrivals</th></tr></thead><tbody>{source.data.slice(0, 25).map((row, index) => <tr key={index}><th scope="row">{row.observation_date}<br />{row.market}</th><td>{row.commodity}<br />{row.variety ?? 'Variety unknown'}</td><td>{value(row.price_min_rs_per_unit)}</td><td>{value(row.price_modal_rs_per_unit)}</td><td>{value(row.price_max_rs_per_unit)}</td><td>{row.price_unit}</td><td>{value(row.arrivals_value)} {row.arrivals_unit}</td></tr>)}</tbody></table></div></>
+  const { t } = useI18n()
+  const value = (n: number | null | undefined) => n == null ? t('unknown') : n.toLocaleString('en-IN', { maximumFractionDigits: 2 })
+  if (!source.data.length) return <p>{t('ld_no_market_rows')}</p>
+  return <><p>{t('ld_market_rows_info', { count: source.data.length })}</p><div className="ld-table-wrap"><table><caption>{t('ld_market_caption')}</caption><thead><tr><th>{t('ld_date_market')}</th><th>{t('ld_commodity_variety')}</th><th>{t('ld_min')}</th><th>{t('ld_modal')}</th><th>{t('ld_max')}</th><th>{t('ld_price_unit')}</th><th>{t('ld_arrivals')}</th></tr></thead><tbody>{source.data.slice(0, 25).map((row, index) => <tr key={index}><th scope="row">{row.observation_date}<br />{row.market}</th><td>{row.commodity}<br />{row.variety ?? t('ld_variety_unknown')}</td><td>{value(row.price_min_rs_per_unit)}</td><td>{value(row.price_modal_rs_per_unit)}</td><td>{value(row.price_max_rs_per_unit)}</td><td>{row.price_unit}</td><td>{value(row.arrivals_value)} {row.arrivals_unit}</td></tr>)}</tbody></table></div></>
 }
 
 export default function LiveData() {
+  const { t, lang } = useI18n()
+  const locations: { id: ReferenceLocation; name: string }[] = [
+    { id: 'nashik', name: t('ld_loc_nashik') }, { id: 'pune', name: t('ld_loc_pune') }, { id: 'satara', name: t('ld_loc_satara') }
+  ]
   const [location, setLocation] = useState<ReferenceLocation>('nashik')
   const [crop, setCrop] = useState<MarketCrop>('tomato')
   const [refresh, setRefresh] = useState(0)
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null)
+  const [displaySnapshot, setDisplaySnapshot] = useState<LiveSnapshot | null>(null)
+  const [report, setReport] = useState<any>(validation)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const utc = (stamp: string | null) => stamp ? `${new Date(stamp).toLocaleString('en-GB', { timeZone: 'UTC', hour12: false })} UTC` : t('unknown')
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true); setError(''); setSnapshot(null)
-    fetchLiveSnapshot(location, crop, controller.signal).then(result => {
+    fetchLiveSnapshot(location, crop, lang, controller.signal).then(result => {
       if (!controller.signal.aborted) setSnapshot(result)
     }).catch(reason => {
-      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Public source request failed.')
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : t('ld_public_source_failed'))
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [location, crop, refresh])
+  }, [location, crop, refresh, lang, t])
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      if (!snapshot) { if (alive) setDisplaySnapshot(null); return }
+      if (lang === 'en') { if (alive) { setDisplaySnapshot(snapshot); setReport(validation) } ; return }
+      const [s, r] = await Promise.all([translateDeep(snapshot, lang), translateDeep(validation, lang)])
+      if (alive) { setDisplaySnapshot(s); setReport(r) }
+    })()
+    return () => { alive = false }
+  }, [snapshot, lang])
 
   return <div className="m-page ld-page">
-    <header className="ld-heading"><div><div className="m-eyebrow">EVIDENCE & EVALUATION</div><h1 className="m-h1">Public data & model checks</h1><p className="m-lead">Check regional weather and market context, its freshness and the evidence needed before trusting yield predictions.</p></div><Link className="m-btn" to="/farm-intelligence">Farm data workspace</Link></header>
-    <div className="ld-notice"><Database size={20} /><p>These public reference points describe regional context. They are separate from synthetic farm scenarios, laboratory soil reports, irrigation access and confirmed buyer demand.</p></div>
-    <section className="m-card ld-controls" aria-label="Public data selection"><label>Weather reference location<select value={location} onChange={event => setLocation(event.target.value as ReferenceLocation)}>{locations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Statewide market commodity<select value={crop} onChange={event => setCrop(event.target.value as MarketCrop)}><option value="tomato">Tomato</option><option value="green_chilli">Green chilli</option></select></label><button className="m-btn" type="button" disabled={loading} onClick={() => setRefresh(current => current + 1)}><RefreshCw size={16} />{loading ? 'Fetching sources…' : 'Refresh sources'}</button><span className="m-small">Source caching limits repeated provider requests.</span></section>
-    {loading && <p role="status">Checking each provider independently. A slow or failed source will be shown with its own status.</p>}
-    {error && <p role="alert" className="ld-warning">{error} The page has no live values to display.</p>}
-    {snapshot && <><p className="m-small">Gateway snapshot: {utc(snapshot.server_time)}. Unknown values stay unknown.</p>
-      <section className="m-card ld-section"><div className="ld-section-heading"><h2><CloudSun size={22} /> Seven-day weather forecast</h2><Status value={snapshot.forecast.status} /></div><p>Modelled regional forecast from Open-Meteo. Provider issue time: {snapshot.forecast.provider_issued_at ? utc(snapshot.forecast.provider_issued_at) : 'not supplied by this response'}. Meraki first knew this snapshot at {utc(snapshot.forecast.available_at)}; retrieval time is not model issue time.</p><WeatherTable rows={snapshot.forecast.data} dateBasis={snapshot.forecast.units.date ?? 'not supplied'} forecast /><SourceDetails source={snapshot.forecast} /></section>
-      <section className="m-card ld-section"><div className="ld-section-heading"><h2>NASA POWER recent history</h2><Status value={snapshot.history.status} /></div><p>Historical gridded estimates for a public reference point. This source has a reporting delay and does not provide a future forecast or a farm weather-station measurement.</p><WeatherTable rows={snapshot.history.data} dateBasis={snapshot.history.units.date ?? 'not supplied'} /><SourceDetails source={snapshot.history} /></section>
-      <section className="m-card ld-section"><div className="ld-section-heading"><h2>MSAMB market reports</h2><Status value={snapshot.market.status} /></div><MarketTable source={snapshot.market} /><SourceDetails source={snapshot.market} /></section>
+    <header className="ld-heading"><div><div className="m-eyebrow">{t('ld_eyebrow')}</div><h1 className="m-h1">{t('public_data_title')}</h1><p className="m-lead">{t('public_data_sub')}</p></div><Link className="m-btn" to="/farm-intelligence">{t('farm_data_workspace')}</Link></header>
+    <div className="ld-notice"><Database size={20} /><p>{t('ld_notice')}</p></div>
+    <section className="m-card ld-controls" aria-label={t('ld_weather_loc')}><label>{t('ld_weather_loc')}<select value={location} onChange={event => setLocation(event.target.value as ReferenceLocation)}>{locations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>{t('ld_market_crop')}<select value={crop} onChange={event => setCrop(event.target.value as MarketCrop)}><option value="tomato">{t('ld_crop_tomato')}</option><option value="green_chilli">{t('ld_crop_green_chilli')}</option></select></label><button className="m-btn" type="button" disabled={loading} onClick={() => setRefresh(current => current + 1)}><RefreshCw size={16} />{loading ? t('fetching_sources') : t('refresh_sources')}</button><span className="m-small">{t('ld_cache_note')}</span></section>
+    {loading && <p role="status">{t('ld_checking')}</p>}
+    {error && <p role="alert" className="ld-warning">{error} {t('ld_no_values')}</p>}
+    {displaySnapshot && <><p className="m-small">{t('ld_gateway_snapshot', { time: utc(displaySnapshot.server_time) })}</p>
+      <section className="m-card ld-section"><div className="ld-section-heading"><h2><CloudSun size={22} /> {t('ld_forecast_title')}</h2><Status value={displaySnapshot.forecast.status} /></div><p>{t('ld_forecast_desc', { issued: displaySnapshot.forecast.provider_issued_at ? utc(displaySnapshot.forecast.provider_issued_at) : t('ld_not_supplied'), available: utc(displaySnapshot.forecast.available_at) })}</p><WeatherTable rows={displaySnapshot.forecast.data} dateBasis={displaySnapshot.forecast.units.date ?? t('ld_not_supplied')} forecast /><SourceDetails source={displaySnapshot.forecast} /></section>
+      <section className="m-card ld-section"><div className="ld-section-heading"><h2>{t('ld_history_title')}</h2><Status value={displaySnapshot.history.status} /></div><p>{t('ld_history_desc')}</p><WeatherTable rows={displaySnapshot.history.data} dateBasis={displaySnapshot.history.units.date ?? t('ld_not_supplied')} /><SourceDetails source={displaySnapshot.history} /></section>
+      <section className="m-card ld-section"><div className="ld-section-heading"><h2>{t('ld_market_title')}</h2><Status value={displaySnapshot.market.status} /></div><MarketTable source={displaySnapshot.market} /><SourceDetails source={displaySnapshot.market} /></section>
     </>}
-    <section className="m-card ld-section" aria-labelledby="model-validation-title"><div className="ld-section-heading"><h2 id="model-validation-title"><FlaskConical size={22} /> Farm-yield model validation</h2><Status value={validation.status} /></div><p>{validation.summary}</p><div className="ld-model-metrics"><div><small>Accepted farm-outcome rows</small><strong>{validation.farm_outcomes.accepted_rows}</strong></div><div><small>Approved for production prediction</small><strong>{validation.promotion_allowed ? 'Yes' : 'No'}</strong></div><div><small>Evaluation status</small><strong>{validation.evaluation.status.replace(/_/g, ' ')}</strong></div></div><p>The crop-fit screen currently uses explanatory rules. Public state averages and market histories do not establish accuracy for an individual farm.</p><div className="ld-gates">{validation.gates.map(gate => <div key={gate.id}><Status value={gate.status} /><span>{gate.reason}</span></div>)}</div><h3>Next evidence needed</h3><ul>{validation.next_steps.map((step, index) => <li key={index}>{step}</li>)}</ul></section>
-    <section className="m-card ld-section"><h2>Soil and groundwater access</h2><p>Use the farm workspace to import authorised soil-test records and record actual irrigation rights and pumping capacity. Public visibility does not establish permission to retrieve a farmer’s private test.</p><p><a href="https://soilhealth.dac.gov.in/" target="_blank" rel="noreferrer">Government Soil Health Card portal</a> · <a href="https://cgwb.gov.in/en/data-download" target="_blank" rel="noreferrer">CGWB regional groundwater data</a></p><p className="m-small">No authenticated SHC or live groundwater feed is connected. Regional groundwater observations cannot prove a farm’s water access. Open-Meteo’s free hosted endpoint is for development and non-commercial use; commercial deployment requires a suitable service agreement or self-hosting.</p></section>
+    <section className="m-card ld-section" aria-labelledby="model-validation-title"><div className="ld-section-heading"><h2 id="model-validation-title"><FlaskConical size={22} /> {t('ld_model_title')}</h2><Status value={report.status} /></div><p>{report.summary}</p><div className="ld-model-metrics"><div><small>{t('ld_accepted_rows')}</small><strong>{report.farm_outcomes.accepted_rows}</strong></div><div><small>{t('ld_approved')}</small><strong>{report.promotion_allowed ? t('ld_yes') : t('ld_no')}</strong></div><div><small>{t('ld_eval_status')}</small><strong>{String(report.evaluation.status).replace(/_/g, ' ')}</strong></div></div><p>{t('ld_model_note')}</p><div className="ld-gates">{report.gates.map((gate: any) => <div key={gate.id}><Status value={gate.status} /><span>{gate.reason}</span></div>)}</div><h3>{t('ld_next_evidence')}</h3><ul>{report.next_steps.map((step: string, index: number) => <li key={index}>{step}</li>)}</ul></section>
+    <section className="m-card ld-section"><h2>{t('ld_soil_title')}</h2><p>{t('ld_soil_p1')}</p><p><a href="https://soilhealth.dac.gov.in/" target="_blank" rel="noreferrer">{t('ld_shc_portal')}</a> · <a href="https://cgwb.gov.in/en/data-download" target="_blank" rel="noreferrer">{t('ld_cgwb')}</a></p><p className="m-small">{t('ld_soil_p2')}</p></section>
   </div>
 }

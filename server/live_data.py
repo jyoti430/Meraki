@@ -28,6 +28,92 @@ LOCATIONS = {
 }
 CROPS = {'tomato': dict(id='tomato', name='Tomato', code='08071'),
          'green_chilli': dict(id='green_chilli', name='Green chilli', code='10013')}
+LANGS = ('en', 'ta', 'hi', 'ml', 'zh', 'ms')
+DISPLAY = {
+    'en': {'loc': {'nashik': 'Nashik reference point', 'pune': 'Pune reference point', 'satara': 'Satara reference point'}, 'crop': {'tomato': 'Tomato', 'green_chilli': 'Green chilli'},
+           'fw': {'Public reference-point model forecast; not a farm sensor or guaranteed outcome.': 'Public reference-point model forecast; not a farm sensor or guaranteed outcome.', 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.': 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.', 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.': 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.'},
+           'hw': {'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.': 'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.', 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.': 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.', 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.': 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.', 'Historical observations retrieved today were not necessarily available at their observation date.': 'Historical observations retrieved today were not necessarily available at their observation date.'},
+           'mw': {'Statewide market observations are not buyer orders, farmgate offers or a forecast.': 'Statewide market observations are not buyer orders, farmgate offers or a forecast.', 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.': 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.', 'Public visibility does not establish unrestricted commercial reuse or model-training permission.': 'Public visibility does not establish unrestricted commercial reuse or model-training permission.'},
+           'attr': {'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.': 'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.', 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.': 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.', 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.': 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.'},
+           'lic': {'CC BY 4.0 data; free hosted API is restricted to non-commercial use.': 'CC BY 4.0 data; free hosted API is restricted to non-commercial use.', 'NASA POWER publicly accessible data; acknowledge the POWER Project.': 'NASA POWER publicly accessible data; acknowledge the POWER Project.', 'Public reference display; broader reuse, redistribution and training permissions have not been established.': 'Public reference display; broader reuse, redistribution and training permissions have not been established.'}},
+    'ta': {'loc': {'nashik': 'நாசிக் குறிப்பு புள்ளி', 'pune': 'புனே குறிப்பு புள்ளி', 'satara': 'சதாரா குறிப்பு புள்ளி'}, 'crop': {'tomato': 'தக்காளி', 'green_chilli': 'பச்சை மிளகாய்'},
+           'fw': {'Public reference-point model forecast; not a farm sensor or guaranteed outcome.': 'பொது குறிப்பு புள்ளி மாதிரி முன்னறிவிப்பு; இது பண்ணை சென்சார் அல்ல, உறுதியான முடிவல்ல.', 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.': 'இந்த முனைப்புள்ளி வழங்குநர் வெளியீட்டு நேரத்தை வழங்கவில்லை; பெறப்பட்ட நேரமே பாதுகாப்பான அறிவு நேரம்.', 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.': 'Open-Meteo இலவச API: வணிகமற்ற வளர்ச்சிக்கு மட்டும்; வணிக பயன்பாட்டிற்கு பொருத்தமான அணுகல் விதிகள் தேவை.'},
+           'hw': {'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.': 'வரலாற்று கிரிட் மதிப்பீடுகள்; தனிப்பட்ட பண்ணை அளவீடு அல்லது முன்னறிவிப்பு அல்ல.', 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.': 'வானிலைத் தரவு சுமார் 0.5 x 0.625 டிகிரி கிரிட்; நகர குறிப்பு புள்ளி பண்ணை நிலையை உறுதிப்படுத்தாது.', 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.': 'கோரப்பட்ட 30 நாட்கள் இன்றைக்கு 7 நாட்களுக்கு முன் முடிகின்றன (தாமத இடைவெளி); பின்னர் திருத்தங்கள் சாத்தியம்.', 'Historical observations retrieved today were not necessarily available at their observation date.': 'இன்று பெறப்பட்ட வரலாற்றுத் தரவு அந்த தேதியிலேயே கிடைத்தது என்று பொருளல்ல.'},
+           'mw': {'Statewide market observations are not buyer orders, farmgate offers or a forecast.': 'மாநில அளவிலான சந்தை பதிவுகள் வாங்குநர் ஆர்டர்கள், பண்ணை விலைகள் அல்லது முன்னறிவிப்பு அல்ல.', 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.': 'மூல சந்தை/வகை/அலகு பெயர்கள் அப்படியே வைக்கப்பட்டுள்ளன; கிலோ, தரம் அல்லது நகர பொருத்தம் ஊகிக்கப்படவில்லை.', 'Public visibility does not establish unrestricted commercial reuse or model-training permission.': 'பொது காண்பிப்பு வரம்பற்ற வணிக மறுபயன்பாடு அல்லது மாதிரி பயிற்சி அனுமதியை உறுதிப்படுத்தாது.'},
+           'attr': {'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.': 'வானிலை தரவு: Open-Meteo.com; புலங்கள் Meraki-யால் தேர்வு/சீரமைக்கப்பட்டன.', 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.': 'NASA Langley Research Center POWER திட்டம்; தேர்ந்தெடுக்கப்பட்ட தினசரி புலங்கள் Meraki-யால் சீரமைக்கப்பட்டன.', 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.': 'மகாராஷ்டிரா மாநில வேளாண் சந்தைப்படுத்தல் வாரியத்தின் பொது வருகை/விலை அறிக்கை.'},
+           'lic': {'CC BY 4.0 data; free hosted API is restricted to non-commercial use.': 'CC BY 4.0 தரவு; இலவச API வணிகமற்ற பயன்பாட்டிற்கு மட்டும்.', 'NASA POWER publicly accessible data; acknowledge the POWER Project.': 'NASA POWER பொது தரவு; POWER திட்டத்தை குறிப்பிட வேண்டும்.', 'Public reference display; broader reuse, redistribution and training permissions have not been established.': 'பொது குறிப்பு காட்சி; விரிவான மறுபயன்பாடு/மறுவிநியோகம்/பயிற்சி அனுமதிகள் உறுதிப்படுத்தப்படவில்லை.'}},
+    'hi': {'loc': {'nashik': 'नासिक संदर्भ बिंदु', 'pune': 'पुणे संदर्भ बिंदु', 'satara': 'सातारा संदर्भ बिंदु'}, 'crop': {'tomato': 'टमाटर', 'green_chilli': 'हरी मिर्च'},
+           'fw': {'Public reference-point model forecast; not a farm sensor or guaranteed outcome.': 'सार्वजनिक संदर्भ-बिंदु मॉडल पूर्वानुमान; खेत सेंसर या निश्चित परिणाम नहीं।', 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.': 'इस एंडपॉइंट पर प्रदाता का जारी समय नहीं दिया गया; प्राप्ति समय को ही ज्ञान समय माना गया है।', 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.': 'Open-Meteo नि:शुल्क API: केवल गैर-वाणिज्यिक विकास; वाणिज्यिक उपयोग हेतु उपयुक्त शर्तें आवश्यक।'},
+           'hw': {'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.': 'ऐतिहासिक ग्रिड मॉडल/अनुमान; व्यक्तिगत खेत माप या पूर्वानुमान नहीं।', 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.': 'मौसम डेटा लगभग 0.5 x 0.625 डिग्री ग्रिड का है; शहर संदर्भ बिंदु खेत की स्थिति सिद्ध नहीं करता।', 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.': 'माँगे गए 30 दिन आज से 7 दिन पहले समाप्त होते हैं (विलंब बफर); बाद में संशोधन संभव हैं।', 'Historical observations retrieved today were not necessarily available at their observation date.': 'आज प्राप्त ऐतिहासिक डेटा उस तिथि पर उपलब्ध रहा हो, यह आवश्यक नहीं।'},
+           'mw': {'Statewide market observations are not buyer orders, farmgate offers or a forecast.': 'राज्य स्तरीय बाज़ार प्रेक्षण खरीदार ऑर्डर, खेत-दर प्रस्ताव या पूर्वानुमान नहीं हैं।', 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.': 'स्रोत बाज़ार/किस्म/इकाई लेबल ज्यों के त्यों रखे गए; किलो, ग्रेड या शहर मिलान का अनुमान नहीं लगाया गया।', 'Public visibility does not establish unrestricted commercial reuse or model-training permission.': 'सार्वजनिक दृश्यता असीमित वाणिज्यिक पुन: उपयोग या मॉडल-प्रशिक्षण अनुमति सिद्ध नहीं करती।'},
+           'attr': {'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.': 'मौसम डेटा: Open-Meteo.com; फ़ील्ड Meraki द्वारा चयनित व सामान्यीकृत।', 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.': 'NASA Langley Research Center POWER प्रोजेक्ट; चयनित दैनिक फ़ील्ड Meraki द्वारा सामान्यीकृत।', 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.': 'महाराष्ट्र राज्य कृषि विपणन बोर्ड की सार्वजनिक आगमन व मूल्य रिपोर्ट।'},
+           'lic': {'CC BY 4.0 data; free hosted API is restricted to non-commercial use.': 'CC BY 4.0 डेटा; नि:शुल्क API केवल गैर-वाणिज्यिक उपयोग हेतु।', 'NASA POWER publicly accessible data; acknowledge the POWER Project.': 'NASA POWER सार्वजनिक डेटा; POWER प्रोजेक्ट का उल्लेख आवश्यक।', 'Public reference display; broader reuse, redistribution and training permissions have not been established.': 'सार्वजनिक संदर्भ प्रदर्शन; व्यापक पुन: उपयोग/पुनर्वितरण/प्रशिक्षण अनुमति स्थापित नहीं।'}},
+    'ml': {'loc': {'nashik': 'നാസിക് റഫറൻസ് പോയിന്റ്', 'pune': 'പൂനെ റഫറൻസ് പോയിന്റ്', 'satara': 'സതാര റഫറൻസ് പോയിന്റ്'}, 'crop': {'tomato': 'തക്കാളി', 'green_chilli': 'പച്ചമുളക്'},
+           'fw': {'Public reference-point model forecast; not a farm sensor or guaranteed outcome.': 'പൊതു റഫറൻസ് പോയിന്റ് മോഡൽ പ്രവചനം; കൃഷിയിട സെൻസറോ ഉറപ്പായ ഫലമോ അല്ല.', 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.': 'ഈ എൻഡ്‌പോയിന്റ് നൽകുന്ന സമയമാണ് ഉപയോഗിച്ചത്; ദാതാവിന്റെ പ്രസിദ്ധീകരണ സമയം ലഭ്യമല്ല.', 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.': 'Open-Meteo സൗജന്യ API: വാണിജ്യേതര വികസനത്തിന് മാത്രം; വാണിജ്യ ഉപയോഗത്തിന് അനുയോജ്യമായ നിബന്ധനകൾ വേണം.'},
+           'hw': {'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.': 'ചരിത്ര ഗ്രിഡ് മോഡൽ കണക്കുകൾ; വ്യക്തിഗത കൃഷിയിട നിരീക്ഷണമോ പ്രവചനമോ അല്ല.', 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.': 'കാലാവസ്ഥാ ഡാറ്റ ഏകദേശം 0.5 x 0.625 ഡിഗ്രി ഗ്രിഡ് ആണ്; നഗര റഫറൻസ് പോയിന്റ് കൃഷിയിട സ്ഥിതി തെളിയിക്കുന്നില്ല.', 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.': 'അഭ്യർത്ഥിച്ച 30 ദിവസം ഇന്നിന് 7 ദിവസം മുമ്പ് അവസാനിക്കുന്നു (കാലതാമസ ബഫർ); പിന്നീട് തിരുത്തലുകൾ സാധ്യമാണ്.', 'Historical observations retrieved today were not necessarily available at their observation date.': 'ഇന്ന് ലഭിച്ച ചരിത്ര ഡാറ്റ ആ തീയതിയിൽ തന്നെ ലഭ്യമായിരുന്നു എന്ന് അർത്ഥമില്ല.'},
+           'mw': {'Statewide market observations are not buyer orders, farmgate offers or a forecast.': 'സംസ്ഥാനതല വിപണി നിരീക്ഷണങ്ങൾ വാങ്ങുന്നവരുടെ ഓർഡറുകളോ ഫാംഗേറ്റ് വിലകളോ പ്രവചനമോ അല്ല.', 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.': 'സ്രോതസ് വിപണി/ഇനം/യൂണിറ്റ് ലേബലുകൾ അതേപടി സൂക്ഷിച്ചു; കിലോ/ഗ്രേഡ്/നഗരം പൊരുത്തപ്പെടുത്തൽ അനുമാനിച്ചിട്ടില്ല.', 'Public visibility does not establish unrestricted commercial reuse or model-training permission.': 'പൊതു ദൃശ്യത പരിധിയില്ലാത്ത വാണിജ്യ പുനരുപയോഗം അല്ലെങ്കിൽ മോഡൽ പരിശീലന അനുമതി തെളിയിക്കുന്നില്ല.'},
+           'attr': {'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.': 'കാലാവസ്ഥാ ഡാറ്റ: Open-Meteo.com; ഫീൽഡുകൾ Meraki തിരഞ്ഞെടുത്ത് ക്രമീകരിച്ചത്.', 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.': 'NASA Langley Research Center POWER പദ്ധതി; തിരഞ്ഞെടുത്ത ദൈനംദിന ഫീൽഡുകൾ Meraki ക്രമീകരിച്ചത്.', 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.': 'മഹാരാഷ്ട്ര സംസ്ഥാന കാർഷിക വിപണന ബോർഡിന്റെ പൊതു വരവ്/വില റിപ്പോർട്ട്.'},
+           'lic': {'CC BY 4.0 data; free hosted API is restricted to non-commercial use.': 'CC BY 4.0 ഡാറ്റ; സൗജന്യ API വാണിജ്യേതര ഉപയോഗത്തിന് മാത്രം.', 'NASA POWER publicly accessible data; acknowledge the POWER Project.': 'NASA POWER പൊതു ഡാറ്റ; POWER പദ്ധതിയെ പരാമർശിക്കണം.', 'Public reference display; broader reuse, redistribution and training permissions have not been established.': 'പൊതു റഫറൻസ് പ്രദർശനം; വിപുലമായ പുനരുപയോഗ/വിതരണ/പരിശീലന അനുമതികൾ സ്ഥിരീകരിച്ചിട്ടില്ല.'}},
+    'zh': {'loc': {'nashik': '纳西克参考点', 'pune': '浦那参考点', 'satara': '萨塔拉参考点'}, 'crop': {'tomato': '番茄', 'green_chilli': '青辣椒'},
+           'fw': {'Public reference-point model forecast; not a farm sensor or guaranteed outcome.': '公共参考点模型预报；并非农场传感器读数或保证结果。', 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.': '该接口未提供提供方发布时间；检索时间为保守认知时间。', 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.': 'Open-Meteo 免费托管 API：仅限非商业开发；商业使用需合适的访问条款。'},
+           'hw': {'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.': '历史网格模型/同化估算；并非单个农场观测或预报。', 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.': '气象数据约 0.5 x 0.625 度网格；城市参考点不能证明农场状况。', 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.': '所请求的30天在今天前7天结束（保守延迟缓冲）；后续仍可能修订。', 'Historical observations retrieved today were not necessarily available at their observation date.': '今天获取的历史数据不一定在观测当日即可获得。'},
+           'mw': {'Statewide market observations are not buyer orders, farmgate offers or a forecast.': '全州市场观测并非买方订单、农场出售价或预测。', 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.': '保留来源市场/品种/单位标签；未推断公斤、等级或城市匹配。', 'Public visibility does not establish unrestricted commercial reuse or model-training permission.': '公开可见并不等同于无限制商业再利用或模型训练许可。'},
+           'attr': {'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.': '天气数据：Open-Meteo.com；字段由 Meraki 选择并规范化。', 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.': 'NASA Langley Research Center POWER 项目；所选日字段由 Meraki 规范化。', 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.': '马哈拉施特拉邦农业营销委员会公开到货与价格报告。'},
+           'lic': {'CC BY 4.0 data; free hosted API is restricted to non-commercial use.': 'CC BY 4.0 数据；免费托管 API 仅限非商业用途。', 'NASA POWER publicly accessible data; acknowledge the POWER Project.': 'NASA POWER 公开数据；需注明 POWER 项目。', 'Public reference display; broader reuse, redistribution and training permissions have not been established.': '公共参考展示；更广泛的再利用/再分发/训练许可尚未确认。'}},
+    'ms': {'loc': {'nashik': 'Titik rujukan Nashik', 'pune': 'Titik rujukan Pune', 'satara': 'Titik rujukan Satara'}, 'crop': {'tomato': 'Tomato', 'green_chilli': 'Cili hijau'},
+           'fw': {'Public reference-point model forecast; not a farm sensor or guaranteed outcome.': 'Ramalan model titik rujukan awam; bukan sensor ladang atau hasil terjamin.', 'Provider issue time is not supplied by this endpoint; retrieval is conservative knowledge time.': 'Masa terbitan pembekal tidak dibekalkan; masa dapatan digunakan sebagai masa pengetahuan konservatif.', 'Open-Meteo free hosted API: non-commercial development only; commercial use requires suitable access terms.': 'API hos percuma Open-Meteo: untuk pembangunan bukan komersial sahaja; penggunaan komersial memerlukan terma akses sesuai.'},
+           'hw': {'Historical gridded model/assimilation estimates; not an individual farm observation or a forecast.': 'Anggaran model grid sejarah; bukan cerapan ladang individu atau ramalan.', 'Meteorology is approximately 0.5 x 0.625 degrees; a city reference point does not establish farm conditions.': 'Meteorologi kira-kira grid 0.5 x 0.625 darjah; titik rujukan bandar tidak membuktikan keadaan ladang.', 'Thirty requested days end seven days before today as a conservative latency buffer; later revisions remain possible.': '30 hari diminta berakhir 7 hari sebelum hari ini (penampan lengah); semakan kemudian masih mungkin.', 'Historical observations retrieved today were not necessarily available at their observation date.': 'Cerapan sejarah yang diperoleh hari ini tidak semestinya tersedia pada tarikh cerapan.'},
+           'mw': {'Statewide market observations are not buyer orders, farmgate offers or a forecast.': 'Cerapan pasaran seluruh negeri bukan pesanan pembeli, tawaran ladang atau ramalan.', 'Source market/variety/unit labels are retained; no kg, grade or city matching is inferred.': 'Label pasaran/varieti/unit sumber dikekalkan; tiada padanan kg, gred atau bandar disimpulkan.', 'Public visibility does not establish unrestricted commercial reuse or model-training permission.': 'Keterlihatan awam tidak mewujudkan kebenaran guna semula komersial atau latihan model tanpa had.'},
+           'attr': {'Weather data by Open-Meteo.com; fields selected and normalised by Meraki.': 'Data cuaca oleh Open-Meteo.com; medan dipilih dan dinormalkan oleh Meraki.', 'NASA Langley Research Center POWER Project; selected daily fields normalised by Meraki.': 'Projek NASA Langley Research Center POWER; medan harian terpilih dinormalkan oleh Meraki.', 'Maharashtra State Agricultural Marketing Board public dated arrival and price report.': 'Laporan ketibaan dan harga awam bertarikh Lembaga Pemasaran Pertanian Negeri Maharashtra.'},
+           'lic': {'CC BY 4.0 data; free hosted API is restricted to non-commercial use.': 'Data CC BY 4.0; API hos percuma terhad kepada penggunaan bukan komersial.', 'NASA POWER publicly accessible data; acknowledge the POWER Project.': 'Data awam NASA POWER; akui Projek POWER.', 'Public reference display; broader reuse, redistribution and training permissions have not been established.': 'Paparan rujukan awam; kebenaran guna semula/pengedaran/latihan lebih luas belum ditetapkan.'}},
+}
+
+def localize_lang(lang):
+    return lang if lang in DISPLAY else 'en'
+
+def localize_warning(kind, warning, lang):
+    if warning.startswith('Refresh failed: returning explicitly stale previously retrieved public observations.'):
+        prefix = {'en':'Refresh failed: returning explicitly stale previously retrieved public observations.','ta':'புதுப்பிப்பு தோல்வி: முன்பு பெறப்பட்ட பொது தரவு பழையது எனக் காட்டப்படுகிறது.','hi':'रीफ्रेश विफल: पहले प्राप्त सार्वजनिक डेटा स्पष्ट रूप से पुराना दिखाया जा रहा है।','ml':'പുതുക്കൽ പരാജയപ്പെട്ടു: മുമ്പ് ലഭിച്ച പൊതു ഡാറ്റ പഴകിയതാണെന്ന് വ്യക്തമാക്കുന്നു.','zh':'刷新失败：返回之前获取的已明确标记为过时的公共观测数据。','ms':'Muat semula gagal: memaparkan cerapan awam yang diperoleh sebelum ini sebagai lapuk.'}[localize_lang(lang)]
+        return prefix
+    if warning.startswith('Latest market observation is ') and warning.endswith(' calendar days old; retrieval does not make its price current.'):
+        try:
+            age = warning.split('Latest market observation is ', 1)[1].split(' ', 1)[0]
+            return {'en': warning,'ta': f'சமீபத்திய சந்தை பதிவு {age} நாட்கள் பழையது; மீட்டெடுப்பது விலையை தற்போதையதாக்காது.','hi': f'नवीनतम बाज़ार प्रेक्षण {age} दिन पुराना है; प्राप्ति से कीमत वर्तमान नहीं होती।','ml': f'ഏറ്റവും പുതിയ വിപണി നിരീക്ഷണം {age} ദിവസം പഴക്കമുള്ളതാണ്; വീണ്ടും ലഭ്യമാക്കുന്നത് വില നിലവിലേതാക്കില്ല.','zh': f'最新市场观测已过去 {age} 个日历日；检索不会使价格变为当前值。','ms': f'Cerapan pasaran terkini berusia {age} hari kalendar; dapatan tidak menjadikan harga semasa.'}[localize_lang(lang)]
+        except Exception:
+            pass
+    if ' measurements are missing; null values were preserved without imputation.' in warning:
+        try:
+            count = warning.split(' ', 1)[0]
+            return {'en': warning,'ta': f'{count} அளவீடுகள் இல்லை; மதிப்புகள் கணிக்கப்படாமல் null ஆக வைக்கப்பட்டுள்ளன.','hi': f'{count} माप अनुपलब्ध हैं; मानों का अनुमान लगाए बिना null रखा गया है।','ml': f'{count} അളവുകൾ ലഭ്യമല്ല; അനുമാനമില്ലാതെ null ആയി സൂക്ഷിച്ചു.','zh': f'{count} 项测量缺失；已保留空值，未进行插补。','ms': f'{count} ukuran tiada; nilai null dikekalkan tanpa anggaran.'}[localize_lang(lang)]
+        except Exception:
+            pass
+    d = DISPLAY[localize_lang(lang)]
+    key = {'forecast':'fw','history':'hw','market':'mw'}.get(kind, 'fw')
+    return d[key].get(warning, warning)
+
+def localize_error(err, lang):
+    if err is None: return None
+    l = localize_lang(lang)
+    code = err.get('code'); msg = err.get('message', '')
+    msgs = {
+        'upstream_http': {'en': msg,'ta':'வழங்குநர் HTTP பிழையை திருப்பியது; மாற்று தரவு உருவாக்கப்படவில்லை.','hi':'प्रदाता ने HTTP त्रुटि लौटाई; कोई वैकल्पिक डेटा नहीं बनाया गया।','ml':'ദാതാവ് HTTP പിശക് നൽകി; പകരം ഡാറ്റ സൃഷ്ടിച്ചിട്ടില്ല.','zh':'提供方返回 HTTP 错误；未生成替代数据。','ms':'Pembekal memulangkan ralat HTTP; tiada data gantian dicipta.'},
+        'response_too_large': {'en':'Provider response exceeded the bounded response size.','ta':'வழங்குநர் பதில் அனுமதிக்கப்பட்ட அளவை மீறியது.','hi':'प्रदाता की प्रतिक्रिया अनुमत आकार से बड़ी है।','ml':'ദാതാവിന്റെ പ്രതികരണം അനുവദനീയ വലുപ്പം കവിഞ്ഞു.','zh':'提供方响应超出允许大小。','ms':'Respons pembekal melebihi saiz yang dibenarkan.'},
+        'timeout': {'en':'Provider request exceeded the bounded timeout.','ta':'வழங்குநர் கோரிக்கை நேர வரம்பை மீறியது.','hi':'प्रदाता अनुरोध का समय सीमा पार हो गई।','ml':'ദാതൃ അഭ്യർത്ഥന സമയപരിധി കവിഞ്ഞു.','zh':'提供方请求超时。','ms':'Permintaan pembekal melebihi had masa.'},
+        'network_error': {'en':'Provider could not be reached; no replacement observations were invented.','ta':'வழங்குநரை அணுக முடியவில்லை; மாற்று தரவு உருவாக்கப்படவில்லை.','hi':'प्रदाता तक पहुँचा नहीं जा सका; कोई वैकल्पिक डेटा नहीं बनाया गया।','ml':'ദാതാവിനെ സമീപിക്കാനായില്ല; പകരം ഡാറ്റ സൃഷ്ടിച്ചിട്ടില്ല.','zh':'无法连接提供方；未生成替代观测数据。','ms':'Pembekal tidak dapat dihubungi; tiada cerapan gantian dicipta.'},
+        'schema_invalid': {'en':'Provider response did not match the expected bounded schema.','ta':'வழங்குநர் பதில் எதிர்பார்க்கப்பட்ட வடிவத்துடன் பொருந்தவில்லை.','hi':'प्रदाता प्रतिक्रिया अपेक्षित संरचना से मेल नहीं खाती।','ml':'ദാതാവിന്റെ പ്രതികരണം പ്രതീക്ഷിച്ച ഘടനയുമായി പൊരുത്തപ്പെടുന്നില്ല.','zh':'提供方响应与预期结构不匹配。','ms':'Respons pembekal tidak sepadan dengan skema yang dijangka.'},
+    }
+    return dict(code=code, message=msgs.get(code, {}).get(l, msg))
+
+def localize_display(kind, envelope, lang):
+    l = localize_lang(lang)
+    d = DISPLAY[l]
+    warnings = [localize_warning(kind, w, l) for w in envelope.get('warnings', [])]
+    attr = d['attr'].get(envelope.get('attribution', ''), envelope.get('attribution', ''))
+    lic = d['lic'].get(envelope.get('licence', ''), envelope.get('licence', ''))
+    loc = envelope.get('location')
+    if loc and isinstance(loc, dict) and loc.get('id') in d['loc']:
+        loc = {**loc, 'name': d['loc'][loc['id']]}
+    return {**envelope, 'location': loc, 'warnings': warnings, 'attribution': attr, 'licence': lic, 'error': localize_error(envelope.get('error'), l), 'display_lang': l}
 WEATHER_FIELDS = {'temperature_2m_min': ('t2m_min_c', '°C', -90, 65),
                   'temperature_2m_max': ('t2m_max_c', '°C', -90, 65),
                   'precipitation_sum': ('precipitation_mm_day', 'mm', 0, 2000),
@@ -166,9 +252,12 @@ class PublicDataGateway:
 
     def envelope(self, kind, location):
         source = SOURCES[kind]
+        loc = copy.deepcopy(location)
+        if isinstance(loc, dict) and loc.get('id') in LOCATIONS:
+            loc = {**loc, 'name': LOCATIONS[loc['id']]['name']}
         return {**{key: source[key] for key in ('source_id', 'source_name', 'source_url', 'documentation_url',
                  'attribution', 'licence', 'data_kind')},
-            'status': 'error', 'synthetic': False, 'location': copy.deepcopy(location),
+            'status': 'error', 'synthetic': False, 'location': loc,
             'time_basis': 'UTC' if kind == 'history' else 'Asia/Kolkata',
             'retrieved_at': None, 'available_at': None, 'provider_issued_at': None,
             'attempted_at': iso(self.now()), 'observation_start': None, 'observation_end': None,
@@ -323,7 +412,7 @@ class PublicDataGateway:
                 envelope['warnings'].append(f'Latest market observation is {age} calendar days old; retrieval does not make its price current.')
         return envelope
 
-    async def get(self, kind, reference):
+    async def get(self, kind, reference, lang='en'):
         key = (kind, reference)
         start, end = self.period(kind)
         signature = (start, end)
@@ -333,7 +422,7 @@ class PublicDataGateway:
             if previous and previous['period'] == signature and self.now() < previous['expires_at']:
                 value = copy.deepcopy(previous['value'])
                 value['cache']['hit'] = True
-                return value
+                return localize_display(kind, value, lang)
             source = SOURCES[kind]
             ttl = source['ttl']
             try:
@@ -355,11 +444,12 @@ class PublicDataGateway:
             expires = self.now() + timedelta(seconds=ttl)
             value['cache'] = dict(hit=False, ttl_seconds=ttl, expires_at=iso(expires))
             self.cache[key] = dict(period=signature, expires_at=expires, value=copy.deepcopy(value))
-            return value
+            return localize_display(kind, copy.deepcopy(value), lang)
 
 
 LocationId = Literal['nashik', 'pune', 'satara']
 CropId = Literal['tomato', 'green_chilli']
+LangId = Literal['en', 'ta', 'hi', 'ml', 'zh', 'ms']
 
 
 def create_app(*, transport=None, clock=None, request_timeout_seconds=15, max_response_bytes=600000):
@@ -378,8 +468,8 @@ def create_app(*, transport=None, clock=None, request_timeout_seconds=15, max_re
 
     app = FastAPI(title='Meraki public reference data gateway', version='1.0.0', lifespan=lifespan)
     app.state.gateway = gateway
-    allowed_queries = {'health': set(), 'locations': set(), 'forecast': {'location'}, 'history': {'location'},
-                       'market': {'crop'}, 'snapshot': {'location', 'crop'}}
+    allowed_queries = {'health': set(), 'locations': {'lang'}, 'forecast': {'location', 'lang'}, 'history': {'location', 'lang'},
+                       'market': {'crop', 'lang'}, 'snapshot': {'location', 'crop', 'lang'}}
 
     @app.middleware('http')
     async def reject_arbitrary_parameters(request: Request, call_next):
@@ -395,25 +485,27 @@ def create_app(*, transport=None, clock=None, request_timeout_seconds=15, max_re
                     server_time=iso(gateway.now()), upstream_health='not_probed', private_farm_data=False)
 
     @app.get('/api/live-data/locations')
-    async def locations():
-        return dict(locations=list(LOCATIONS.values()), crops=[{key: crop[key] for key in ('id', 'name')} for crop in CROPS.values()])
+    async def locations(lang: LangId = 'en'):
+        l = localize_lang(lang)
+        return dict(locations=[{**v, 'name': DISPLAY[l]['loc'].get(k, v['name'])} for k, v in LOCATIONS.items()],
+                    crops=[dict(id=k, name=DISPLAY[l]['crop'].get(k, v['name'])) for k, v in CROPS.items()])
 
     @app.get('/api/live-data/forecast')
-    async def forecast(location: LocationId = 'nashik'):
-        return await gateway.get('forecast', location)
+    async def forecast(location: LocationId = 'nashik', lang: LangId = 'en'):
+        return await gateway.get('forecast', location, lang)
 
     @app.get('/api/live-data/history')
-    async def history(location: LocationId = 'nashik'):
-        return await gateway.get('history', location)
+    async def history(location: LocationId = 'nashik', lang: LangId = 'en'):
+        return await gateway.get('history', location, lang)
 
     @app.get('/api/live-data/market')
-    async def market(crop: CropId = 'tomato'):
-        return await gateway.get('market', crop)
+    async def market(crop: CropId = 'tomato', lang: LangId = 'en'):
+        return await gateway.get('market', crop, lang)
 
     @app.get('/api/live-data/snapshot')
-    async def snapshot(location: LocationId = 'nashik', crop: CropId = 'tomato'):
+    async def snapshot(location: LocationId = 'nashik', crop: CropId = 'tomato', lang: LangId = 'en'):
         forecast_value, history_value, market_value = await asyncio.gather(
-            gateway.get('forecast', location), gateway.get('history', location), gateway.get('market', crop))
+            gateway.get('forecast', location, lang), gateway.get('history', location, lang), gateway.get('market', crop, lang))
         return dict(server_time=iso(gateway.now()), forecast=forecast_value, history=history_value, market=market_value)
 
     return app

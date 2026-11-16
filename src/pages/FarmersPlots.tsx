@@ -9,6 +9,7 @@ import { farmerEligibility, plotAcres, plotBusyUntil, replyStateFor } from '../p
 import type { Farmer, Plot } from '../types'
 import { InfoTip, StatCard, initials } from '../components/ui'
 import PageHeader from '../components/layout/PageHeader'
+import { useI18n } from '../i18n'
 
 type Filter = 'all' | 'in-plan' | 'needs-details' | 'not-participating'
 const needsDetails = (p: Plot) => p.waterAvailability === 'Unknown' || !p.soilType.trim()
@@ -69,6 +70,7 @@ function ParticipationCell({ farmer, reason }: { farmer: Farmer; reason: string 
 }
 
 export default function FarmersPlots() {
+  const { t } = useI18n()
   const { data } = useFarmers()
   const { result, responses, flaggedPlots } = usePlan()
   const [filter, setFilter] = useState<Filter>('all')
@@ -104,7 +106,7 @@ export default function FarmersPlots() {
   }
 
   return <div className="m-page">
-    <PageHeader title="Farmers & farms" subtitle="Who can grow what – land, water and soil across your member farmers." actions={<div className="m-row" style={{ gap: 8 }}>
+    <PageHeader title={t('farmers_title')} subtitle={t('farmers_sub')} actions={<div className="m-row" style={{ gap: 8 }}>
       <Link to="/plots/new" className="m-btn m-btn-tertiary m-btn-sm" style={{ borderColor: 'var(--line-strong)', borderRadius: 10 }}><Plus size={16} />Add plot</Link>
       <Link to="/farmers-plots/new" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}><UserRoundPlus size={16} />Add farmer</Link>
     </div>} />

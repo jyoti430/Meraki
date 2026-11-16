@@ -12,6 +12,7 @@ import { Feasibility, Reasons, StatCard, SupplyMeter, lineStatusLabel, orderType
 import LineChart from '../components/LineChart'
 import PageHeader from '../components/layout/PageHeader'
 import { fmtT } from './Overview'
+import { useI18n } from '../i18n'
 
 const CAL_START = '2026-11-01'
 const CAL_MONTHS = 9
@@ -84,6 +85,7 @@ function ScenarioCompare() {
 }
 
 export default function PlantingPlan() {
+  const { t } = useI18n()
   const { result, changes, responses, exclusions, toggleExclusion, scenario, setScenario, finalizePlan, planState, finalized } = usePlan()
   const { data } = useFarmers()
   const { hash } = useLocation()
@@ -107,7 +109,7 @@ export default function PlantingPlan() {
     if (window.confirm(`Finalize this ${presetFor(scenario)?.label.toLowerCase() ?? 'custom'} plan (${result.totalAcres.toFixed(1)} ac across ${result.farmersInvolved.length} farmers)? You can still change it later – Meraki will flag that it changed.`)) finalizePlan()
   }
 
-  if (!plan) return <div className="m-page"><PageHeader title="Collective planting plan" subtitle="Add active buyer demand to generate a planting plan." /><Link to="/buyer-orders/new" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>Add buyer demand</Link></div>
+  if (!plan) return <div className="m-page"><PageHeader title={t('planting_title')} subtitle={t('planting_sub')} /><Link to="/buyer-orders/new" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>{t('nav_demand')}</Link></div>
 
   const weeks = weeklySeries([plan])
   const cumD = cumulative(weeks.map((w) => w.demand / 1000))
@@ -141,7 +143,7 @@ export default function PlantingPlan() {
       : result.actions.find((a) => a.id === 'send' || a.id === 'resend' || a.id === 'constraints'))
 
   return <div className="m-page">
-    <PageHeader title="Collective planting plan" subtitle="Turn buyer demand into a coordinated crop plan across your farmers." />
+    <PageHeader title={t('planting_title')} subtitle={t('planting_sub')} />
 
     <section className="m-stats" aria-label="Plan summary">
       <StatCard icon={<Sprout size={24} />} label="Demand target" tip="Demand in this scenario plus the safety buffer" value={fmtT(targetKg)} sub={<>incl. {scenario.bufferPct}% buffer · {presetFor(scenario)?.label ?? 'Custom'}</>} />

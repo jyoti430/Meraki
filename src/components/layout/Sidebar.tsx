@@ -3,17 +3,18 @@ import { Activity, Archive, Database, Gavel, Home, Layers, MessageSquareText, Ro
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
+import { LANGUAGES, useI18n, type TKey } from '../../i18n'
 
-export const navigation = [
-  { label: 'Overview', short: 'Overview', to: '/fpo', icon: Home },
-  { label: 'Planting Plans', short: 'Plans', to: '/plan', icon: Sprout },
-  { label: 'Buyer Demand', short: 'Demand', to: '/demand', icon: ShoppingBag },
-  { label: 'Farmers & Farms', short: 'Farmers', to: '/farmers', icon: UsersRound },
-  { label: 'Farm intelligence', short: 'Farm data', to: '/farm-intelligence', icon: Layers },
-  { label: 'Public data & models', short: 'Public data', to: '/live-data', icon: Database },
-  { label: 'Messages', short: 'Messages', to: '/messages', icon: MessageSquareText },
-  { label: 'Trade & fulfilment', short: 'Trade', to: '/trade', icon: Gavel },
-  { label: 'Live sensor data', short: 'Sensors', to: '/sensors', icon: Activity },
+export const navigation: { labelKey: TKey; shortKey: TKey; to: string; icon: any }[] = [
+  { labelKey: 'nav_overview', shortKey: 'short_overview', to: '/fpo', icon: Home },
+  { labelKey: 'nav_plans', shortKey: 'short_plans', to: '/plan', icon: Sprout },
+  { labelKey: 'nav_demand', shortKey: 'short_demand', to: '/demand', icon: ShoppingBag },
+  { labelKey: 'nav_farmers', shortKey: 'short_farmers', to: '/farmers', icon: UsersRound },
+  { labelKey: 'nav_farm_data', shortKey: 'short_farm_data', to: '/farm-intelligence', icon: Layers },
+  { labelKey: 'nav_public_data', shortKey: 'short_public_data', to: '/live-data', icon: Database },
+  { labelKey: 'nav_messages', shortKey: 'short_messages', to: '/messages', icon: MessageSquareText },
+  { labelKey: 'nav_trade', shortKey: 'short_trade', to: '/trade', icon: Gavel },
+  { labelKey: 'nav_sensors', shortKey: 'short_sensors', to: '/sensors', icon: Activity },
 ]
 
 export function useMessageBadge() {
@@ -31,17 +32,24 @@ export function isNavActive(to: string, pathname: string) {
 
 export default function Sidebar({ pathname }: { pathname: string }) {
   const badge = useMessageBadge()
+  const { t, lang, setLang } = useI18n()
   return <aside className="m-sidebar">
-    <NavLink to="/fpo" className="m-brand" aria-label="FPO workspace"><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
+    <NavLink to="/fpo" className="m-brand" aria-label="Meraki home"><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
+    <div style={{ padding: '0 12px 8px' }}>
+      <label style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>{t('language')}</label>
+      <select value={lang} onChange={(e) => setLang(e.target.value as any)} style={{ width: '100%', padding: '6px 8px', borderRadius: 8 }}>
+        {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
+      </select>
+    </div>
     <nav className="m-nav" aria-label="Main navigation">
-      {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')} aria-current={isNavActive(to, pathname) ? 'page' : undefined}>
-        <Icon size={21} strokeWidth={1.8} /><span>{label}</span>{to === '/messages' && badge > 0 && <span className="m-nav-step" aria-label={`${badge} farmers to message`}>{badge}</span>}
+      {navigation.map(({ labelKey, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')} aria-current={isNavActive(to, pathname) ? 'page' : undefined}>
+        <Icon size={21} strokeWidth={1.8} /><span>{t(labelKey)}</span>{to === '/messages' && badge > 0 && <span className="m-nav-step" aria-label={`${badge} farmers to message`}>{badge}</span>}
       </NavLink>)}
     </nav>
     <div className="m-sidebar-foot">
-      <div className="m-synthetic-note">Planning demo uses <strong>synthetic</strong> farm and order records. Public data and sensor uploads have separate source labels. No messages are sent.</div>
-      <NavLink to="/later"><Archive size={15} /> Later modules</NavLink>
-      <button type="button" onClick={() => { if (window.confirm('Reset all demo data? Your edits, messages and replies in this browser will be cleared.')) resetDemoData() }}><RotateCcw size={15} /> Reset demo data</button>
+      <div className="m-synthetic-note">{t('synthetic_note')}</div>
+      <NavLink to="/later"><Archive size={15} /> {t('nav_later')}</NavLink>
+      <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} /> {t('reset_demo')}</button>
     </div>
   </aside>
 }

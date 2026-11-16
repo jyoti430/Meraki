@@ -11,6 +11,7 @@ import { addDays, daysBetween, fmtDay, fmtRange, maxDate } from '../planning/for
 import { InfoTip, StatCard, lineStatusLabel, orderTypeLabel } from '../components/ui'
 import PageHeader from '../components/layout/PageHeader'
 import { fmtT } from './Overview'
+import { useI18n } from '../i18n'
 
 type MarketFilter = 'All' | 'India' | 'Singapore'
 const marketOf = (o: BuyerOrder): MarketFilter => (o.buyer.destinationCountry.toLowerCase() === 'singapore' ? 'Singapore' : 'India')
@@ -68,6 +69,7 @@ function PlantingImpact({ order }: { order: BuyerOrder }) {
 }
 
 export default function BuyerOrders() {
+  const { t } = useI18n()
   const { orders } = useBuyerOrders()
   const [market, setMarket] = useState<MarketFilter>('All')
   const active = orders.filter((o) => o.status === 'Active').sort((a, b) => (a.product.orderType === b.product.orderType ? (a.product.deliveryStartDate || 'z').localeCompare(b.product.deliveryStartDate || 'z') : a.product.orderType === 'Confirmed' ? -1 : 1))
@@ -83,7 +85,7 @@ export default function BuyerOrders() {
   const signalWord = higher.length > lower.length + 1 ? 'Strong' : higher.length >= lower.length ? 'Mixed' : 'Weak'
 
   return <div className="m-page">
-    <PageHeader title="Buyer demand" subtitle="Pre-sowing demand from buyers to plan your crop mix, area, and schedule." actions={<Link to="/buyer-orders/new" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}><Plus size={17} />Add buyer demand</Link>} />
+    <PageHeader title={t('demand_title')} subtitle={t('demand_sub')} actions={<Link to="/buyer-orders/new" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }}><Plus size={17} />Add buyer demand</Link>} />
 
     <section className="m-panel" aria-labelledby="dov-title">
       <h2 className="m-panel-title sm" id="dov-title" style={{ marginBottom: 16 }}>Demand overview <small>(Rabi season)</small> <InfoTip text="Active orders only. Drafts and past orders are excluded." /></h2>

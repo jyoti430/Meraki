@@ -4,15 +4,16 @@ import { AlertCircle, ArrowRight, CheckCircle2, ChevronDown, FlaskConical, Gavel
 import { useTrade } from './TradeProvider'
 import { decimalToInteger, isoDate, kg, localDateTime, timestamp } from './calculations'
 import type { CommercialTerms, Contribution, Principal } from './types'
+import { useI18n } from '../i18n'
 
 export type Values = Record<string, string>
 export type FieldSpec = { name: string; label: string; type?: 'text' | 'textarea' | 'number' | 'date' | 'datetime-local' | 'select' | 'checkbox' | 'members'; required?: boolean; value?: string; options?: { value: string; label: string }[]; help?: string; placeholder?: string; min?: string; max?: string; step?: string; wide?: boolean }
 const nav = [
-  { to: '/trade', label: 'Auctions', icon: Gavel, end: true }, { to: '/trade/contracts', label: 'Contracts', icon: Handshake },
-  { to: '/trade/lots', label: 'Lots & QC', icon: PackageCheck }, { to: '/trade/review', label: 'Release review', icon: ShieldCheck },
-  { to: '/trade/shipments', label: 'Shipments', icon: Truck }, { to: '/trade/arrivals', label: 'Arrival & claims', icon: FlaskConical },
-  { to: '/trade/settlements', label: 'Settlements', icon: Landmark },
-]
+  { to: '/trade', labelKey: 'mod_auctions', icon: Gavel, end: true }, { to: '/trade/contracts', labelKey: 'mod_contracts', icon: Handshake },
+  { to: '/trade/lots', labelKey: 'mod_lots_qc', icon: PackageCheck }, { to: '/trade/review', labelKey: 'mod_release_review', icon: ShieldCheck },
+  { to: '/trade/shipments', labelKey: 'mod_shipments', icon: Truck }, { to: '/trade/arrivals', labelKey: 'mod_arrival', icon: FlaskConical },
+  { to: '/trade/settlements', labelKey: 'mod_settlements_nav', icon: Landmark },
+] as const
 
 export function Status({ value }: { value: string }) {
   const tone = ['confirmed', 'released', 'resolved', 'received', 'paid'].includes(value) ? 'good' : ['cancelled', 'defaulted', 'expired', 'no_sale', 'hold', 'held'].includes(value) ? 'bad' : ['provisional', 'pending', 'open', 'part_paid', 'unverified'].includes(value) ? 'warn' : 'neutral'
@@ -64,14 +65,15 @@ function SessionControl() {
   </div>
 }
 
-export function TradeFrame({ title, subtitle, eyebrow = 'Procurement & fulfilment', children }: { title: string; subtitle: string; eyebrow?: string; children: ReactNode }) {
+export function TradeFrame({ title, subtitle, eyebrow, children }: { title: string; subtitle: string; eyebrow?: string; children: ReactNode }) {
   const { workspace, health, loading, refreshing, error, refresh } = useTrade()
+  const { t } = useI18n()
   return <div className="m-page t-page">
-    <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div><button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? 'Refreshing…' : 'Refresh'}</button></header>
-    <nav className="t-nav" aria-label="Trade workflow">{nav.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end}><Icon size={17} aria-hidden="true" />{label}</NavLink>)}</nav>
+    <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div><button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button></header>
+    <nav className="t-nav" aria-label="Trade workflow">{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
     <SessionControl />
     {error && <Notice error>{error}{workspace && <p>Displayed records are from {timestamp(workspace.server_time)}. Refresh before submitting another action.</p>}</Notice>}
-    {loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>Loading the server workspace…</p></div>}
+    {loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>{t('loading_trade')}</p></div>}
     {(health || workspace) && !(workspace?.production_ready ?? health?.production_ready) && <div className="t-gate"><ShieldCheck size={17} aria-hidden="true" /><span><strong>Development workflow.</strong> Live trading is blocked until verified identity, capacity and production acceptance are connected.</span></div>}
     {!loading && !workspace && <Panel title="Connect to continue" subtitle="Records, permissions and deadlines come from the trade service."><p>{health?.synthetic ? 'Use “Connect synthetic workspace” above to select an FPO, exporter, QC reviewer or finance reviewer. Each actor sees only its permitted records.' : 'Start the configured trade API and refresh this page. Production requires the verified identity integration.'}</p>{health?.blockers?.length ? <ul className="t-bullets">{health.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}</Panel>}
     {workspace && <>{children}<footer className="t-footer">Server snapshot {timestamp(workspace.server_time)} · {workspace.synthetic ? 'Synthetic records' : 'Organisation-scoped records'} · Commands are validated and saved by the server.</footer></>}

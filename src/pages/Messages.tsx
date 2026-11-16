@@ -18,6 +18,7 @@ import type { Channel, Language } from '../planning/messages'
 import { fmtAcres } from '../planning/format'
 import { ReplyBadge, initials } from '../components/ui'
 import type { ReplyState } from '../components/ui'
+import { useI18n } from '../i18n'
 
 const constraintOptions: { id: ConstraintKind; label: string; hint: string }[] = [
   { id: 'land', label: 'Less land available', hint: 'Caps this farmer’s area; the rest is reassigned.' },
@@ -30,6 +31,7 @@ const order: Record<ReplyState, number> = { 'needs-update': 0, 'not-sent': 1, co
 const time = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
 
 export function FarmerWorkspace({ only }: { only?: string[] }) {
+  useI18n()
   const { result, responses, messages, sendInstructions, recordReply } = usePlan()
   const { data } = useFarmers()
   const farmerIds = useMemo(() => {
@@ -148,6 +150,7 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
 type Bucket = 'confirmed' | 'follow-up' | 'constraint' | 'waiting'
 
 export default function Messages() {
+  const { t } = useI18n()
   const { result, responses, messages, sendInstructions, scenario, exclusions, flaggedPlots, planState } = usePlan()
   const { data } = useFarmers()
   const { orders } = useBuyerOrders()
@@ -170,7 +173,7 @@ export default function Messages() {
 
   const before = useMemo(() => runPlan({ orders, data, scenario, responses: {}, exclusions, flaggedPlots: {} }), [orders, data, scenario, exclusions])
 
-  if (!camp) return <div className="m-page"><PageHeader title="Farmer messages" subtitle="Plan, send, and track planting updates with your farmers via SMS or WhatsApp." /><Link to="/plan" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>Open planting plan</Link></div>
+  if (!camp) return <div className="m-page"><PageHeader title={t('messages_title')} subtitle={t('messages_sub')} /><Link to="/plan" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>{t('nav_plans')}</Link></div>
 
   const campFarmers = [...new Set(camp.allocations.map((a) => a.farmerId))]
   const bucketOf = (id: string): Bucket => { const st = stateOf(id); return st === 'confirmed' ? 'confirmed' : st === 'constraint' ? 'constraint' : st === 'sent' ? 'waiting' : 'follow-up' }
@@ -200,7 +203,7 @@ export default function Messages() {
   ]
 
   return <div className="m-page">
-    <PageHeader title="Farmer messages" subtitle="Plan, send, and track planting updates with your farmers via SMS or WhatsApp." />
+    <PageHeader title={t('messages_title')} subtitle={t('messages_sub')} />
 
     <section className="m-stats three" aria-label="Messaging summary">
       <StatCard icon={<UsersRound size={24} />} label="Farmers contacted" tip="Farmers who have received planting instructions" value={contacted.length} sub={<>of {involved.length} in the plan · {villages} villages</>} />

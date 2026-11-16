@@ -36,10 +36,12 @@ import ExporterRequirementForm from '../exporter/pages/RequirementForm'
 import ExporterRequirementDetails from '../exporter/pages/RequirementDetails'
 import ExporterMarketplace from '../exporter/pages/Marketplace'
 import ExporterOrders from '../exporter/pages/Orders'
+import { useI18n } from '../i18n'
 const TradeRoutes = lazy(() => import('./TradeRoutes'))
 const LiveData = lazy(() => import('../pages/LiveData'))
 
 export default function AppRoutes() {
+  const { t } = useI18n()
   return <Routes>
     <Route path="/" element={<SegmentSelection />} />
     <Route path="/fpo" element={<Overview />} />
@@ -55,10 +57,10 @@ export default function AppRoutes() {
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
     <Route path="/farm-intelligence" element={<FarmIntelligence />} />
-    <Route path="/live-data" element={<Suspense fallback={<p className="m-page" role="status">Loading public data workspace…</p>}><LiveData /></Suspense>} />
+    <Route path="/live-data" element={<Suspense fallback={<p className="m-page" role="status">{t('loading_public')}</p>}><LiveData /></Suspense>} />
     <Route path="/messages" element={<Messages />} />
     <Route path="/later" element={<LaterModules />} />
-    <Route path="/trade/*" element={<Suspense fallback={<p className="m-page" role="status">Loading trade workspace…</p>}><TradeRoutes /></Suspense>} />
+    <Route path="/trade/*" element={<Suspense fallback={<p className="m-page" role="status">{t('loading_trade')}</p>}><TradeRoutes /></Suspense>} />
     {/* Previous URLs keep working */}
     <Route path="/buyer-orders" element={<Navigate to="/demand" replace />} />
     <Route path="/farmers-plots" element={<Navigate to="/farmers" replace />} />

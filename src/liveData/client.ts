@@ -44,10 +44,10 @@ export function parseLiveSnapshot(value: unknown): LiveSnapshot {
   return value as unknown as LiveSnapshot
 }
 
-export async function fetchLiveSnapshot(location: ReferenceLocation, crop: MarketCrop, signal?: AbortSignal, fetcher: typeof fetch = fetch): Promise<LiveSnapshot> {
+export async function fetchLiveSnapshot(location: ReferenceLocation, crop: MarketCrop, lang = 'en', signal?: AbortSignal, fetcher: typeof fetch = fetch): Promise<LiveSnapshot> {
   if (!['nashik', 'pune', 'satara'].includes(location)) throw new Error('Select a public reference location.')
   if (!['tomato', 'green_chilli'].includes(crop)) throw new Error('Select a supported market crop.')
-  const response = await fetcher(`/api/live-data/snapshot?${new URLSearchParams({ location, crop })}`, {
+  const response = await fetcher(`/api/live-data/snapshot?${new URLSearchParams({ location, crop, lang })}`, {
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(40000)]) : AbortSignal.timeout(40000),
     headers: { Accept: 'application/json' },
   })
