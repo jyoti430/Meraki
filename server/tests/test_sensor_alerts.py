@@ -268,3 +268,59 @@ def test_optional_custom_limits_require_complete_pairs(gateway):
         assert client.post('/api/sensors/alerts/crates', headers=ADMIN, json=RULE | update).status_code == 422
     assert client.post('/api/sensors/alerts/crates', headers=ADMIN,
                        json=dict(device_id='crate-01', profile_id='fpo-a', alert_on_warnings=False)).status_code == 422
+
+
+def test_ble_warning_alerts_and_http_sms_survive_bluetooth_disconnect(tmp_path, monkeypatch):
+    import sys
+    import threading
+    import time
+    from types import SimpleNamespace
+    from server import sensors
+
+    class Scanner:
+        @staticmethod
+        async def find_device_by_name(name, **_kwargs):
+            return SimpleNamespace(name=name)
+
+    class BleClient:
+        is_connected = False
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        async def connect(self):
+            self.is_connected = True
+
+        async def start_notify(self, characteristic, callback):
+            payload = ('@SENSOR ' + json.dumps(NORMAL | dict(warnings=['Temperature warning from BLE']))).encode()
+            for offset in range(0, len(payload), 7):
+                callback(characteristic, bytearray(payload[offset:offset + 7]))
+
+        async def stop_notify(self, *_args):
+            pass
+
+        async def disconnect(self):
+            self.is_connected = False
+
+    def wait_for_count(count):
+        deadline = time.monotonic() + 5
+        while len(sms.sent) < count and time.monotonic() < deadline:
+            time.sleep(.02)
+        assert len(sms.sent) == count
+
+    monkeypatch.setattr(sensors, '_ble_runtime_available', lambda: True)
+    monkeypatch.setitem(sys.modules, 'bleak', SimpleNamespace(BleakScanner=Scanner, BleakClient=BleClient))
+    sms, now = FakeSms(), [1000.0]
+    app = create_app(tmp_path / 'ble-sms.db', 'push-key', lambda: now[0],
+                     ble_enabled=False, admin_token='admin-key', sms_provider=sms)
+    with TestClient(app) as client:
+        configure(client, rule=dict(device_id='crate-01', profile_id='fpo-a'))
+        assert client.post('/api/sensors/bluetooth', json={'enabled': True}).status_code == 200
+        wait_for_count(1)
+        assert 'Temperature warning from BLE' in sms.sent[0][1]
+        assert client.post('/api/sensors/bluetooth', json={'enabled': False}).status_code == 200
+        now[0] += 1800
+        push(client, warnings=['Humidity warning from HTTP'])
+        wait_for_count(2)
+        assert 'Humidity warning from HTTP' in sms.sent[1][1]
+    assert not [thread for thread in threading.enumerate() if thread.name == 'meraki-sms-worker']

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import Sidebar, { isNavActive, navigation, useMessageBadge } from './Sidebar'
 import { MerakiMark } from '../ui'
-import { Archive, RotateCcw } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import { resetDemoData } from '../../context/PlanContext'
 import WorkflowAuthorityNotice from '../WorkflowAuthorityNotice'
 import { SEASON_LABEL } from '../../planning/engine'
@@ -40,7 +40,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <footer className="m-mobile-foot">
         <div className="m-synthetic-note m-small">{t('synthetic_note')}</div>
         <div className="m-row" style={{ gap: 18 }}>
-          <NavLink to="/later"><Archive size={15} /> {t('nav_later')}</NavLink>
           <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} /> {t('reset_demo')}</button>
         </div>
       </footer>

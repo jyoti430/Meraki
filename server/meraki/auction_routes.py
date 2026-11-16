@@ -8,13 +8,19 @@ from .schemas import CapacityCreate
 
 
 def install_auctions(app, db_session, actor, allowed, commit_idempotent):
+    import os
+
+    def auction_write_guard():
+        if app.state.environment != "development":
+            raise HTTPException(503, "Auction writes are disabled outside development until verified identity, QC and capacity bridges are accepted")
+
     def transact(request, db, user, key, path, data, operation):
+        auction_write_guard()
         # SQLite remains useful for the old local demo, but cannot arbitrate live auctions.
         if db.bind.dialect.name != "postgresql":
             raise HTTPException(503, "Auction transactions require PostgreSQL; configure MERAKI_DATABASE_URL")
         return commit_idempotent(request, db, user, key, {"operation": path, **data}, operation)
 
-    import os
     def development_fixture_guard():
         if os.getenv("MERAKI_ENV", "development") != "development":
             raise HTTPException(404, "Development fixtures are disabled")
@@ -62,12 +68,12 @@ def install_auctions(app, db_session, actor, allowed, commit_idempotent):
         if not row: raise HTTPException(404, "Auction not found")
         return auction_view(db, row, user)
 
-    @app.post("/api/v1/auctions", status_code=201)
+    @app.post("/api/v1/auctions", dependencies=[Depends(auction_write_guard)], status_code=201)
     def create(body: AuctionCreate, request: Request, key: str = Header(..., alias="Idempotency-Key"), user=Depends(actor), db=Depends(db_session)):
         allowed(user, "auction:write")
         return transact(request, db, user, key, "auction.create", body.model_dump(mode="json"), lambda: create_auction(db, user, body))
 
-    @app.post("/api/v1/auctions/{auction_id}/bids", status_code=201)
+    @app.post("/api/v1/auctions/{auction_id}/bids", dependencies=[Depends(auction_write_guard)], status_code=201)
     def bid(auction_id: str, body: BidCreate, request: Request, key: str = Header(..., alias="Idempotency-Key"), user=Depends(actor), db=Depends(db_session)):
         allowed(user, "auction:write")
         def op():
@@ -84,7 +90,7 @@ def install_auctions(app, db_session, actor, allowed, commit_idempotent):
             AuctionBid.organisation_id == user["organisation_id"]).order_by(AuctionBid.sequence)).all()
         return {"items": [as_dict(row) for row in rows]}
 
-    @app.post("/api/v1/auctions/{auction_id}/close")
+    @app.post("/api/v1/auctions/{auction_id}/close", dependencies=[Depends(auction_write_guard)])
     def close(auction_id: str, request: Request, key: str = Header(..., alias="Idempotency-Key"), user=Depends(actor), db=Depends(db_session)):
         allowed(user, "auction:write")
         def op():
@@ -93,12 +99,12 @@ def install_auctions(app, db_session, actor, allowed, commit_idempotent):
             return auction_view(db, row, user)
         return transact(request, db, user, key, "auction.close:" + auction_id, {}, op)
 
-    @app.post("/api/v1/auctions/{auction_id}/award")
+    @app.post("/api/v1/auctions/{auction_id}/award", dependencies=[Depends(auction_write_guard)])
     def decision(auction_id: str, body: AwardDecision, request: Request, key: str = Header(..., alias="Idempotency-Key"), user=Depends(actor), db=Depends(db_session)):
         allowed(user, "auction:write")
         return transact(request, db, user, key, "auction.award:" + auction_id, body.model_dump(), lambda: award_decision(db, user, auction_id, body.action))
 
-    @app.post("/api/v1/auctions/{auction_id}/cancel")
+    @app.post("/api/v1/auctions/{auction_id}/cancel", dependencies=[Depends(auction_write_guard)])
     def cancel(auction_id: str, request: Request, key: str = Header(..., alias="Idempotency-Key"), user=Depends(actor), db=Depends(db_session)):
         allowed(user, "auction:write")
         def op():

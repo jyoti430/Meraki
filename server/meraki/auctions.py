@@ -193,11 +193,16 @@ def award_decision(db, actor, auction_id, action):
     award = db.scalar(select(AuctionAward).where(AuctionAward.auction_id == auction.id))
     if not award or actor["organisation_id"] not in (award.buyer_org_id, award.seller_org_id):
         raise HTTPException(404, "Award not found for this organisation")
+    expected_role = "exporter" if actor["organisation_id"] == award.buyer_org_id else "fpo"
+    if actor["role"] != expected_role:
+        raise HTTPException(403, f"Only the {expected_role} trading role can decide this award")
     if award.status != "provisional" or aware(award.expires_at) <= utcnow():
         raise HTTPException(409, "Award is no longer awaiting confirmation; refresh")
     holds, capacities = holds_and_capacities(db, auction)
     hold = next(h for h in holds if h.status == "held")
     if action == "confirm":
+        if related(db, award.buyer_org_id, award.seller_org_id):
+            raise HTTPException(403, "Linked organisations cannot confirm a self-trade award")
         capacity_matches(db, capacities[hold.capacity_id], auction, "harvested_lot" if auction.mode == "spot" else "projection")
     if action == "decline":
         finish_hold(hold, capacities[hold.capacity_id])

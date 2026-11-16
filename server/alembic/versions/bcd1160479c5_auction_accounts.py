@@ -4,7 +4,7 @@ Revision ID: bcd1160479c5
 Revises: 0001_shared_services
 Create Date: 2026-11-16 13:39:31.754670
 """
-from alembic import op
+from alembic import context, op
 import sqlalchemy as sa
 
 
@@ -14,7 +14,14 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    # Preserve existing shared-service data; reject duplicated source capacities.
+    # Preflight before any DDL, including on SQLite where DDL is not rolled
+    # back as one transaction. Retained stock must never be silently merged.
+    if not context.is_offline_mode() and op.get_bind().execute(sa.text(
+            "SELECT 1 FROM capacities WHERE source_type = 'harvested_lot' "
+            "GROUP BY organisation_id, source_id HAVING COUNT(*) > 1 LIMIT 1")).first():
+        raise RuntimeError("Resolve duplicate harvested-lot capacity sources by organisation before upgrading; "
+                           "an operator must reconcile stock and reservations. No rows are deleted automatically.")
+    # Preserve existing shared-service data and budgeted projection tranches.
     op.create_table('auth_throttles',
     sa.Column('key', sa.String(length=64), nullable=False),
     sa.Column('attempts', sa.Integer(), nullable=False),

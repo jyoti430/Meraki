@@ -36,12 +36,15 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             allow_headers=["Authorization", "Content-Type", "X-Organisation-ID", "Idempotency-Key", "X-Request-ID"],
             expose_headers=["X-Request-ID"])
     app.state.engine = engine
+    app.state.environment = environment
     app.state.sessions = sessions
     app.state.storage = storage
-    development_auth_enabled = environment == "development" and os.getenv("MERAKI_DEV_AUTH") == "1"
+    password_auth_enabled = identity_provider is None and os.getenv("MERAKI_PASSWORD_AUTH") == "1"
+    development_auth_enabled = (identity_provider is None and not password_auth_enabled
+                                and environment == "development" and os.getenv("MERAKI_DEV_AUTH") == "1")
     app.state.identity_provider = identity_provider if identity_provider is not None else (
         DevelopmentSessionIdentityProvider() if development_auth_enabled else None)
-    if identity_provider is None and os.getenv("MERAKI_PASSWORD_AUTH") == "1":
+    if password_auth_enabled:
         from .accounts import PasswordSessionIdentityProvider
         app.state.identity_provider = PasswordSessionIdentityProvider()
     if create_schema is None:
@@ -129,6 +132,10 @@ def create_app(database_url=None, storage=None, create_schema=None, identity_pro
             raise HTTPException(503, "Database is unavailable or the shared schema is not migrated")
         return {"status": "ok", "database": "ok", "environment": environment,
                 "identity_provider": "unconfigured" if app.state.identity_provider is None else "configured",
+                "development_auth_enabled": development_auth_enabled,
+                "password_auth_enabled": password_auth_enabled,
+                "registration_enabled": (password_auth_enabled and os.getenv("MERAKI_ALLOW_REGISTRATION", "1" if environment == "development" else "0") == "1"),
+                "auction_mutations_enabled": environment == "development" and engine.dialect.name == "postgresql",
                 "production_ready": False}
 
     @app.post("/api/v1/dev/sessions", dependencies=[Depends(development_sessions_enabled)])

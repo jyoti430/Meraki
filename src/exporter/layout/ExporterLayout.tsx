@@ -7,7 +7,7 @@ const links = [
   { to: '/exporter', label: 'Layout example', shortLabel: 'Overview', icon: Home, end: true },
   { to: '/exporter/requirements', label: 'Local draft examples', shortLabel: 'Drafts', icon: ClipboardList, end: false },
   { to: '/exporter/marketplace', label: 'Supply examples', shortLabel: 'Supply', icon: PackageSearch, end: false },
-  { to: '/exporter/auctions', label: 'Crop auctions', shortLabel: 'Auctions', icon: Gavel, end: false },
+  { to: '/auctions', label: 'Shared crop auctions', shortLabel: 'Auctions', icon: Gavel, end: false },
   { to: '/exporter/orders', label: 'Lifecycle example', shortLabel: 'Lifecycle', icon: Truck, end: false },
   { to: '/trade/requirements', label: 'Shared procurement', shortLabel: 'Procure', icon: Handshake, end: false },
 ]

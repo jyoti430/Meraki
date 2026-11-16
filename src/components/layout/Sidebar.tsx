@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Activity, Archive, Database, Gavel, Home, Layers, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
+import { Gavel, Handshake, Home, MessageSquareText, RotateCcw, ShoppingBag, Sprout, UsersRound } from 'lucide-react'
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
@@ -10,13 +10,9 @@ export const navigation: { labelKey: TKey; shortKey: TKey; to: string; icon: any
   { labelKey: 'nav_plans', shortKey: 'short_plans', to: '/plan', icon: Sprout },
   { labelKey: 'nav_demand', shortKey: 'short_demand', to: '/demand', icon: ShoppingBag },
   { labelKey: 'nav_farmers', shortKey: 'short_farmers', to: '/farmers', icon: UsersRound },
-  { labelKey: 'nav_farm_data', shortKey: 'short_farm_data', to: '/farm-intelligence', icon: Layers },
-  { labelKey: 'nav_yield_poc', shortKey: 'short_yield_poc', to: '/yield-poc', icon: Sprout },
-  { labelKey: 'nav_public_data', shortKey: 'short_public_data', to: '/live-data', icon: Database },
   { labelKey: 'nav_messages', shortKey: 'short_messages', to: '/messages', icon: MessageSquareText },
+  { labelKey: 'nav_trade', shortKey: 'short_trade', to: '/trade', icon: Handshake },
   { labelKey: 'nav_auctions', shortKey: 'short_auctions', to: '/auctions', icon: Gavel },
-  { labelKey: 'nav_trade', shortKey: 'short_trade', to: '/trade', icon: Gavel },
-  { labelKey: 'nav_sensors', shortKey: 'short_sensors', to: '/sensors', icon: Activity },
 ]
 
 export function useMessageBadge() {
@@ -50,7 +46,6 @@ export default function Sidebar({ pathname }: { pathname: string }) {
     </nav>
     <div className="m-sidebar-foot">
       <div className="m-synthetic-note">{t('synthetic_note')}</div>
-      <NavLink to="/later"><Archive size={15} /> {t('nav_later')}</NavLink>
       <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} /> {t('reset_demo')}</button>
     </div>
   </aside>

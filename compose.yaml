@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    restart: unless-stopped
     environment:
       POSTGRES_USER: meraki
       POSTGRES_PASSWORD: ${MERAKI_POSTGRES_PASSWORD:?Set MERAKI_POSTGRES_PASSWORD in .env}
@@ -13,6 +14,7 @@ services:
       timeout: 5s
       retries: 10
   api:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: server/Dockerfile
@@ -37,6 +39,7 @@ services:
       timeout: 5s
       retries: 10
   worker:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: server/Dockerfile

@@ -2,6 +2,8 @@
 
 Date: 16 November 2026. Starting revision: `10f7e43`. Scope: the current synthetic demonstration and its hosted API boundary. This is not a guarantee of defect-free software or acceptance of real trading, agronomy, security or field outcomes.
 
+Latest live result: release `71c85fa` is deployed on the existing Render service and PostgreSQL database. Requested demo password authentication and registration are enabled. Both spot and forward synthetic auctions passed publication, accepted bids, scheduled worker closure and buyer/seller confirmation through the Vercel domain. This supersedes the earlier password-disabled checkpoints below.
+
 ## Reproduced defects and corrections
 
 | Area | Failure exercised | Correction and regression |
@@ -47,5 +49,32 @@ Verified locally after fixes:
 Local final regression: **91 Vitest +16 Node tests**, production build, **198 Python tests +10 subtests passed**, with2 PostgreSQL-only skips. Python compilation and offline artifact checks passed. The bundle advisory and upstream FastAPI/TestClient deprecation notices remain. Security packages were pinned to compatible patched versions: Vite6.4.6, Vitest4.1.12 and React Router7.18.5, retaining React18 and the existing app structure. Both full and production-only npm audits report **0 known vulnerabilities**. Old locked dependencies were retained in ignored local runtime storage so existing previews were not terminated. Linux CI will verify a clean lockfile installation and disposable PostgreSQL coverage before main integration.
 
 ## Material limits
+
+## Late auction-branch integration
+
+After the first tested release (`1fe5cf5`, [CI43813869787](https://github.com/jyoti430/Meraki/actions/runs/43813869787)) reached Render/Vercel, a new teammate branch arrived: `feature/auction-backend` through `db61283`. It was merged and tested in an isolated checkout before main integration. The first release passed107 frontend tests/build,265 Python cases+10 subtests with trade PostgreSQL coverage, and dedicated shared PostgreSQL checks.
+
+Additional defects corrected in the new branch:
+
+- Shared-auction polling/identity races, stale writes, swallowed refresh failure, permission403 incorrectly treated as logout, malformed responses and optional storage failure.
+- Award decisions now require the correct commercial side role and recheck linked-party membership before confirmation. Shared auction holds commit exactly once without minting a duplicate ordinary reservation.
+- New auction mutations and workers stay disabled outside development until verified adapters are accepted; ordinary expiry continues. Auction backlogs/failures cannot starve ordinary jobs.
+- Migration preflight detects duplicate physical harvested-lot sources before DDL, preserves records, and requires explicit operator reconciliation. Fresh and retained-data upgrades/rollback/forward tests preserve valid projection tranches.
+- Shared health advertises effective password/registration/write capabilities. Password mode cannot also issue unusable development tokens. The hosted demo keeps password registration disabled; the frontend shows that limit. Shared awards remain separate from Part3 contracts/shipments/settlement. The exporter alias redirects to the canonical shared workspace rather than labelling it local examples.
+
+Merged local checks: clean `npm ci`, **101 Vitest+16 Node tests**, production build, **222 Python cases+10 subtests**, and0 npm audit findings. The34 skipped cases require PostgreSQL and must be exercised by the dedicated configured CI jobs. Browser with an isolated SQLite account backend rejected a wrong password, accepted a synthetic test login, retained it across navigation, redirected `/exporter/auctions` to `/auctions` without the examples banner, disabled PostgreSQL-only auction writes, and signed out correctly. No hosted registration was enabled. Docker binary/runtime and true phone/cross-browser acceptance remain unverified.
+
+## Remaining acceptance limits
+
+## Live deployment verification — 16 November 2026
+
+- Existing Render `meraki-api` (`srv-dbt9bmec6qcc73b4c6m0`) retained its database/secrets. Build remains `pip install -r server/requirements.txt`; start remains `python -m server.start_hosted`. PostgreSQL migrations0001→bcd1160479c5→e24f867ea17b completed during startup.
+- Applied the requested `HOSTED_MODE=demo`, `MERAKI_PASSWORD_AUTH=1`, `MERAKI_ALLOW_REGISTRATION=1` and exact Vercel CORS origin. Existing DATABASE_URL was not edited or printed. No replacement infrastructure or data reset.
+- Through `https://meraki-tau-opal.vercel.app`, root/shared health passed and OpenAPI exposed `/api/v1/auth/login` and `/api/v1/auctions`. Effective capabilities report password/registration/auction writes enabled; incompatible shared development tokens are disabled.
+- Seeded clearly synthetic `demo.fpo` and `demo.exporter` accounts plus100kg harvested stock and100kg projected capacity through the supplied seed module. Passwords/tokens are excluded from this report and repository.
+- Published `SYNTHETIC LIVE QA` spot and forward auctions,100kg each. API bid receipts passed; the live exporter browser placed an additional spot bid and received its receipt at₹24/kg. The forward quote was₹18/kg. Both closed automatically at their published server deadline; no manual close endpoint was called.
+- Buyer and seller confirmed the spot award in separate live browser sessions. Both parties also confirmed the forward award through the API. Both states are confirmed, and fully committed sources are excluded from available stock. Prepared an additional100kg synthetic harvested lot and100kg reviewed synthetic projection for subsequent user tests.
+- Existing `/api/trade` health, development session and scoped workspace passed after deployment. Shared-password and legacy-trade tokens cannot be exchanged between namespaces. No real harvested-lot QC gate was bypassed, and no email or payment was sent.
+- CI for the complete merged release passed clean install, frontend tests/build, trade PostgreSQL tests, and the dedicated shared PostgreSQL auction suite. Docker runtime, physical Bluetooth, true phone/cross-browser acceptance and real-world production integrations remain unverified.
 
 Required custom criteria remain blocked pending scoped assessment; no measurement or approval is fabricated. Production identity/capacity/QC bridging, private partner entitlements, durable object storage and real sensor gateway linkage remain unfinished. The free Render instance sleeps, pausing in-process workers; the demo database expires16December2026. Live provider rate limits remain explicit errors. The real yield model still has zero eligible farm outcomes and cannot be promoted.

@@ -18,6 +18,8 @@ Source inspection confirms `server/meraki/` implements organisation membership/p
 
 ## Current alignment checkpoint — 16 November 2026
 
+The late shared-auction/password-account branch is integrated at development scope. It reuses shared capacity holds but does not create Part3 fulfilment contracts. Shared health/configuration gates are explicit; password accounts remain disabled on the hosted demo. Production identity, partner-private access, QC and the cross-ledger bridge below remain unfinished.
+
 The latest procurement and USB pushes are integrated. API-backed requirements/proposals are now the exporter entry point; partial contributions and multiple explicit FPO awards share a server quantity budget. Proposal deadlines may precede delivery, contract edits preserve buyer specifications, and confirmation shows them. The composite hosting entry point retains API prefixes/authentication, supervises shared/trade workers, and reports unsupported hosted sensors/documents honestly. Frontend clients share one configured backend root; live values are preserved and provider failure does not become mock success. Local planning/QC, exporter draft examples and synthetic yield demonstrations remain explicitly separate.
 
 Prioritized remaining tasks:

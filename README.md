@@ -15,6 +15,10 @@ Meraki helps FPOs propose feasible crops, coordinate farmer-approved production 
 - [Public live data setup and source limits](docs/LIVE_DATA.md)
 - [Model validation report](reports/model_validation.md)
 
+## Frontend scope
+
+The primary FPO navigation is Overview, Plans, Demand, Farmers, Messages, Trade and Auctions. Experimental farm-data, yield POC, public-data, sensor and later-module screens are disabled; their old URLs return to the overview. Exporter examples redirect to shared procurement. Their source and backend adapters are retained for future development. This frontend simplification does not complete production or field-validation gates.
+
 ## Product journey
 
 ```mermaid

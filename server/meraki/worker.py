@@ -1,5 +1,6 @@
 """Database-backed retryable worker. Run with `python -m server.meraki.worker`."""
 import argparse
+import os
 import time
 from datetime import timedelta
 from sqlalchemy import select
@@ -10,9 +11,27 @@ from .services import aware, utcnow
 from uuid import uuid4
 
 
-def run_once(sessions):
+def run_once(sessions, *, allow_auction_work=None):
+    # Hosted callers pass their captured startup policy; standalone callers
+    # remain fail-closed outside explicit development mode.
+    if allow_auction_work is None:
+        allow_auction_work = os.getenv("MERAKI_ENV", "development").strip().lower() == "development"
     from .auctions import tick_auction
-    if tick_auction(sessions): return True
+    auction_worked, auction_error = False, None
+    if allow_auction_work:
+        try:
+            auction_worked = tick_auction(sessions)
+        except Exception as exc:
+            auction_error = exc
+    # A deadline backlog or one broken auction must not starve ordinary
+    # reservation/listing expiry. Report auction errors after job progress.
+    shared_worked = run_shared_job_once(sessions)
+    if auction_error is not None:
+        raise auction_error
+    return bool(auction_worked or shared_worked)
+
+
+def run_shared_job_once(sessions):
     db = sessions()
     try:
         now = utcnow()
@@ -83,9 +102,10 @@ def main():
         parser.error("--interval must be at least 0.1 seconds")
     engine = make_engine()
     sessions = sessionmaker(bind=engine, expire_on_commit=False)
+    allow_auction_work = os.getenv("MERAKI_ENV", "development").strip().lower() == "development"
     try:
         while True:
-            worked = run_once(sessions)
+            worked = run_once(sessions, allow_auction_work=allow_auction_work)
             if args.once: return
             if not worked: time.sleep(args.interval)
     finally:

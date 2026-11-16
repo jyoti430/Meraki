@@ -1,5 +1,7 @@
 # Database-backed crop auctions
 
+Integration guardrails: all auction mutations and auction worker transitions are disabled outside development pending verified identity/QC/capacity bridges. Shared expiry jobs still run. `/api/v1/health` reports effective password-account, registration and auction-write capabilities; the hosted demo leaves password accounts disabled. The UI must show these gates before sign-in/publication. `/exporter/auctions` redirects to `/auctions` so database records are not wrapped in a local-example notice. Shared awards and Part3 fulfilment remain distinct.
+
 This extends the existing FastAPI / SQLAlchemy backend. The React auction workspace is at `/auctions` (FPO navigation) and `/exporter/auctions` (exporter navigation). Other planning and exporter pages retain their existing labelled demo/local-storage behavior; they have not silently become live database records.
 
 ## Run locally

@@ -23,6 +23,12 @@ SERIAL_UNAVAILABLE = {
     "reason": "USB ports belong to the local gateway; Render cannot access laptop USB",
     "ports": [], "port": "", "baud": 115200, "error": "", "last_ok_at": None,
 }
+BLUETOOTH_UNAVAILABLE = {
+    "available": False, "http_push_available": False, "status": "unavailable", "enabled": False, "device": "",
+    "device_name": "AgriTrust-Nexus", "tx_uuid": "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
+    "error": "", "last_ok_at": None,
+    "reason": "Bluetooth adapters belong to the local gateway; Render cannot access laptop BLE hardware",
+}
 
 
 def normalize_database_url(value):
@@ -81,11 +87,14 @@ class NamespaceDispatcher:
             await send({"type": "websocket.close", "code": 1008})
             return
         path = scope.get("path", "")
+        if path == "/api/sensors/bluetooth" and scope["method"] == "GET":
+            await JSONResponse(BLUETOOTH_UNAVAILABLE)(scope, receive, send)
+            return
         if path == "/api/sensors/serial" and scope["method"] == "GET":
             await JSONResponse(SERIAL_UNAVAILABLE)(scope, receive, send)
             return
         if path == "/api/sensors" or path.startswith("/api/sensors/"):
-            await JSONResponse({"detail": SERIAL_UNAVAILABLE["reason"], "available": False}, status_code=503)(scope, receive, send)
+            await JSONResponse({"detail": "Hosted sensor ingestion is unavailable; connect an authenticated local Bluetooth gateway.", "available": False}, status_code=503)(scope, receive, send)
             return
         if path == "/api/v1/documents" and scope["method"] == "POST":
             await JSONResponse({"error": {"code": "durable_document_store_unconfigured",
@@ -111,7 +120,8 @@ async def background_loop(app, stop, interval):
         # five seconds per expiry at the default interval, even with a backlog.
         # Keep each pass bounded so trade closing and shutdown still get time.
         for _ in range(100):
-            if stop.is_set() or not shared_expiry(app.state.shared.state.sessions):
+            if stop.is_set() or not shared_expiry(app.state.shared.state.sessions,
+                                                allow_auction_work=app.state.hosted_mode == "demo"):
                 break
 
     app.state.worker_status["running"] = True
@@ -196,7 +206,8 @@ def create_hosted_app(*, trade_app=None, shared_app=None, live_app=None, run_wor
     app.state.trade, app.state.shared, app.state.live = trade_app, shared_app, live_app
     app.state.worker_status = {"running": False, "last_error": None, "last_completed_at": None,
         "trade": "enabled_for_synthetic_demo" if mode == "demo" else "disabled_pending_verified_adapters",
-        "shared_expiry": "enabled", "supervision": "single_process_lifespan; pauses_when_host_is_stopped"}
+        "shared_expiry": "enabled", "shared_auctions": "enabled_for_synthetic_demo" if mode == "demo" else "disabled_pending_verified_adapters",
+        "supervision": "single_process_lifespan; pauses_when_host_is_stopped"}
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True,
         allow_methods=["GET", "POST", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Organisation-ID", "X-Request-ID"],
         expose_headers=["X-Request-ID"])
@@ -221,7 +232,7 @@ def create_hosted_app(*, trade_app=None, shared_app=None, live_app=None, run_wor
             "synthetic_trade": mode == "demo", "production_ready": False,
             "persistence": persistence,
             "public_sources": "provider_health_not_probed", "worker": dict(app.state.worker_status),
-            "sensors": "local_usb_gateway_required", "document_uploads": "disabled_pending_durable_storage"}
+            "sensors": "local_bluetooth_gateway_required", "document_uploads": "disabled_pending_durable_storage"}
 
     app.mount("/", NamespaceDispatcher({"/api/trade": trade_app, "/api/v1": shared_app, "/api/live-data": live_app}))
     return app
