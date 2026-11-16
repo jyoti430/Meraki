@@ -162,3 +162,5 @@ The [Part 2 guide](docs/PART2_BACKEND.md) describes `server/meraki/`, Alembic mi
 ## Trained yield POC with dummy data
 
 Open `/yield-poc` or FPO navigation → Yield model POC for an isolated trained regression demo: generated farm seasons, validation/test metrics, downloadable data/weights, interactive predictions and a weekly supply illustration. Train/reproduce with `python scripts/train_synthetic_yield.py` and verify with `--check`. All data and accuracy figures are synthetic; the real farm-model registry remains blocked. See [setup, method and limits](docs/SYNTHETIC_YIELD_POC.md).
+
+- [Frontend/backend workflow audit and exporter-sponsored integration plan](docs/WORKFLOW_ALIGNMENT_AUDIT.md) — current implementation/partial/missing matrix, tested safeguards and remaining private-procurement integration.
