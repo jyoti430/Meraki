@@ -4,10 +4,11 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import OperationalError
 
 from server.hosted import create_hosted_app, normalize_database_url
 from server.meraki.database import make_engine
-from server.meraki.models import Base
+from server.meraki.models import Base, Job
 
 
 @pytest.fixture
@@ -135,3 +136,89 @@ def test_one_worker_error_is_visible_and_does_not_kill_supervision(hosted_env, m
         state = client.get("/health").json()["worker"]
         assert len(calls) >= 2
         assert state["running"] is True and state["last_error"] is None
+
+
+@pytest.mark.parametrize("namespace", ["trade", "shared"])
+def test_database_outage_returns_safe_json_with_cors_and_recovers(hosted_env, monkeypatch, namespace):
+    app = create_hosted_app(run_workers=False)
+    headers = {"Origin": "https://meraki-example.vercel.app", "X-Request-ID": "db-outage-check"}
+    def unavailable(*args, **kwargs):
+        raise OperationalError("SELECT private-record", {}, RuntimeError("postgresql://private-password@host/db"))
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        if namespace == "trade":
+            target = app.state.trade.state.service
+            original = target.workspace
+            session = client.post("/api/trade/dev/sessions", json={"principal_id": "fpo-a"}).json()
+            headers["Authorization"] = "Bearer " + session["token"]
+            path = "/api/trade/workspace"
+            monkeypatch.setattr(target, "workspace", unavailable)
+        else:
+            session = client.post("/api/v1/dev/sessions", json={
+                "user_id": "hosted-failure-user", "email": "synthetic@example.test", "display_name": "Synthetic test",
+                "organisation_id": "hosted-failure-org", "organisation_name": "Synthetic test org", "role": "fpo",
+            }).json()
+            headers.update(Authorization="Bearer " + session["access_token"], **{"X-Organisation-ID": "hosted-failure-org"})
+            target = app.state.shared.state.identity_provider
+            original = target.authenticate
+            path = "/api/v1/projections"
+            monkeypatch.setattr(target, "authenticate", unavailable)
+        response = client.get(path, headers=headers)
+        assert response.status_code == 503
+        assert response.headers["access-control-allow-origin"] == headers["Origin"]
+        envelope = response.json()["detail" if namespace == "trade" else "error"]
+        assert envelope["code"] == "database_unavailable"
+        if namespace == "shared":
+            assert envelope["request_id"] == "db-outage-check"
+            assert response.headers["x-request-id"] == "db-outage-check"
+        assert "private-password" not in response.text and "private-record" not in response.text
+        if namespace == "trade":
+            monkeypatch.setattr(target, "workspace", original)
+        else:
+            monkeypatch.setattr(target, "authenticate", original)
+        assert client.get(path, headers=headers).status_code == 200
+
+
+def test_ready_shared_jobs_are_drained_before_the_worker_idle_delay(hosted_env, monkeypatch):
+    monkeypatch.setenv("HOSTED_WORKER_INTERVAL", "60")
+    app = create_hosted_app()
+    with app.state.shared.state.sessions.begin() as db:
+        db.add_all([Job(id=f"ready-job-{i}", kind="expire_listing", payload={"listing_id": f"missing-listing-{i}"}) for i in range(3)])
+    with TestClient(app):
+        deadline = time.monotonic() + 2
+        statuses = []
+        while time.monotonic() < deadline:
+            with app.state.shared.state.sessions() as db:
+                statuses = [db.get(Job, f"ready-job-{i}").status for i in range(3)]
+            if statuses == ["completed"] * 3:
+                break
+            time.sleep(0.01)
+        assert statuses == ["completed"] * 3
+
+
+def test_validation_and_auth_failures_keep_their_domain_statuses(hosted_env):
+    app = create_hosted_app(run_workers=False)
+    with TestClient(app) as client:
+        assert client.post("/api/trade/dev/sessions", json={"principal_id": 123}).status_code == 422
+        assert client.post("/api/v1/dev/sessions", json={}).status_code == 422
+        assert client.get("/api/trade/workspace").status_code == 401
+        assert client.get("/api/v1/projections").status_code == 401
+        for prefix in ("/api/trade", "/api/v1", "/api/live-data"):
+            assert client.put(prefix + "/health").status_code == 405
+
+
+@pytest.mark.parametrize("database", ["trade", "shared"])
+def test_readiness_reports_database_failure_and_recovery(hosted_env, monkeypatch, database):
+    app = create_hosted_app(run_workers=False)
+    engine = app.state.trade.state.database.engine if database == "trade" else app.state.shared.state.engine
+    connect = engine.connect
+    def unavailable(*args, **kwargs):
+        raise OperationalError("SELECT private-record", {}, RuntimeError("private-database-credential"))
+    with TestClient(app) as client:
+        monkeypatch.setattr(engine, "connect", unavailable)
+        response = client.get("/api/health")
+        assert response.status_code == 503
+        assert response.json() == {"status": "unavailable", "database": "unavailable_or_unmigrated"}
+        assert "private-" not in response.text
+        monkeypatch.setattr(engine, "connect", connect)
+        assert client.get("/api/health").status_code == 200

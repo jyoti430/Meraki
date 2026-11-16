@@ -42,7 +42,7 @@ export function TradeRequirementsPage() {
 }
 
 function ProposalCard({ proposal, requirement, owner = false }: { proposal: Proposal; requirement?: Requirement; owner?: boolean }) {
-  const { command } = useTrade()
+  const { command, writesEnabled } = useTrade()
   const [error, setError] = useState('')
   const act = async (action: 'withdraw' | 'reject') => {
     if (action === 'reject' && !window.confirm('Reject this proposal and release its capacity reservation?')) return
@@ -50,13 +50,13 @@ function ProposalCard({ proposal, requirement, owner = false }: { proposal: Prop
     catch (e) { setError(e instanceof Error ? e.message : 'Could not update proposal.') }
   }
   return <div className="t-opportunity"><div className="t-opportunity-head"><div><strong>{owner ? proposal.supplier_org : requirement?.crop || 'Proposal'}</strong><p className="m-small">{kg(proposal.quantity_g)} · grade {proposal.grade} · expected {timestamp(proposal.expected_availability)}</p></div><Status value={proposal.status} /></div>
-    <dl className="t-details"><Detail label="Price">{money(proposal.price_paise_per_kg)} / kg</Detail><Detail label="Evidence reference">{proposal.evidence_reference || 'Not supplied'}</Detail><Detail label="Notes">{proposal.notes || '—'}</Detail><Detail label="Submitted">{timestamp(proposal.submitted_at)}</Detail></dl>
+    <dl className="t-details"><Detail label="Price">{money(proposal.price_paise_per_kg)} / kg</Detail><Detail label="Evidence reference">{proposal.evidence_reference === undefined ? 'Private to supplier' : proposal.evidence_reference || 'Not supplied'}</Detail><Detail label="Notes">{proposal.notes || '—'}</Detail><Detail label="Submitted">{timestamp(proposal.submitted_at)}</Detail></dl>
     {error && <Notice error>{error}</Notice>}
     {proposal.status === 'submitted' && owner && requirement && proposal.quantity_g > (requirement.remaining_g ?? requirement.quantity_g) && <Notice>This proposal exceeds the remaining requirement. Reject it or ask the FPO to withdraw and submit a smaller quantity.</Notice>}
-    {proposal.status === 'submitted' && !owner && <button className="m-btn m-btn-secondary m-btn-sm" onClick={() => void act('withdraw')}>Withdraw proposal</button>}
+    {proposal.status === 'submitted' && !owner && <button className="m-btn m-btn-secondary m-btn-sm" disabled={!writesEnabled} onClick={() => void act('withdraw')}>Withdraw proposal</button>}
     {proposal.status === 'submitted' && owner && requirement?.status === 'published' && <div className="m-row" style={{ flexWrap: 'wrap' }}>
       {proposal.quantity_g <= (requirement.remaining_g ?? requirement.quantity_g) && <CommandForm key={'award-' + proposal.id + '-' + requirement.version} path={'/requirements/' + proposal.requirement_id + '/award'} submit="Award this proposal" prepare={() => { if (!window.confirm('Award this proposal? Both organisations must confirm a provisional contract.')) throw new Error('Award cancelled.'); return { expected_version: requirement.version, proposal_id: proposal.id } }} success="Award created; both parties must confirm." note="No automatic cheapest-proposal selection." />}
-      <button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => void act('reject')}>Reject</button></div>}</div>
+      <button type="button" className="m-btn m-btn-ghost m-btn-sm" disabled={!writesEnabled} onClick={() => void act('reject')}>Reject</button></div>}</div>
 }
 
 export function TradeRequirementDetailsPage() {

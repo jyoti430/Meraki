@@ -128,6 +128,24 @@ describe('farmer responses', () => {
 })
 
 describe('keeping farmers in sync', () => {
+  it('asks unconfirmed farmers to review proposals rather than giving planting instructions', () => {
+    const result = runPlan(baseInput())
+    const urgent = result.actions.filter((action) => action.id.startsWith('urgent-'))
+    expect(urgent.length).toBeGreaterThan(0)
+    for (const action of urgent) {
+      expect(action.title).toMatch(/review.*proposal/i)
+      expect(action.detail).toMatch(/buyer commitment and farmer acceptance/i)
+    }
+    const unsent = result.actions.find((action) => action.id === 'send')!
+    expect(unsent.title).toMatch(/review crop proposals/i)
+    expect(unsent.detail).toMatch(/acceptance/i)
+    expect(result.actions.map((action) => action.title).join(' ')).not.toMatch(/\bsow .* by|planting instructions/i)
+    const timingReasons = result.opportunities.flatMap((opportunity) => opportunity.why).filter((point) => point.source === 'timing')
+    expect(timingReasons.some((point) => /proposed sowing deadline/i.test(point.text))).toBe(true)
+    expect(timingReasons.every((point) => !/^sow\b/i.test(point.text))).toBe(true)
+    expect(result.plans.reduce((sum, plan) => sum + plan.lines.reduce((total, line) => total + line.farmerConfirmedKg, 0), 0)).toBe(0)
+  })
+
   it('asks to resend when the buyer moves the delivery date, even if area is unchanged', () => {
     const input = baseInput()
     const r1 = runPlan(input)

@@ -6,6 +6,8 @@ Latest alignment: the procurement branch and USB sensor pushes are integrated. S
 
 ## Status vocabulary
 
+Robustness follow-up (16 November): session/retry races, hosted DB error envelopes and expiry backlog are corrected and regression-tested; see [round-trip QA report](docs/QA_ROUNDTRIP_REPORT.md). Required custom buyer criteria are now a specific T09 shipment gate: they remain recorded but creation/dispatch is blocked pending a scoped assessment adapter. Generic grade release is insufficient. Planning instructions remain proposals until buyer/farmer acceptance. Compatible dependency security updates preserve the application stack. These fixes do not close the production/domain integration gates.
+
 Part 3 update: `server/` and `src/trade/` now implement the T06/T07/T09/T10 development journey. Production acceptance remains **IN_PROGRESS / externally gated**, not TODO from scratch or fully DONE. The authoritative integration contract is `server/CONTRACT.md`; setup and limitations are in `docs/PART3_OPERATIONS.md`. See the latest work-log entry for actual test/review evidence and next steps. The original prototype baseline below remains historical evidence.
 
 Part 1 update (16 November 2026): `src/farmdata/` and `/farm-intelligence` implement a browser-local development slice of T01/T02/T03/T08 — reviewed soil imports, weather/water evidence, planned versus actual cultivation, an explainable pre-sowing screen and immutable versioned weekly projections. Details and gaps are in `docs/PART1_FARM_DATA.md`. Parent tasks remain unfinished: there is no backend, organisation scoping, shared persistence or real consented observation set, and agronomic rules are unreviewed synthetic assumptions.
