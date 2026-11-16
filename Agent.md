@@ -54,7 +54,7 @@ Deliver: locally reviewed feasibility reasons, crop alternatives, water/resource
 
 Acceptance: farmer decline and overlapping plots prevent allocation; timing/grade/variety respected; gross versus accepted quantities reconcile; grade loss applied once; common water/weather shock exposes shortfalls; no future-data leakage. Labels say scenario rather than calibrated probability. Agronomic review remains an external gate for real advice.
 
-### T04 Backend organisation access and ledger — TODO
+### T04 Backend organisation access and ledger — IN_PROGRESS
 
 Dependencies: T01 schema. Required before live multi-user transactions.
 
@@ -62,13 +62,19 @@ Deliver: FastAPI service, migrations, PostgreSQL/PostGIS where needed, private d
 
 Acceptance: two organisations cannot access each other's private records; concurrent reservations cannot oversell; retries cannot duplicate allocations; expiry/cancellation releases correctly; malformed amounts and units fail; backup restore works. Tests must use a real database. Preserve useful frontend workflows via an explicit API boundary.
 
-### T05 Exporter workspace and market discovery — TODO
+Part 2 implementation slice (16 November 2026, `feature/part2-backend`): `server/meraki/` adds typed shared SQLAlchemy entities, FastAPI v1, synthetic-only development sessions, org membership/permission checks, projection history and consent events, local document storage, listings/capacity/reservations, audit/idempotency and `server/alembic/versions/0001_shared_services.py`. At initial implementation time, dependency installation was blocked; that historical limitation was superseded by the verification below. Missing acceptance: verified production identity adapter, actual PostgreSQL concurrency run, backup/restore, production object storage, security review, and adaptation of Kireeti's separate transaction service. The latest fetch attempt failed because `.git/FETCH_HEAD` is not writable.
+
+Verification update (16 November 2026): before the auth-guard matrix was added, the user reported 7 passed, 1 skipped in Python 3.10. The latest local Python 3.10.10 run after adding the matrix passed 10 tests with 1 skipped. The user reports Alembic migrations applied successfully. Local checks observed API health HTTP 200 and a successful synthetic end-to-end workflow including projection history/consent, listing discovery, reservation/release/expiry and scoped document retrieval. PostgreSQL concurrency and production readiness remain UNVERIFIED; external production identity and object storage are not configured. T04 remains `IN_PROGRESS` because its full acceptance criteria are not met.
+
+### T05 Exporter workspace and market discovery — IN_PROGRESS (API slice only)
 
 Dependencies: T01; T04 for shared persistence.
 
 Deliver: exporter order intake, budget/handover basis, public-to-members supply/demand board, freshness/confidence/evidence status, filters, matching, private customer reference and duplicate-enquiry review.
 
 Acceptance: unrelated crops/windows never match; forecasts are distinct from confirmed obligations; reserved stock is unavailable; a duplicated overseas enquiry does not silently inflate committed demand; exact plot/contact/bank/customer details are permissioned. No assumed active exporters.
+
+Part 2 API slice (16 November 2026, `feature/part2-backend`): `POST /api/v1/listings` and `GET /api/v1/market/listings` expose consented, reviewed, unexpired and non-superseded capacity with current available grams. Synthetic fixtures and API test cases are in `docs/contracts/` and `server/tests/test_shared_backend.py`. The user initially reported 7 passed, 1 skipped using Python 3.10; the latest local Python 3.10.10 run passed 10 tests with 1 skipped. The local synthetic discovery workflow passed. This is not an exporter workspace, demand intake, matching engine, or verified harvested-lot QC adapter. PostgreSQL concurrency remains UNVERIFIED.
 
 ### T06 Harvested lot auction — TODO
 
@@ -110,13 +116,15 @@ Deliver: acceptance/downgrade/rejection reasons, dispute and reinspection flow, 
 
 Acceptance: weights and money reconcile; claims do not silently rewrite dispatch evidence; payment screenshots remain unverified until reconciled; refunds/adjustments are auditable; FPO receipt and farmer disbursal are distinct; cosmetic recovery does not imply unsafe produce is saleable.
 
-### T11 Worker reliability and operational readiness — TODO
+### T11 Worker reliability and operational readiness — IN_PROGRESS (expiry slice only)
 
 Dependencies: T04; deliver incrementally alongside T02/T06/T08–T10.
 
 Deliver: retry-safe background imports/OCR/projections, auction-close scheduler, transactional notification outbox, monitoring, restore procedure and secrets/config examples without secrets. Select Celery/Redis or a justified simpler durable implementation.
 
 Acceptance: crashes/retries cannot duplicate awards/payments; dead jobs and stale feeds are visible; authoritative close occurs even with no connected browser; notifications accurately distinguish queued/sent/delivered/failed. Low-connectivity drafts survive but cannot create accepted offline bids. Inspect access logs and restore evidence.
+
+Part 2 implementation slice (16 November 2026, `feature/part2-backend`): `server/meraki/worker.py` claims database jobs, recovers stale running leases, retries with bounded exponential backoff and handles reservation/listing expiry. API creation schedules expiry jobs. The user initially reported 7 passed, 1 skipped; the latest local Python 3.10.10 backend run passed 10 tests with 1 skipped. The local synthetic workflow also verified one-shot reservation expiry and capacity restoration. Auction close, notifications, monitoring and broader crash/restart acceptance remain outstanding; PostgreSQL concurrency is UNVERIFIED. T11 remains `IN_PROGRESS`.
 
 ### T12 Model research and supervised pilot — TODO with external prerequisites
 
