@@ -404,3 +404,10 @@ Local merged evidence: clean isolated npmci;101Vitest+16Node cases/build;222Pyth
 User clarified that Trade and Auctions belong in the main tabs. Promoted both into the shared desktop/mobile primary navigation and removed duplicate footer links. Seven main destinations remain; experimental routes stay disabled. Trade uses a handshake icon to distinguish procurement/fulfilment from crop auctions. This supersedes the preceding five-tab navigation decision.
 Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build passed; existing bundle advisory remains. Shared navigation drives both sidebar and mobile bar; the existing horizontal overflow supports seven mobile destinations.
 
+
+
+## 16 November 2026 primary Trade and Auctions correction
+
+User clarified that Trade and Auctions belong in the main tabs. Promoted both into the shared desktop/mobile primary navigation and removed duplicate footer links. Seven main destinations remain; experimental routes stay disabled. Trade uses a handshake icon to distinguish procurement/fulfilment from crop auctions. This supersedes the preceding five-tab navigation decision.
+Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build passed; existing bundle advisory remains. Shared navigation drives both sidebar and mobile bar; the existing horizontal overflow supports seven mobile destinations.
+
