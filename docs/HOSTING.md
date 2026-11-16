@@ -1,5 +1,7 @@
 # Render backend and Vercel frontend
 
+Configured backend: [meraki-api-lpof.onrender.com](https://meraki-api-lpof.onrender.com/api/health). Render service `srv-dbt9bmec6qcc73b4c6m0` deploys `main` from `jyoti430/Meraki`, in Singapore. The free PostgreSQL16 database `meraki-demo-db` expires on 16 December2026. Frontend: [Meraki on Vercel](https://meraki-tau-opal.vercel.app/), deployed by the repository's existing Vercel integration. Deployment verification/results are recorded separately in WORK_LOG.md.
+
 The composite backend starts with `python -m server.start_hosted` from the repository root. Build with `pip install -r server/requirements.txt`; Python is pinned in `.python-version`. The start command applies shared Alembic migrations before Uvicorn binds to `0.0.0.0:$PORT`. Trade tables use the existing trade schema manager. Use one instance/process: its lifespan supervises shared expiry and synthetic trade closing jobs. Jobs pause when the host stops and resume on startup; this is not an always-on worker guarantee.
 
 Create a PostgreSQL database and Python web service in the same Render region. In the service environment set `DATABASE_URL` to that database's **internal** URL, `HOSTED_MODE=demo`, and `CORS_ALLOWED_ORIGINS=https://meraki-tau-opal.vercel.app`. Database credentials belong only in Render's secret environment. PostgreSQL URL aliases are normalized to the installed psycopg driver. Separate trade/shared URLs are supported, but the hosted demonstration uses one PostgreSQL database with distinct tables.
