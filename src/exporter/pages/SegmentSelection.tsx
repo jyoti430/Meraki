@@ -26,7 +26,6 @@ export default function SegmentSelection() {
         </Link>
       </div>
       <div className="e-entry-foot"><PackageCheck size={17} /> Shared procurement requires a session. Synthetic examples remain separate and never replace backend records.</div>
-      <p><Link to="/exporter">Explore the synthetic exporter layout and local draft examples</Link></p>
     </div>
   </main>
 }
