@@ -165,3 +165,7 @@ The [Part 2 guide](docs/PART2_BACKEND.md) describes `server/meraki/`, Alembic mi
 Open `/yield-poc` or FPO navigation → Yield model POC for an isolated trained regression demo: generated farm seasons, validation/test metrics, downloadable data/weights, interactive predictions and a weekly supply illustration. Train/reproduce with `python scripts/train_synthetic_yield.py` and verify with `--check`. All data and accuracy figures are synthetic; the real farm-model registry remains blocked. See [setup, method and limits](docs/SYNTHETIC_YIELD_POC.md).
 
 - [Frontend/backend workflow audit and exporter-sponsored integration plan](docs/WORKFLOW_ALIGNMENT_AUDIT.md) — current implementation/partial/missing matrix, tested safeguards and remaining private-procurement integration.
+
+## PostgreSQL auction workspace
+
+The `/auctions` and `/exporter/auctions` routes add username/password accounts, durable bids, source-backed capacity holds and bilateral award confirmation to the shared `/api/v1` backend. No email provider is required. See [auction setup, rules and verification](docs/AUCTION_BACKEND.md) for PostgreSQL, worker, Docker Compose and synthetic demo steps. The existing `/api/trade` procurement/fulfilment workflow remains separate; these new awards do not create Part 3 contracts or payments. Real harvested-lot transactions remain gated on the verified QC/identity bridge; the spot walkthrough uses explicit development fixtures.

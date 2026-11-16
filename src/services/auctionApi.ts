@@ -12,13 +12,16 @@ export type Auction = {
 export class ApiError extends Error { constructor(public status: number, message: string) { super(message) } }
 
 export async function auctionRequest<T>(path: string, account: Account | null, body?: unknown, key?: string): Promise<T> {
-  const response = await fetch(apiUrl(`/api/v1${path}`), {
+  let response: Response
+  try { response = await fetch(apiUrl(`/api/v1${path}`), {
     method: body === undefined ? 'GET' : 'POST',
     headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       ...(account ? { Authorization: `Bearer ${account.access_token}`, 'X-Organisation-ID': account.organisation_id } : {}),
       ...(key ? { 'Idempotency-Key': key } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(15000),
-  })
+  }) } catch {
+    throw new Error('Could not reach the auction API. Check the connection and retry the same action.')
+  }
   if (!response.ok) {
     const error = await response.json().catch(() => null)
     throw new ApiError(response.status, typeof error?.error?.message === 'string' ? error.error.message : `Request failed (${response.status}). Retry after checking the API connection.`)

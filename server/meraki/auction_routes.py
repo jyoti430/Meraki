@@ -4,6 +4,7 @@ from .models import Auction, AuctionBid, AuctionHold, Capacity
 from .auction_schemas import AuctionCreate, BidCreate, AwardDecision
 from .auctions import create_auction, place_bid, lock_auction, close_auction, auction_view, award_decision
 from .services import as_dict
+from .schemas import CapacityCreate
 
 
 def install_auctions(app, db_session, actor, allowed, commit_idempotent):
@@ -12,6 +13,41 @@ def install_auctions(app, db_session, actor, allowed, commit_idempotent):
         if db.bind.dialect.name != "postgresql":
             raise HTTPException(503, "Auction transactions require PostgreSQL; configure MERAKI_DATABASE_URL")
         return commit_idempotent(request, db, user, key, {"operation": path, **data}, operation)
+
+    import os
+    def development_fixture_guard():
+        if os.getenv("MERAKI_ENV", "development") != "development":
+            raise HTTPException(404, "Development fixtures are disabled")
+
+    @app.post("/api/v1/dev/auction-lots", dependencies=[Depends(development_fixture_guard)], status_code=201)
+    def synthetic_lot(body: CapacityCreate, request: Request, key: str = Header(..., alias="Idempotency-Key"), user=Depends(actor), db=Depends(db_session)):
+        allowed(user, "capacity:write")
+        if user["role"] != "fpo" or body.source_type != "harvested_lot" or not body.source_id.startswith("synthetic-"):
+            raise HTTPException(422, "Only explicitly synthetic FPO harvested-lot fixtures can use this endpoint")
+        def op():
+            from uuid import uuid4
+            from .services import audit
+            row = Capacity(id=uuid4().hex, organisation_id=user["organisation_id"], reviewed=True, **body.model_dump())
+            db.add(row); db.flush()
+            audit(db, user, "synthetic.auction_lot_created", "capacity", row.id, after={"synthetic": True})
+            return as_dict(row)
+        return transact(request, db, user, key, "synthetic.auction_lot", body.model_dump(), op)
+
+    @app.get("/api/v1/auction-capacities")
+    def owned_capacity(user=Depends(actor), db=Depends(db_session)):
+        allowed(user, "capacity:read")
+        from .services import require_capacity_eligible
+        rows = db.scalars(select(Capacity).where(Capacity.organisation_id == user["organisation_id"], Capacity.status == "available")).all()
+        result = []
+        for row in rows:
+            if not row.reviewed or row.consent_status != "opted-in" or row.quantity_g <= row.reserved_g + row.committed_g: continue
+            if row.source_type == "harvested_lot":
+                if os.getenv("MERAKI_ENV", "development") != "development" or not row.source_id.startswith("synthetic-"): continue
+            else:
+                try: require_capacity_eligible(db, row)
+                except HTTPException: continue
+            result.append(as_dict(row))
+        return {"items": result}
 
     @app.get("/api/v1/auctions")
     def list_auctions(limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0), user=Depends(actor), db=Depends(db_session)):

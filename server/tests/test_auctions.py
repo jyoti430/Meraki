@@ -335,3 +335,19 @@ def test_migrations_upgrade_downgrade_and_upgrade_again():
     finally:
         with admin.begin() as db:db.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
         admin.dispose()
+
+
+def test_synthetic_lot_fixture_does_not_bypass_real_shared_qc_gate(system,monkeypatch):
+    c,app,a=system
+    body=dict(source_type="harvested_lot",source_id="synthetic-explicit-lot",crop="Okra",variety="Hybrid",grade="A",
+        week_start="2026-12-01",week_end="2026-12-07",quantity_g=100000,consent_status="opted-in")
+    r=post(c,"/dev/auction-lots",a["seller"],body);assert r.status_code==201,r.text
+    cap=r.json()["id"]
+    assert cap in [row["id"] for row in c.get('/api/v1/auction-capacities',headers=a['seller']).json()['items']]
+    assert cap not in [row["id"] for row in c.get('/api/v1/capacities/available',headers=a['seller']).json()['items']]
+    terms={"handover":"Synthetic location","acceptance":"Synthetic protocol","payment":"Synthetic payment","cancellation":"Synthetic default",
+        "evidence_reference":"not-a-verified-release","evidence_status":"reviewed"}
+    assert auction(c,a,cap,terms=terms).status_code==409
+    monkeypatch.setenv('MERAKI_ENV','production')
+    assert post(c,'/dev/auction-lots',a['seller'],{}).status_code==404
+    assert auction(c,a,cap).status_code==409

@@ -33,8 +33,9 @@ def main():
                 "source_rule_version":"synthetic-v1","as_of":now.isoformat(),"stale_after":(now+timedelta(days=7)).isoformat(),
                 "evidence_refs":[{"type":"synthetic","reference":"demo-only"}],"caveats":["Synthetic; no farmer consent or real supply asserted"]})["projection"]
             for source_type, sid in [("harvested_lot", "synthetic-lot-"+uuid4().hex),("projection",projection["id"])]:
-                cap=post("/capacities",{**common,"source_type":source_type,"source_id":sid})
-                post(f'/capacities/{cap["id"]}/review',{"decision":"approve","reason":"Synthetic demonstration only","evidence_reference":"synthetic-demo-v1"})
+                cap=post("/dev/auction-lots" if source_type == "harvested_lot" else "/capacities",{**common,"source_type":source_type,"source_id":sid})
+                if source_type == "projection":
+                    post(f'/capacities/{cap["id"]}/review',{"decision":"approve","reason":"Synthetic demonstration only","evidence_reference":"synthetic-demo-v1"})
                 print("Synthetic",source_type,"capacity:",cap["id"],"100 kg",start,"to",end)
         print("Sign in with demo.fpo or demo.exporter using MERAKI_DEMO_PASSWORD. No emails sent.")
 
