@@ -216,3 +216,7 @@ Live mobile and browser bids passed after deploying PR #10. Repeated end-to-end 
 ### 16 November shared Trade board default
 
 Authenticated Trade now defaults to the existing shared auction service; hardcoded sample listings are read-only. This addresses a local-only sample offer being mistaken for a cross-account bid. Procurement authority remains separate and parent T04/T11 gates stay open. Frontend 119 Vitest +16 Node cases/build passed; no additional user bids submitted. See latest WORK_LOG checkpoint for delivery.
+
+### 17 November crop yield outlook presentation
+
+The restored FPO yield route now offers seven fixed crop reference scenarios after an explicit Run synthesis action, with per-hectare yield and area-scaled expected harvest. The page uses the existing visual shell and distinguishes scenario references from plot-specific suitability. Original experimental model artifacts/arithmetic remain unchanged; this presentation does not establish agronomic ranking or complete T12/model-readiness gates. Frontend: 124 Vitest +16 Node cases and production build passed. Browser checks covered initial state, invalid area, fractional-area scaling and responsive single/three-column results. Delivery evidence follows in WORK_LOG.
