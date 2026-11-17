@@ -1,5 +1,7 @@
 # Public data and model validation
 
+> **Status (17 November 2026):** the `/live-data` route currently redirects to the FPO overview (`/fpo`). The page (`src/pages/LiveData.tsx`), the read-only gateway (`server/live_data.py`), the `npm run dev:live` launcher and their tests remain in the repository as an experimental implementation. The instructions below describe that implementation; the page is not reachable in the current app without restoring its route.
+
 The `/live-data` page retrieves real public regional weather and market context through a read-only gateway. It also displays the reproducible model-validation report. It does not replace a farm's laboratory report, establish irrigation access, invent buyer demand or turn historical statistics into a validated farm-yield model.
 
 ## Start locally
@@ -10,7 +12,7 @@ After the Python setup in [PART3_OPERATIONS.md](PART3_OPERATIONS.md):
 npm run dev:live
 ```
 
-Open `http://127.0.0.1:5175/live-data`. The launcher runs the public-data API on loopback port 8002 and Vite on loopback port 5175. These ports avoid the existing sensor demo on 5173/8001. Stop the launcher with Ctrl+C. It starts neither the sensor gateway nor the trade API/worker. Use the documented independent processes if those features are also needed. `TRADE_PYTHON` can select an alternative compatible interpreter.
+The launcher previously opened `http://127.0.0.1:5175/live-data`; with the current redirect, use the gateway API directly (see [LIVE_DATA_API.md](LIVE_DATA_API.md)). The launcher runs the public-data API on loopback port 8002 and Vite on loopback port 5175. These ports avoid the existing sensor demo on 5173/8001. Stop the launcher with Ctrl+C. It starts neither the sensor gateway nor the trade API/worker. Use the documented independent processes if those features are also needed. `TRADE_PYTHON` can select an alternative compatible interpreter.
 
 Alternatively, start `.venv` Python with `-m uvicorn server.live_data:app --host 127.0.0.1 --port 8002`, then use the existing Vite server. Vite proxies `/api/live-data` to port 8002; `LIVE_DATA_PROXY_TARGET` can override that development target. A deployed static frontend needs an independently deployed gateway and same-origin routing. Nothing was deployed by this change.
 
@@ -45,7 +47,7 @@ npm run build
 
 ## What validation means here
 
-There is no trained farm-yield model in this repository. The current planning engine uses explanatory rules and scenarios. [The validation report](../reports/model_validation.md) audits actual source counts, provenance, label grain, permissions and time availability. With zero eligible real farm outcomes it computes no error metric and blocks promotion.
+No yield model in this repository has been trained or validated on real farm outcomes. The current planning engine uses explanatory rules and scenarios; the separate [synthetic yield experiment](SYNTHETIC_YIELD_POC.md) is trained only on invented data. [The validation report](../reports/model_validation.md) audits actual source counts, provenance, label grain, permissions and time availability. With zero eligible real farm outcomes it computes no error metric and blocks promotion.
 
 [The model-validation contract](MODEL_VALIDATION.md) supplies a header-only outcome template, strict data checks and a conditional training-only baseline comparison with future-season/new-farm holdouts. Tests of that machinery use synthetic fixtures; their numbers are not model-performance evidence. Real crop/region outcomes, training rights, independent evaluation, local agronomic review and prospective shadow results are still needed. The tool cannot automatically approve a production model.
 

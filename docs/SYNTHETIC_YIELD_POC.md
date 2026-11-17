@@ -1,5 +1,7 @@
 # Synthetic trained yield POC
 
+> **Status (17 November 2026):** the `/yield-poc` page now shows the seven-crop yield outlook, which multiplies fixed reference yields by plot area (`src/yieldPoc/cropOutlook.ts`). It no longer renders the trained-model interface described below. The model, its artefacts, the training script and its tests remain in the repository as an experimental implementation, and CI still checks that the artefacts reproduce.
+
 This is an end-to-end demonstration, not a validated agricultural predictor. Every farm, measurement, climate reference and harvest label is invented. No government data, private records or real farm outcomes were used for training. The actual `model_validation/` pipeline and its blocked production registry remain unchanged.
 
 ## Open and reproduce
@@ -14,7 +16,7 @@ npm run build
 npm run dev
 ```
 
-Open `/yield-poc` (FPO navigation: **Yield model POC**). Model inference runs in the browser using the exported fitted weights; it does not need a Python prediction server or live provider. `npm run model:poc:train` and `npm run model:poc:check` are equivalent training/check shortcuts. On Windows the existing project interpreter is `.venv/Scripts/python.exe`.
+The interactive interface was previously served at `/yield-poc`; that route now shows the seven-crop outlook instead. The browser implementation of the model remains in `src/yieldPoc/model.ts` and is exercised by `src/yieldPoc/model.test.ts`. It needs no Python prediction server or live provider. `npm run model:poc:train` and `npm run model:poc:check` are equivalent training/check shortcuts. On Windows the existing project interpreter is `.venv/Scripts/python.exe`.
 
 ## Training and evidence
 
@@ -36,7 +38,7 @@ The fitted estimator is standardized ridge regression with six feature terms: sq
 Generated artifacts:
 
 - `public/poc/synthetic-farm-seasons.csv`: all dummy records, explicit synthetic/source fields and split assignments.
-- `src/data/syntheticYieldModel.json`: fitted weights, data hash, split counts, tuning scores, test predictions and model limitations; lazily bundled with the page.
+- `src/data/syntheticYieldModel.json`: fitted weights, data hash, split counts, tuning scores, test predictions and model limitations; used by `src/yieldPoc/model.ts` and its tests. It is no longer bundled with the application.
 - `public/poc/synthetic-model-card.json`: the same downloadable artifact for inspection.
 
 `--check` regenerates all three artifacts and fails on differences. CI runs it without contacting any data provider. The artifact version is `synthetic-okra-ridge-v1`; changing the generator/feature contract should change its version.
@@ -49,7 +51,7 @@ The UI's band is plus/minus the 90th-percentile absolute error on the 40 synthet
 
 ## From prediction to a dummy supply plan
 
-Users edit six fictional pre-sowing inputs within the declared generator envelope. Missing, nonfinite and out-of-range values fail visibly. Editing inputs clears old results until the user runs again.
+This section describes the former interface. Users edited six fictional pre-sowing inputs within the declared generator envelope. Missing, nonfinite and out-of-range values failed visibly. Editing inputs cleared old results until the user ran again.
 
 The trained model predicts gross kg/ha only. A separate scenario multiplies by entered hectares and an invented ten-week picking curve, then applies grade eligibility once, committed share, handling retention, consent and each week's logistics cap. Without assumed dummy consent, scenario supply is zero. These fractions and weekly shares are assumptions, not learned predictions, grade certificates or real commitments. Display rounding can prevent displayed columns from adding exactly; internal arithmetic remains unrounded.
 

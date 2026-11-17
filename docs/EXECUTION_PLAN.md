@@ -1,5 +1,7 @@
 # Final 3.0
 
+> **Historical development material.** This is the broader plan the team worked from during the hackathon. It is kept as a record and is not a current product commitment. Its business model (an exporter-paid success fee with free FPO access) was superseded by the final positioning in the [project README](../README.md): an FPO-paid subscription, partner exporter access, and a secondary success fee on optional marketplace transactions.
+
 Meraki crop planning and produce supply chain execution
 
 Rewritten 15 November 2026 for the SIH team. Meraki combines plot-level crop suggestions, collective FPO production planning, open supply and demand discovery, two auction modes, and delivery-to-payment execution. This version combines the crop-planning feasibility assessment with the marketplace business model. Crop planning is a core module, not a later add-on. Product recommendations and targets below remain proposals unless explicitly identified as observations.
