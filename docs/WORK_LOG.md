@@ -406,12 +406,6 @@ Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build pa
 
 
 
-## 16 November 2026 primary Trade and Auctions correction
-
-User clarified that Trade and Auctions belong in the main tabs. Promoted both into the shared desktop/mobile primary navigation and removed duplicate footer links. Seven main destinations remain; experimental routes stay disabled. Trade uses a handshake icon to distinguish procurement/fulfilment from crop auctions. This supersedes the preceding five-tab navigation decision.
-Validation: 94 Vitest +16 Node lab tests and TypeScript/Vite production build passed; existing bundle advisory remains. Shared navigation drives both sidebar and mobile bar; the existing horizontal overflow supports seven mobile destinations.
-
-
 ## 16 November 2026 live auctions delivered
 
 Requested existing-service rollout completed on release71c85fa after successful CI43816683347. Preserved latest main navigation, PR8, all progressive QA fixes and BLE changes. Existing Render service/SGPostgreSQL and DATABASE_URL retained; build/start unchanged. Saved explicitdemo password/registration flags and exactVercelCORS. Startup applied additivePostgreSQL migrations0001→bcd→e24 successfully; no reset/replacementinfrastructure.
@@ -508,3 +502,9 @@ User requested the model frontend back for FPOs. Synchronized current main e15d2
 Branch `feature/crop-yield-outlook`, based on restored frontend `55f6d9d`. Replaced the long single-crop experimental output on `/yield-poc` with a compact existing-style crop planning form. Run synthesis reveals seven stable crop references (Okra, Tomato, Green chilli, Baby corn, Bitter gourd, Drumstick, Red onion), each showing kg/ha and expected kg for the entered hectare area. Results are initially absent and cleared on input changes; blank/zero/negative/nonfinite and >100 ha values are rejected. Fixed reference provenance remains visible as scenario estimates, without the former dummy/advice heading or a demo label in the page's new content. These figures are not produced by the experimental Okra model or ranked for farm suitability. Its artifacts/tests and all production gates remain unchanged. No API, bids or messages changed.
 
 Validation: `npm test` **124 Vitest +16 Node passed**; `npm run build` passed (existing bundle-size advisory). New tests cover repeatability, seven unique options, fractional area scaling, result mutation isolation, validation boundaries and initial rendering without results. Local browser verified explicit submit, zero-area error, 2.5 ha harvest scaling, 1 ha rerun and seven result cards. Mobile single-column and desktop three-column layouts had no horizontal document overflow. Delivery/live verification follows merge.
+
+## 17 November 2026 post-hackathon documentation checkpoint
+
+Branch `docs/post-hackathon-showcase`, based on `main` at `bd646e7`. Documentation-only pass to present Meraki as a hackathon project showcase. Rewrote the root README as a concise public overview, added `docs/README.md` as a documentation index, and added short status notes to `SYNTHETIC_YIELD_POC.md`, `LIVE_DATA.md` and `PART1_FARM_DATA.md`: `/yield-poc` now shows the seven-crop outlook rather than the trained-model interface, and `/live-data` and `/farm-intelligence` redirect to `/fpo` while their implementations remain. Marked `EXECUTION_PLAN.md` and `WORKFLOW_ALIGNMENT_AUDIT.md` as historical. Removed one of two identical copies of the "primary Trade and Auctions correction" section above. No application code, data, tests or configuration changed and no files were deleted. Development is paused after this checkpoint; the remaining gates in `Agent.md` and `REMAINING_TASKS.md` are unchanged.
+
+Validation: all 60 relative Markdown links and anchors resolve. `npm test` passed (124 Vitest + 16 Node lab tests) and `npm run build` passed; the production bundle does not contain the synthetic model artefact. Data, model-validation and synthetic-POC `--check` commands passed. `pytest server/tests tests` passed (271 passed, 35 skipped for lack of a disposable PostgreSQL database), run locally on Python 3.13 rather than the pinned 3.12.

@@ -1,8 +1,10 @@
 # Part 1 farm data and crop intelligence (development slice)
 
+> **Status (17 November 2026):** the `/farm-intelligence` route currently redirects to the FPO overview (`/fpo`). The workspace (`src/pages/FarmIntelligence.tsx` and `src/farmdata/`) and its regression tests remain in the repository as an experimental implementation. The behaviour and browser walkthrough below describe that implementation; the page is not reachable in the current app without restoring its route.
+
 This module is a browser-local development workspace at `/farm-intelligence`. It implements the data-contract and workflow slices of T01, T02, T03 and T08: reviewed soil imports, weather/water evidence, planned versus actual cultivation records, an explainable pre-sowing screen and immutable versioned weekly supply projections.
 
-This farm workspace connects to **no farm-specific weather, laboratory, groundwater or procurement feed**. Its shipped scenarios are labelled synthetic. The separate [`/live-data` public context page](LIVE_DATA.md) now retrieves real regional forecasts, historical weather and dated market observations; these are not silently assigned to farm plots or used to certify the synthetic crop scenarios. None of the parent tasks is complete at production or field acceptance; the gaps are listed below. Working rules are in [AGENTS.md](../AGENTS.md), task acceptance criteria in [Agent.md](../Agent.md) and product requirements in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
+This farm workspace connects to **no farm-specific weather, laboratory, groundwater or procurement feed**. Its shipped scenarios are labelled synthetic. The separate [public context page](LIVE_DATA.md) (whose `/live-data` route also currently redirects to the overview) retrieves real regional forecasts, historical weather and dated market observations; these are not silently assigned to farm plots or used to certify the synthetic crop scenarios. None of the parent tasks is complete at production or field acceptance; the gaps are listed below. Working rules are in [AGENTS.md](../AGENTS.md), task acceptance criteria in [Agent.md](../Agent.md) and product requirements in [EXECUTION_PLAN.md](EXECUTION_PLAN.md).
 
 ## Implemented behaviour
 
@@ -59,7 +61,7 @@ npm test
 npm run build
 ```
 
-Then open `/farm-intelligence` from `npm run dev`. With the shipped synthetic fixtures:
+The walkthrough below was run on 16 November 2026, when `/farm-intelligence` was routed in the app (`npm run dev`). With the shipped synthetic fixtures:
 
 1. **Soil & evidence** — restore the template and validate; two samples are accepted. Swap in an unknown plot or a `meq/100g` pH row to see row-level rejections. The selected plot shows measured laboratory evidence and keeps mapped estimates separate.
 2. **Weather & water** — run the synthetic adapter (21 forecast records) and then inject the failure; the failed run is recorded with no records. The okra plot reports sufficient farm water, while the regional observation table stays context-only.
@@ -83,7 +85,7 @@ A passing suite is not agronomic validation. The crop, picking-curve, water-budg
 - **Farm linkage remains unfinished.** Regional weather/market adapters have verified retrieval and schema checks on `/live-data`; the farm workspace still uses its labelled fixtures. Authenticated laboratory/groundwater/procurement feeds and authorised farm-location mapping are absent.
 - **No source/access register UI** (T01), no order-specific shortfall alerts or adviser-review workflow (T08), and no notification or messaging integration.
 - **Consent history is preserved but not propagated automatically.** Withdrawing consent requires a new published version; existing versions stay as published evidence and are reviewed, not rewritten.
-- **No pilot evidence or model.** No real conserved farm outcomes, no trained yield model and no calibrated confidence. The earlier crop-classification work is not a farm-yield model and is not used here.
+- **No pilot evidence or model.** No real conserved farm outcomes, no yield model trained on real data and no calibrated confidence. The earlier crop-classification work is not a farm-yield model and is not used here.
 - **No automated browser-test command** is configured; the browser flow above was exercised manually.
 
 ## Next ready work
