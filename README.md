@@ -10,7 +10,7 @@ Meraki helps an FPO decide what its members should grow, and how much, based on 
 
 **[meraki-tau-opal.vercel.app](https://meraki-tau-opal.vercel.app/)**
 
-Choose **FPO Portal** to explore crop planning. For the bidding marketplace, sign in or create a demo account. All farms, farmers, orders and bids in the demo are synthetic. The demo runs on free-tier hosting, so it may take a moment to wake up and will not stay online indefinitely.
+To explore without an account, select **FPO** on the sign-in screen and click **Explore demo opportunities**. This opens a demo preview; use the sidebar to reach **Overview** and **Planting Plans** for crop planning. To place bids that other users can see, sign in or create a demo account. All farms, farmers, orders and bids in the demo are synthetic. The demo runs on free-tier hosting, so it may take a moment to wake up and will not stay online indefinitely.
 
 ## Problem
 
@@ -24,13 +24,28 @@ Smallholder farmers often choose crops individually, guided by last season's pri
 - **Buyer demand.** Committed orders, indicative interest and market signals are kept separate, so a forecast is never treated as a confirmed order.
 - **Optional bidding marketplace.** FPOs and exporters sign in to a shared auction board backed by a server and database. Exporters bid on harvested produce and FPOs quote for forward requirements. Deadlines close automatically, and both sides must confirm an award.
 
+## Product workflow
+
+This is the intended product workflow. Crop planning is the core; the bidding marketplace is an optional branch for produce that is not already committed. In the prototype these steps are separate demo screens, not a fully integrated end-to-end system.
+
+```mermaid
+flowchart TD
+    A["Exporters share<br/>buyer requirements"] --> C
+    B["FPO assesses farmer resources,<br/>plot conditions and crop options"] --> C
+    C["Meraki generates a collective planting plan<br/>and expected supply"] --> D
+    D["Farmers review and respond<br/>to proposed plans"] -->|"replies update the plan"| C
+    D --> E["FPO coordinates production and<br/>fulfils existing buyer commitments"]
+    E -.->|"optional"| F["Eligible uncommitted produce<br/>enters the bidding marketplace"]
+    F -.-> G["Additional buyers bid,<br/>creating potential sales"]
+```
+
 ## Business model and intended impact
 
 - **Primary revenue:** an FPO-paid subscription for the planning tools.
 - **Partner exporters** get access without a separate subscription, which encourages them to share requirements early.
 - **Secondary revenue:** a success fee on completed transactions in the optional marketplace.
 
-The intended impact is fewer gluts and shortfalls, more dependable supply for buyers, better-planned sales for farmers and less wasted produce. These outcomes have not been measured. They would need a supervised pilot with real FPOs to establish.
+Meraki's ultimate intended impact is higher net income for farmers: planting what buyers need reduces gluts, distress sales and wasted produce, and gives buyers more dependable supply. These outcomes have not been measured. They would need a supervised pilot with real FPOs to establish.
 
 ## Prototype status and limitations
 
@@ -42,7 +57,7 @@ Meraki is a hackathon prototype. It is not a production-ready agricultural platf
 - **Messaging:** WhatsApp/SMS messages and farmer replies are simulated.
 - **Marketplace:** it uses demo accounts and synthetic stock, and moves no money. Real harvested-lot trading is disabled pending quality and identity checks.
 - **Earlier modules:** lots, lab review, shipments, claims and settlements are separate development workflows. They are not an integrated procurement tracking system.
-- **Experiments not in the main app:** a crate temperature sensor, a public weather and market data gateway, and a farm-data workspace. Their source code remains in the repository.
+- **Additional experimental modules:** a crate temperature sensor page (reachable from the FPO navigation), plus a public weather and market data gateway and a farm-data workspace whose pages are not currently routed. Their source code remains in the repository.
 - **Licence:** the repository has no licence file. Please contact the team before reusing code or data.
 
 ## Technology stack
@@ -60,7 +75,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL that Vite prints and choose **FPO Portal**.
+Open the URL that Vite prints. Without the backend, the sign-in form cannot connect, but the demo still works: select **FPO**, click **Explore demo opportunities**, then open **Planting Plans** from the sidebar.
 
 To run the frontend checks:
 
