@@ -26,26 +26,35 @@ Smallholder farmers often choose crops individually, guided by last season's pri
 
 ## Product workflow
 
-This is the intended product workflow. Crop planning is the core; the bidding marketplace is an optional branch for produce that is not already committed. In the prototype these steps are separate demo screens, not a fully integrated end-to-end system.
+The prototype has two separate workflows. Crop planning is the core; the bidding marketplace is optional. They do not share data automatically.
 
 ```mermaid
-flowchart TD
-    A["Exporters share<br/>buyer requirements"] --> C
-    B["FPO assesses farmer resources,<br/>plot conditions and crop options"] --> C
-    C["Meraki generates a collective planting plan<br/>and expected supply"] --> D
-    D["Farmers review and respond<br/>to proposed plans"] -->|"replies update the plan"| C
-    D --> E["FPO coordinates production and<br/>fulfils existing buyer commitments"]
-    E -.->|"optional"| F["Eligible uncommitted produce<br/>enters the bidding marketplace"]
-    F -.-> G["Additional buyers bid,<br/>creating potential sales"]
+flowchart TB
+    subgraph planning["Crop planning"]
+        direction TB
+        P1["Buyer requirements"] --> P3
+        P2["Farmer and plot information"] --> P3
+        P3["Collective planting plan<br/>and expected supply"] --> P4["Farmer review and<br/>simulated responses"]
+        P4 --> P5["Plan adjustments"]
+        P5 -.->|"plan re-runs"| P3
+    end
+    subgraph market["Optional bidding marketplace"]
+        direction TB
+        M1["FPOs and exporters"] --> M2["Spot auctions and<br/>forward procurement"]
+        M2 --> M3["Bid submission"]
+        M3 --> M4["Bilateral award<br/>confirmation"]
+    end
 ```
 
-## Business model and intended impact
+## Proposed business model and intended impact
 
-- **Primary revenue:** an FPO-paid subscription for the planning tools.
-- **Partner exporters** get access without a separate subscription, which encourages them to share requirements early.
-- **Secondary revenue:** a success fee on completed transactions in the optional marketplace.
+The proposed commercial model has three parts. None of it is implemented in the prototype, which has no subscription billing or fees.
 
-Meraki's ultimate intended impact is higher net income for farmers: planting what buyers need reduces gluts, distress sales and wasted produce, and gives buyers more dependable supply. These outcomes have not been measured. They would need a supervised pilot with real FPOs to establish.
+- **FPO subscription:** access to crop planning and farmer coordination tools.
+- **Exporter subscription:** access to supplier discovery and procurement opportunities. It may be priced lower than the FPO subscription because its current feature scope is narrower.
+- **Marketplace success fee:** transaction-based revenue from completed marketplace sales.
+
+Meraki's intended impact is higher net income for farmers: planting what buyers need reduces gluts, distress sales and wasted produce. This has not been measured.
 
 ## Prototype status and limitations
 
@@ -55,8 +64,8 @@ Meraki is a hackathon prototype. It is not a production-ready agricultural platf
 - **Yield figures:** the yield outlook uses fixed reference values. An earlier yield model trained on synthetic data remains in the repository as an experiment ([details](docs/SYNTHETIC_YIELD_POC.md)), but the app does not use it. No model has been trained or validated on real farm outcomes.
 - **Planning storage:** planning data lives in the browser's local storage. It is not a shared, multi-user system.
 - **Messaging:** WhatsApp/SMS messages and farmer replies are simulated.
-- **Marketplace:** it uses demo accounts and synthetic stock, and moves no money. Real harvested-lot trading is disabled pending quality and identity checks.
-- **Earlier modules:** lots, lab review, shipments, claims and settlements are separate development workflows. They are not an integrated procurement tracking system.
+- **Marketplace:** it uses demo accounts and synthetic stock, and moves no money. Trading of real harvested lots is disabled.
+- **Other modules:** the repository also contains separate development workflows for lots, lab review, shipments, claims and settlements. They are not an integrated procurement tracking system.
 - **Additional experimental modules:** a crate temperature sensor page (reachable from the FPO navigation), plus a public weather and market data gateway and a farm-data workspace whose pages are not currently routed. Their source code remains in the repository.
 - **Licence:** the repository has no licence file. Please contact the team before reusing code or data.
 
@@ -91,4 +100,4 @@ The bidding marketplace needs the Python API, PostgreSQL and the deadline worker
 The [documentation index](docs/README.md) groups the remaining material into three sections:
 - **Prototype setup and technical architecture:** hosting, the marketplace backend and the API contract.
 - **Agricultural data and model research:** the public data foundation, model validation and the synthetic yield experiment.
-- **Development history and unfinished work:** the original execution plan, the implementation ledger and the work log.
+- **Development history:** the original execution plan, audits, the implementation ledger, the work log and the tasks left open at the end of the hackathon.

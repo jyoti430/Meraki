@@ -1,6 +1,6 @@
 # Meraki documentation
 
-This index points to the technical material behind the [project README](../README.md). Meraki is a hackathon prototype; several documents below record work in progress during the hackathon and are kept as development history rather than current product commitments.
+This index points to the technical material behind the [project README](../README.md). Meraki is a completed hackathon prototype. Plans, audits and task lists written during the hackathon are kept under [Development history](#development-history) as a record; they are not an active roadmap.
 
 ## Crop planning at a glance
 
@@ -38,19 +38,19 @@ None of these has been validated against real farm outcomes.
 | [reports/model_validation.md](../reports/model_validation.md) | Generated readiness report: no eligible real farm outcomes, so no model is promoted |
 | [SYNTHETIC_YIELD_POC.md](SYNTHETIC_YIELD_POC.md) | The experimental synthetic trained yield model: method, data splits and limits |
 
-## Development history and unfinished work
+## Development history
 
-These documents are kept as a record of how the prototype was built. They describe broader plans than the final hackathon scope.
+These documents record how the prototype was built during the hackathon. They describe broader plans than what was built and are not an active roadmap.
 
 | Document | Contents |
 |---|---|
-| [EXECUTION_PLAN.md](EXECUTION_PLAN.md) | The original "Final 3.0" execution plan for the full crop-planning and procurement journey. **Historical.** Its business model (an exporter-paid success fee with free FPO access) predates the final positioning in the project README. |
-| [WORKFLOW_ALIGNMENT_AUDIT.md](WORKFLOW_ALIGNMENT_AUDIT.md) | Frontend/backend audit against an exporter-sponsored procurement proposal. **Historical.** The sponsorship model it reviews was a proposal, not a current commitment. |
+| [EXECUTION_PLAN.md](EXECUTION_PLAN.md) | The original "Final 3.0" execution plan for the full crop-planning and procurement journey. **Historical.** Its business model (an exporter-paid success fee with free FPO access) differs from the proposed model in the project README: independent FPO and exporter subscriptions plus a marketplace success fee. |
+| [WORKFLOW_ALIGNMENT_AUDIT.md](WORKFLOW_ALIGNMENT_AUDIT.md) | Frontend/backend audit against an exporter-sponsored procurement proposal. **Historical.** Exporter sponsorship is not part of the proposed model in the project README, where FPOs and exporters subscribe independently. |
 | [superpowers/specs/2026-11-15-part3-trade-design.md](superpowers/specs/2026-11-15-part3-trade-design.md), [superpowers/plans/2026-11-15-part3-plan.md](superpowers/plans/2026-11-15-part3-plan.md) | Design and implementation plan for the trade workflows |
 | [Agent.md](../Agent.md) | Implementation ledger: tasks, evidence and acceptance criteria |
 | [AGENTS.md](../AGENTS.md) | Working instructions used by coding agents during the hackathon |
 | [WORK_LOG.md](WORK_LOG.md) | Dated log of changes and the checks actually run |
-| [REMAINING_TASKS.md](REMAINING_TASKS.md) | Integration work left unfinished at the end of the hackathon |
+| [REMAINING_TASKS.md](REMAINING_TASKS.md) | Integration tasks that were still open when the hackathon ended |
 | [QA_ROUNDTRIP_REPORT.md](QA_ROUNDTRIP_REPORT.md) | Frontend/backend robustness review of the hosted demo |
 
 ## Running the checks

@@ -1,6 +1,6 @@
 # Frontend/backend workflow alignment audit
 
-> **Historical development material.** This audit reviewed the code against an exporter-sponsored procurement proposal. It is kept as a record, not a current commitment. In the final positioning the FPO pays the subscription rather than an exporter sponsor; see the [project README](../README.md).
+> **Historical development material.** This audit reviewed the code against an exporter-sponsored procurement proposal. It is kept as a record, not a current commitment. Exporter sponsorship is not part of the proposed model in the [project README](../README.md), where FPOs and exporters each have an independent subscription.
 
 16 November deployment alignment update: the latest procurement branch is now integrated, including server-backed requirements, partial proposals and multiple explicit awards. Exporter entry points use this workflow; sample local drafts remain labelled. Contract amendment/confirmation preserves and displays buyer specifications. Hosted API routing and sensor/document capability responses are explicit; provider data is not translated or replaced with mocks. This supersedes older “no requirements API” and whole-award-only observations below. Partner entitlements, private allocation and shared/trade identity-capacity-QC transactions remain unfinished. Current deployment evidence is in WORK_LOG.md and HOSTING.md.
 

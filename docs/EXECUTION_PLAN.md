@@ -1,6 +1,6 @@
 # Final 3.0
 
-> **Historical development material.** This is the broader plan the team worked from during the hackathon. It is kept as a record and is not a current product commitment. Its business model (an exporter-paid success fee with free FPO access) was superseded by the final positioning in the [project README](../README.md): an FPO-paid subscription, partner exporter access, and a secondary success fee on optional marketplace transactions.
+> **Historical development material.** This is the broader plan the team worked from during the hackathon. It is kept as a record and is not a current product commitment. Its business model (an exporter-paid success fee with free FPO access) differs from the proposed model in the [project README](../README.md): independent subscriptions for FPOs and exporters, plus a success fee on completed marketplace sales.
 
 Meraki crop planning and produce supply chain execution
 
