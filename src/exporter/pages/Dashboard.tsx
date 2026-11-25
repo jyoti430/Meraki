@@ -11,7 +11,7 @@ import type { SupplyProjectionExample } from '../types'
 const routes = [
   { to: '/exporter/requirements', icon: ClipboardList, title: 'Requirements', text: 'Browse sample buyer requirements and save your own drafts.', source: 'Browser-local drafts', tone: 'muted' },
   { to: '/exporter/marketplace', icon: PackageSearch, title: 'Supply examples', text: 'Browse illustrative FPO supply forecasts and look up a requirement.', source: 'Synthetic examples', tone: 'muted' },
-  { to: '/auctions', icon: Gavel, title: 'Shared auctions', text: 'Bid on harvested lots or answer forward requests alongside other signed-in users.', source: 'Server-backed · sign-in', tone: 'live' },
+  { to: '/auctions', icon: Gavel, title: 'Shared auctions', text: 'Bid on harvested lots or publish forward procurement requests for FPO proposals.', source: 'Server-backed · sign-in', tone: 'live' },
   { to: '/trade', icon: Handshake, title: 'Trade workflow', text: 'Requirements, proposals, contracts and fulfilment records in the separate trade service.', source: 'Server-backed · synthetic actors', tone: 'live' },
 ] as const
 
@@ -29,7 +29,7 @@ export default function ExporterDashboard() {
   const projectedKg = useMemo(() => supply?.reduce((sum, item) => sum + item.projectedKg, 0) ?? null, [supply])
 
   return <div className="e-page">
-    <ExporterPageHeader eyebrow="Exporter workspace" title="Exporter overview" description="Find FPO supply for your requirements, and use the optional bidding marketplace for additional sales." />
+    <ExporterPageHeader eyebrow="Exporter workspace" title="Exporter overview" description="Find FPO supply for your requirements. Bid on spot harvested lots or publish forward requests for FPO proposals." />
     <DemoNotice>Requirements and supply figures here are synthetic examples. Supply forecasts are not reservable stock, and local drafts are not shared with FPOs.</DemoNotice>
     {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void refresh()}>Retry</button></div>}
     {supplyError && <div className="e-error" role="alert">{supplyError}</div>}
