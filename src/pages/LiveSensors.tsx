@@ -7,7 +7,7 @@ import { apiUrl } from '../api/config'
 import { fetchBluetoothState, fetchSensorSnapshot, updateBluetoothEnabled, type BluetoothState, type SensorSnapshot as Snapshot } from '../sensors/client'
 
 export default function LiveSensors() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [error, setError] = useState('')
   const [refresh, setRefresh] = useState(0)
@@ -100,9 +100,9 @@ export default function LiveSensors() {
       const stale = device.stale || snapshot.server_time + age - device.received_at > snapshot.stale_after_seconds
       return <section key={device.device_id} className="m-card sensor-device">
         <div className="sensor-heading"><h2>{device.device_id}</h2><span className={`m-tag ${error || stale ? 'm-tag-neutral' : 'm-tag-success'}`}>{error ? t('disconnected') : stale ? t('stale_check') : t('receiving')}</span></div>
-        <p className="m-small">{t('last_received', { time: new Date(device.received_at * 1000).toLocaleString(), sec: Math.max(0, Math.floor(snapshot.server_time + age - device.received_at)) })}</p>
+        <p className="m-small">{t('last_received', { time: new Date(device.received_at * 1000).toLocaleString(lang, { timeZone: 'Asia/Kolkata', numberingSystem: 'latn' }), sec: Math.max(0, Math.floor(snapshot.server_time + age - device.received_at)) })}</p>
         {device.range_configured ? device.range_problems?.map((problem, index) => <p className="sensor-alert" key={index}>{problem}</p>) : <p className="m-small">No SMS alert rule is configured for this crate.</p>}
-        <div className="sensor-metrics"><div><Thermometer /><span>{t('temperature')}</span><strong>{device.temperature.toFixed(1)} <small>°C</small></strong></div><div><Droplets /><span>{t('humidity')}</span><strong>{device.humidity.toFixed(1)} <small>% RH</small></strong></div><div><DoorOpen /><span>Door open / closed</span><strong>{(device.opened_count ?? '—')} / {(device.closed_count ?? '—')}</strong></div><div><TriangleAlert /><span>{t('device_warnings')}</span><strong>{device.warnings.length}</strong></div></div>
+        <div className="sensor-metrics"><div><Thermometer /><span>{t('temperature')}</span><strong>{device.temperature.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1, numberingSystem: 'latn' })} <small>°C</small></strong></div><div><Droplets /><span>{t('humidity')}</span><strong>{device.humidity.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1, numberingSystem: 'latn' })} <small>% RH</small></strong></div><div><DoorOpen /><span>Door open / closed</span><strong>{(typeof device.opened_count === 'number' ? device.opened_count.toLocaleString(lang, { numberingSystem: 'latn' }) : '—')} / {(typeof device.closed_count === 'number' ? device.closed_count.toLocaleString(lang, { numberingSystem: 'latn' }) : '—')}</strong></div><div><TriangleAlert /><span>{t('device_warnings')}</span><strong>{device.warnings.length.toLocaleString(lang, { numberingSystem: 'latn' })}</strong></div></div>
         <div className="sensor-warnings"><h3>{t('warnings_reported')}</h3>{device.warnings.length ? <ul>{device.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul> : <p>{stale || error ? t('no_warnings_unknown') : t('no_warnings_latest')}</p>}</div>
       </section>
     })}</div>

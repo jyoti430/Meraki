@@ -17,8 +17,3 @@
 .lot-release-review-summary em{color:#9a6d48;font-size:7px;font-style:normal}
 .lab-pending,.lab-rejected-evidence{border-color:#efe3c9;background:#fcf8ed;color:#947637}.lab-rejected-evidence{border-color:#eed5cf;background:#fff3f0;color:#a24c40}
 
-/* Hide Google translate UI */
-.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
-body { top: 0 !important; }
-.skiptranslate iframe { visibility: hidden !important; height: 0 !important; }
-

@@ -10,7 +10,7 @@ Meraki helps an FPO decide what its members should grow, and how much, based on 
 
 **[meraki-tau-opal.vercel.app](https://meraki-tau-opal.vercel.app/)**
 
-To explore without an account, select **FPO** on the sign-in screen and click **Explore demo opportunities**. This opens a demo preview; use the sidebar to reach **Overview** and **Planting Plans** for crop planning. To place bids that other users can see, sign in or create a demo account. All farms, farmers, orders and bids in the demo are synthetic. The demo runs on free-tier hosting, so it may take a moment to wake up and will not stay online indefinitely.
+To explore without an account, choose **FPO planning demo** on the entry screen. It opens the season overview, which links each step of the planning journey (buyer demand, planting plan, farmer messages, replies). **Exporter demo** opens the exporter workspace instead. To place bids that other users can see, sign in or create a demo account. All farms, farmers, orders and bids in the demo are synthetic. The demo runs on free-tier hosting, so it may take a moment to wake up and will not stay online indefinitely.
 
 ## Problem
 
@@ -20,7 +20,7 @@ Smallholder farmers often choose crops individually, guided by last season's pri
 
 - **Collective crop planning.** A rule-based planning engine plans each buyer order separately by variety, quantity and delivery window. It works back the latest sowing date and assigns land from participating farmers' plots based on timing, water and soil. Every recommendation shows its reasons. Managers can compare cautious and more ambitious scenarios and see the supply gap for each order.
 - **Crop yield outlook.** A quick comparison of seven crops for a given plot area, using fixed reference yields per hectare scaled by area. It is a planning aid, not a prediction and not a judgement of whether a particular plot suits a crop.
-- **Farmer coordination.** Farmer and plot records, participation consent, and planting instructions drafted for WhatsApp or SMS in English, Hindi or Marathi. Farmer replies (confirm, decline, or report a problem) feed back into the plan, which rebalances and records what changed. Messages are simulated in the prototype.
+- **Farmer coordination.** Farmer and plot records, participation consent, and planting instructions drafted for WhatsApp or SMS in English, Hindi, Marathi, Tamil or Malayalam. Farmer replies (confirm, decline, or report a problem) feed back into the plan, which rebalances and records what changed. Messages are simulated in the prototype; unsupported farmer language preferences remain visible and require coordinator confirmation for the selected draft language.
 - **Buyer demand.** Committed orders, indicative interest and market signals are kept separate, so a forecast is never treated as a confirmed order.
 - **Optional bidding marketplace.** FPOs and exporters sign in to a shared auction board backed by a server and database. Exporters bid on harvested produce and FPOs quote for forward requirements. Deadlines close automatically, and both sides must confirm an award.
 
@@ -84,7 +84,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL that Vite prints. Without the backend, the sign-in form cannot connect, but the demo still works: select **FPO**, click **Explore demo opportunities**, then open **Planting Plans** from the sidebar.
+Open the URL that Vite prints. Without the backend, the sign-in form cannot connect, but the demo still works: choose **FPO planning demo**, then follow the progress steps on the overview.
 
 To run the frontend checks:
 

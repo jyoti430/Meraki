@@ -1,26 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, ClipboardList, Clock3, PackageCheck, PackageSearch, ShieldAlert, Truck, Warehouse } from 'lucide-react'
+import { ArrowRight, ClipboardList, Gavel, Handshake, PackageSearch } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import DemoNotice from '../components/DemoNotice'
 import ExporterPageHeader from '../components/ExporterPageHeader'
 import StatusBadge from '../components/StatusBadge'
-import { DEMO_ACTIVITY } from '../demoData'
 import { exporterService } from '../exporterService'
 import useRequirements from '../hooks/useRequirements'
 import type { SupplyProjectionExample } from '../types'
+import { cropLabel, formatDate, formatNumber, useI18n, type TKey } from '../../i18n'
 
-const metrics = [
-  { label: 'Active requirements', key: 'requirements', icon: ClipboardList },
-  { label: 'Incoming & expected supply', key: 'supply', icon: Warehouse },
-  { label: 'Confirmed reservations', key: 'reservations', icon: PackageCheck },
-  { label: 'Awaiting quality inspection', key: 'inspection', icon: ShieldAlert },
-  { label: 'Orders in transit', key: 'transit', icon: Truck },
-  { label: 'Acceptance & settlement', key: 'settlement', icon: Clock3 },
+const routes = [
+  { to: '/exporter/requirements', icon: ClipboardList, titleKey: 'exporter_requirements', textKey: 'ex_requirements_text', source: 'ex_source_local', tone: 'muted' },
+  { to: '/exporter/marketplace', icon: PackageSearch, titleKey: 'exporter_supply_examples', textKey: 'ex_supply_text', source: 'ex_source_synthetic', tone: 'muted' },
+  { to: '/auctions', icon: Gavel, titleKey: 'exporter_shared_auctions', textKey: 'ex_auctions_text', source: 'ex_source_server', tone: 'live' },
+  { to: '/trade', icon: Handshake, titleKey: 'exporter_trade_workflow', textKey: 'ex_trade_text', source: 'ex_source_actors', tone: 'live' },
 ] as const
 
-function tons(kg: number) { return `${(kg / 1000).toLocaleString('en', { maximumFractionDigits: 1 })} t` }
+function tons(kg: number, lang: 'en' | 'hi' | 'mr' | 'ta' | 'ml') { return `${formatNumber(kg / 1000, lang, { maximumFractionDigits: 1 })} t` }
 
 export default function ExporterDashboard() {
+  const { t, lang } = useI18n()
   const { items: requirements, error, refresh } = useRequirements()
   const [supply, setSupply] = useState<SupplyProjectionExample[] | null>(null)
   const [supplyError, setSupplyError] = useState<string | null>(null)
@@ -30,60 +29,38 @@ export default function ExporterDashboard() {
 
   const activeCount = requirements?.filter((item) => item.status === 'active').length ?? null
   const projectedKg = useMemo(() => supply?.reduce((sum, item) => sum + item.projectedKg, 0) ?? null, [supply])
-  const values: Record<(typeof metrics)[number]['key'], { value: string; detail: string }> = {
-    requirements: { value: activeCount === null ? '—' : String(activeCount), detail: 'Synthetic sample requirements' },
-    supply: { value: projectedKg === null ? '—' : tons(projectedKg), detail: 'Projected volume; not harvested stock' },
-    reservations: { value: '4', detail: 'Sample reservations · demo only' },
-    inspection: { value: '2', detail: 'Sample inspections · demo only' },
-    transit: { value: '1', detail: 'Sample shipment · demo only' },
-    settlement: { value: '1', detail: 'Sample settlement · demo only' },
-  }
 
   return <div className="e-page">
-    <ExporterPageHeader eyebrow="Procurement workspace" title="Exporter overview" description="Explore sample procurement requirements, FPO supply and fulfilment." actions={<span className="e-demo-pill">Synthetic demo</span>} />
-    <p><Link className="e-button e-button-primary" to="/trade">Explore demo trade opportunities →</Link></p>
-    <DemoNotice>These figures are retained solely to demonstrate the interface before authorised farm records are connected. All requirement and supply examples on this portal are synthetic. Projected quantities are forecasts, not harvested or allocatable stock. Live reservations and fulfilment records are not connected.</DemoNotice>
-    {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void refresh()}>Retry</button></div>}
+    <ExporterPageHeader eyebrow={t('ex_overview_eyebrow')} title={t('ex_overview_title')} description={t('ex_overview_description')} />
+    <DemoNotice>{t('ex_demo_notice')}</DemoNotice>
+    {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void refresh()}>{t('ex_retry')}</button></div>}
     {supplyError && <div className="e-error" role="alert">{supplyError}</div>}
-    <section className="e-metric-grid" aria-label="Procurement overview">
-      {metrics.map(({ label, key, icon: Icon }) => <article className="e-metric-card" key={key}>
-        <div className="e-metric-top"><span>{label}</span><Icon size={18} aria-hidden="true" /></div>
-        <strong className={values[key].value === 'Not connected' ? 'e-metric-unavailable' : ''}>{values[key].value}</strong>
-        <small>{values[key].detail}</small>
-      </article>)}
+
+    <section className="e-route-grid" aria-label={t('ex_workflows_aria')}>
+      {routes.map(({ to, icon: Icon, titleKey, textKey, source, tone }) => <Link to={to} className="e-route-card" key={to}>
+        <span className="e-route-icon"><Icon size={20} aria-hidden="true" /></span>
+        <span className="e-route-copy"><strong>{t(titleKey as TKey)}</strong><span>{t(textKey as TKey)}</span></span>
+        <span className={`e-route-source ${tone}`}>{t(source as TKey)}</span>
+        <ArrowRight className="e-route-arrow" size={17} aria-hidden="true" />
+      </Link>)}
     </section>
 
     <div className="e-dashboard-grid">
       <section className="e-panel">
-        <div className="e-panel-head"><div><p className="e-eyebrow">Demand</p><h2>Procurement requirements</h2></div><Link to="/exporter/requirements" className="e-inline-link">View all <ArrowRight size={16} /></Link></div>
-        {requirements === null ? <p className="e-muted">Loading requirements…</p> : requirements.filter((item) => item.status === 'active').length === 0 ? <div className="e-empty-inline"><p>No active requirements in this view.</p><Link to="/exporter/requirements/new" className="e-inline-link">Create a local draft <ArrowRight size={16} /></Link></div> :
+        <div className="e-panel-head"><div><p className="e-eyebrow">{t('ex_requirement_count', { count: activeCount ?? '—' })}</p><h2>{t('ex_procurement_requirements')}</h2></div><Link to="/exporter/requirements" className="e-inline-link">{t('ex_view_all')} <ArrowRight size={16} /></Link></div>
+        {requirements === null ? <p className="e-muted" role="status">{t('ex_loading_requirements')}</p> : requirements.filter((item) => item.status === 'active').length === 0 ? <div className="e-empty-inline"><p>{t('ex_no_active_requirements')}</p><Link to="/exporter/requirements/new" className="e-inline-link">{t('ex_create_local_draft')} <ArrowRight size={16} /></Link></div> :
           <div className="e-requirement-preview">{requirements.filter((item) => item.status === 'active').slice(0, 3).map((item) => <Link to={`/exporter/requirements/${item.id}`} className="e-requirement-row" key={item.id}>
-            <span className="e-requirement-icon"><ClipboardList size={18} /></span><span className="e-requirement-main"><strong>{item.crop} · {item.variety}</strong><small>{item.id} · {item.destination} · due {item.requiredBy}</small></span><span className="e-requirement-qty">{item.quantityKg.toLocaleString()} kg</span><StatusBadge tone="warn">Demo</StatusBadge>
+            <span className="e-requirement-icon"><ClipboardList size={18} /></span><span className="e-requirement-main"><strong>{cropLabel(item.crop, t)} · {item.variety}</strong><small>{item.id} · {item.destination} · {t('ex_required_by').toLowerCase()} {formatDate(item.requiredBy, lang)}</small></span><StatusBadge tone="muted">{t('ex_example')}</StatusBadge>
           </Link>)}</div>}
       </section>
       <section className="e-panel">
-        <div className="e-panel-head"><div><p className="e-eyebrow">Marketplace</p><h2>Expected supply examples</h2></div><Link to="/exporter/marketplace" className="e-inline-link">Explore <ArrowRight size={16} /></Link></div>
-        {supply === null ? <p className="e-muted">Loading synthetic examples…</p> : supply.slice(0, 2).map((item) => <div className="e-supply-preview" key={item.id}>
-          <div><strong>{item.crop} · {item.variety}</strong><small>{item.fpoLabel} · {item.deliveryWeek}</small></div><div className="e-supply-preview-right"><b>{tons(item.projectedKg)}</b><StatusBadge tone="muted">Projected</StatusBadge></div>
+        <div className="e-panel-head"><div><p className="e-eyebrow">{t('ex_supply_caption', { amount: projectedKg === null ? '—' : tons(projectedKg, lang) })}</p><h2>{t('ex_supply_heading')}</h2></div><Link to="/exporter/marketplace" className="e-inline-link">{t('ex_browse_supply')} <ArrowRight size={16} /></Link></div>
+        {supply === null ? <p className="e-muted" role="status">{t('ex_loading_supply')}</p> : supply.slice(0, 2).map((item) => <div className="e-supply-preview" key={item.id}>
+          <div className="e-supply-preview-copy"><strong>{cropLabel(item.crop, t)} · {item.variety}</strong><small>{item.fpoLabel} · {t('ex_week_of', { date: formatDate(item.deliveryWeekStart, lang) })}</small></div><div className="e-supply-preview-right"><b>{tons(item.projectedKg, lang)}</b><StatusBadge tone="muted">{t('ex_projected')}</StatusBadge></div>
         </div>)}
-        <p className="e-footnote">Forecast figures are synthetic and are not verified supply offers.</p>
+        <p className="e-footnote">{t('ex_forecast_not_offer')}</p>
       </section>
     </div>
-
-    <div className="e-dashboard-grid">
-      <section className="e-panel">
-        <div className="e-panel-head"><div><p className="e-eyebrow">Recent activity</p><h2>Workspace updates</h2></div></div>
-        <div className="e-activity-list">{DEMO_ACTIVITY.map((activity) => <div className="e-activity-row" key={activity.id}>
-          <span className="e-activity-mark" /><div><strong>{activity.title}</strong><small>{activity.detail}</small></div><span className="e-activity-time">{activity.time}</span><StatusBadge tone="muted">Demo</StatusBadge>
-        </div>)}</div>
-      </section>
-      <section className="e-panel">
-        <div className="e-panel-head"><div><p className="e-eyebrow">Demo checklist</p><h2>Next steps</h2></div></div>
-        <div className="e-alert-row"><ShieldAlert size={20} /><div><strong>Review sample requirements</strong><p>Compare crops, grades and delivery dates before trying the demo market.</p></div></div>
-        <div className="e-alert-row e-alert-muted"><PackageSearch size={20} /><div><strong>Explore sample fulfilment</strong><p>See example orders awaiting inspection, in transit and delivered.</p></div></div>
-        <Link to="/exporter/orders" className="e-inline-link e-alert-link">Review order status <ArrowRight size={16} /></Link>
-      </section>
-    </div>
-    <p className="e-page-footnote">Synthetic demonstration workspace · No live buyer, FPO, farmer, reservation or shipment data is displayed.</p>
+    <p className="e-page-footnote">{t('ex_lifecycle_prompt')} <Link to="/exporter/orders" className="e-inline-link">{t('ex_view_lifecycle')}</Link> ({t('ex_hardcoded_sample')}).</p>
   </div>
 }

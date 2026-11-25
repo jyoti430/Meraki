@@ -6,6 +6,7 @@ import { useFarmers } from '../context/FarmersContext'
 import { nextCropCycleId } from '../services/FarmersService'
 import type { CropCycleInput } from '../services/FarmersService'
 import type { CropCycleStatus } from '../types'
+import { useI18n } from '../i18n'
 
 type CropDraft = Omit<CropCycleInput, 'estimatedProductionKg'> & { estimatedProductionKg: number | '' }
 
@@ -16,6 +17,7 @@ export default function CropCycleForm() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { data, addCropCycle, editCropCycle } = useFarmers()
+  const { t } = useI18n()
   const existing = data.cropCycles.find((cycle) => cycle.id === cycleId)
   const requestedPlotId = searchParams.get('plotId') ?? ''
   const requestedFarmerId = searchParams.get('farmerId') ?? ''
@@ -28,61 +30,61 @@ export default function CropCycleForm() {
   const selectedPlot = data.plots.find((plot) => plot.id === draft.plotId)
   const selectedFarmer = data.farmers.find((farmer) => farmer.id === selectedPlot?.farmerId)
 
-  if (cycleId && !existing) return <div className="entity-not-found"><h2>Crop cycle not found</h2><p>This crop cycle is not available in the current demo data.</p><Link className="secondary-button" to="/farmers"><ArrowLeft size={14} /> Back to farmers</Link></div>
+  if (cycleId && !existing) return <div className="entity-not-found"><h2>{t('cf_not_found')}</h2><p>{t('cf_record_unavailable')}</p><Link className="secondary-button" to="/farmers"><ArrowLeft size={14} /> {t('nav_farmers')}</Link></div>
 
   function submit() {
     const next: Record<string, string> = {}
-    if (!draft.plotId || !data.plots.some((plot) => plot.id === draft.plotId)) next.plotId = 'Select an existing plot.'
-    if (!draft.crop.trim()) next.crop = 'Enter the crop.'
-    if (!draft.variety.trim()) next.variety = 'Enter the variety.'
-    if (!draft.plantingDate) next.plantingDate = 'Enter the planting or sowing date.'
-    if (!draft.expectedHarvestStartDate) next.expectedHarvestStartDate = 'Enter the expected harvest start date.'
-    if (!draft.expectedHarvestEndDate) next.expectedHarvestEndDate = 'Enter the expected harvest end date.'
-    if (draft.estimatedProductionKg === '' || !Number.isFinite(Number(draft.estimatedProductionKg)) || Number(draft.estimatedProductionKg) < 0) next.estimatedProductionKg = 'Enter a non-negative estimated quantity in kg.'
-    if (!next.plantingDate && !next.expectedHarvestStartDate && draft.plantingDate > draft.expectedHarvestStartDate) next.expectedHarvestStartDate = 'Harvest cannot start before planting.'
-    if (!next.expectedHarvestStartDate && !next.expectedHarvestEndDate && draft.expectedHarvestStartDate > draft.expectedHarvestEndDate) next.expectedHarvestEndDate = 'Harvest end must be on or after harvest start.'
+    if (!draft.plotId || !data.plots.some((plot) => plot.id === draft.plotId)) next.plotId = t('cf_select_plot')
+    if (!draft.crop.trim()) next.crop = t('cf_enter_crop')
+    if (!draft.variety.trim()) next.variety = t('cf_enter_variety')
+    if (!draft.plantingDate) next.plantingDate = t('cf_enter_planting')
+    if (!draft.expectedHarvestStartDate) next.expectedHarvestStartDate = t('cf_enter_harvest_start')
+    if (!draft.expectedHarvestEndDate) next.expectedHarvestEndDate = t('cf_enter_harvest_end')
+    if (draft.estimatedProductionKg === '' || !Number.isFinite(Number(draft.estimatedProductionKg)) || Number(draft.estimatedProductionKg) < 0) next.estimatedProductionKg = t('cf_enter_estimate')
+    if (!next.plantingDate && !next.expectedHarvestStartDate && draft.plantingDate > draft.expectedHarvestStartDate) next.expectedHarvestStartDate = t('cf_harvest_before_planting')
+    if (!next.expectedHarvestStartDate && !next.expectedHarvestEndDate && draft.expectedHarvestStartDate > draft.expectedHarvestEndDate) next.expectedHarvestEndDate = t('cf_harvest_end_order')
     setErrors(next)
-    if (Object.keys(next).length) { setFormError('Review the highlighted fields. Crop dates and quantity must be valid before saving.'); return }
+    if (Object.keys(next).length) { setFormError(t('cf_review_before_save')); return }
     setFormError('')
     setSaving(true)
     const input: CropCycleInput = { ...draft, crop: draft.crop.trim(), variety: draft.variety.trim(), estimatedProductionKg: Number(draft.estimatedProductionKg) }
     try {
       if (existing) { editCropCycle(existing.id, input); navigate(`/crop-cycles/${existing.id}`) }
       else { const cycle = addCropCycle(input); navigate(`/crop-cycles/${cycle.id}`) }
-    } catch (error) { setFormError(error instanceof Error ? error.message : 'The crop cycle could not be saved.') }
+    } catch (error) { setFormError(error instanceof Error ? error.message : t('cf_save_failed')) }
     finally { setSaving(false) }
   }
 
-  if (!availablePlots.length) return <div className="entity-not-found"><h2>Register a plot first</h2><p>Every crop cycle must belong to a plot. Add a plot before recording this crop cycle.</p><Link className="primary-button" to={requestedFarmerId ? `/plots/new?farmerId=${requestedFarmerId}` : '/plots/new'}>Register plot</Link></div>
+  if (!availablePlots.length) return <div className="entity-not-found"><h2>{t('cf_register_plot_first')}</h2><p>{t('cf_plot_required')}</p><Link className="primary-button" to={requestedFarmerId ? `/plots/new?farmerId=${requestedFarmerId}` : '/plots/new'}>{t('cf_register_plot')}</Link></div>
 
   return <div className="entity-page entity-form-page">
-    <div className="entity-page-top"><div><Link className="entity-back-link" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers'}><ArrowLeft size={14} /> {selectedPlot ? `Back to ${selectedPlot.name}` : 'Farmers & farms'}</Link><h2>{existing ? 'Edit crop cycle' : 'Add crop cycle'}</h2><p>Capture dates, status, estimated production and known supply limitations for this plot.</p></div><span className="entity-demo-label">Synthetic demo records</span></div>
+    <div className="entity-page-top"><div><Link className="entity-back-link" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers'}><ArrowLeft size={14} /> {selectedPlot ? t('cf_back_plot', { plot: selectedPlot.name }) : t('nav_farmers')}</Link><h2>{existing ? t('cf_edit_title') : t('cf_add_title')}</h2><p>{t('cf_intro')}</p></div><span className="entity-demo-label">{t('cf_demo')}</span></div>
     {formError && <EntityAlert>{formError}</EntityAlert>}
     <div className="entity-form-layout"><div className="entity-form-main">
-      <EntitySection number="01" title="Plot and crop" description="Crop cycles reference a plot. Farmer and plot details remain linked by their IDs.">
+      <EntitySection number="01" title={t('cf_section_crop')} description={t('cf_section_crop_desc')}>
         <div className="entity-fields-grid">
-          <EntityField label="Crop cycle ID" hint="Generated when the cycle is saved."><div className="generated-field"><Sprout size={14} />{existing?.id ?? nextCropCycleId(data)}</div></EntityField>
-          <EntityField label="Associated plot" required error={errors.plotId}><select value={draft.plotId} onChange={(event) => set('plotId', event.target.value)}><option value="">Select plot</option>{availablePlots.map((plot) => { const farmer = data.farmers.find((item) => item.id === plot.farmerId); return <option key={plot.id} value={plot.id}>{plot.name} · {farmer?.name ?? 'Unknown farmer'} · {plot.id}</option> })}</select></EntityField>
-          {selectedFarmer && <div className="relationship-hint"><span>Associated farmer</span><Link to={`/farmers-plots/${selectedFarmer.id}`}>{selectedFarmer.name} · {selectedFarmer.id}</Link></div>}
-          <EntityField label="Crop" required error={errors.crop}><input value={draft.crop} onChange={(event) => set('crop', event.target.value)} placeholder="e.g. Mango" /></EntityField>
-          <EntityField label="Variety" required error={errors.variety}><input value={draft.variety} onChange={(event) => set('variety', event.target.value)} placeholder="Variety name" /></EntityField>
-          <EntityField label="Crop cycle status" required><select value={draft.status} onChange={(event) => set('status', event.target.value as CropCycleStatus)}><option>Planned</option><option>Growing</option><option>Harvest-ready</option><option>Harvested</option><option>Cancelled</option></select></EntityField>
-          <EntityField label="Previous crop (optional)"><input value={draft.previousCrop} onChange={(event) => set('previousCrop', event.target.value)} placeholder="Crop previously grown on this plot" /></EntityField>
+          <EntityField label={t('cf_cycle_id')} hint={t('cf_id_generated')}><div className="generated-field"><Sprout size={14} />{existing?.id ?? nextCropCycleId(data)}</div></EntityField>
+          <EntityField label={t('cf_associated_plot')} required error={errors.plotId}><select value={draft.plotId} onChange={(event) => set('plotId', event.target.value)}><option value="">{t('cf_select_plot_option')}</option>{availablePlots.map((plot) => { const farmer = data.farmers.find((item) => item.id === plot.farmerId); return <option key={plot.id} value={plot.id}>{plot.name} · {farmer?.name ?? t('cf_unknown_farmer')} · {plot.id}</option> })}</select></EntityField>
+          {selectedFarmer && <div className="relationship-hint"><span>{t('cf_associated_farmer')}</span><Link to={`/farmers-plots/${selectedFarmer.id}`}>{selectedFarmer.name} · {selectedFarmer.id}</Link></div>}
+          <EntityField label={t('cf_crop')} required error={errors.crop}><input value={draft.crop} onChange={(event) => set('crop', event.target.value)} placeholder={t('cf_crop_placeholder')} /></EntityField>
+          <EntityField label={t('cf_variety')} required error={errors.variety}><input value={draft.variety} onChange={(event) => set('variety', event.target.value)} placeholder={t('cf_variety_placeholder')} /></EntityField>
+          <EntityField label={t('cf_status')} required><select value={draft.status} onChange={(event) => set('status', event.target.value as CropCycleStatus)}><option value="Planned">{t('status_planned')}</option><option value="Growing">{t('status_growing')}</option><option value="Harvest-ready">{t('status_harvest_ready')}</option><option value="Harvested">{t('status_harvested')}</option><option value="Cancelled">{t('status_cancelled')}</option></select></EntityField>
+          <EntityField label={`${t('cf_previous_crop')} (${t('f_form_optional').toLowerCase()})`}><input value={draft.previousCrop} onChange={(event) => set('previousCrop', event.target.value)} placeholder={t('cf_previous_crop_placeholder')} /></EntityField>
         </div>
       </EntitySection>
-      <EntitySection number="02" title="Crop timeline and estimate" description="Estimated production is a planning estimate only; it is not harvested or physically available stock.">
+      <EntitySection number="02" title={t('cf_section_timeline')} description={t('cf_section_timeline_desc')}>
         <div className="entity-fields-grid">
-          <EntityField label="Planting / sowing date" required error={errors.plantingDate}><input type="date" value={draft.plantingDate} onChange={(event) => set('plantingDate', event.target.value)} /></EntityField>
-          <EntityField label="Expected harvest start" required error={errors.expectedHarvestStartDate}><input type="date" value={draft.expectedHarvestStartDate} onChange={(event) => set('expectedHarvestStartDate', event.target.value)} /></EntityField>
-          <EntityField label="Expected harvest end" required error={errors.expectedHarvestEndDate}><input type="date" value={draft.expectedHarvestEndDate} onChange={(event) => set('expectedHarvestEndDate', event.target.value)} /></EntityField>
-          <EntityField label="Estimated production (kg)" required error={errors.estimatedProductionKg} hint="Enter the farmer-provided estimate. Plot area is not used to calculate a yield."><input type="number" min="0" step="0.1" value={draft.estimatedProductionKg} onChange={(event) => set('estimatedProductionKg', event.target.value === '' ? '' : Number(event.target.value))} placeholder="0" /></EntityField>
+          <EntityField label={t('cf_planting_date')} required error={errors.plantingDate}><input type="date" value={draft.plantingDate} onChange={(event) => set('plantingDate', event.target.value)} /></EntityField>
+          <EntityField label={t('cf_harvest_start')} required error={errors.expectedHarvestStartDate}><input type="date" value={draft.expectedHarvestStartDate} onChange={(event) => set('expectedHarvestStartDate', event.target.value)} /></EntityField>
+          <EntityField label={t('cf_harvest_end')} required error={errors.expectedHarvestEndDate}><input type="date" value={draft.expectedHarvestEndDate} onChange={(event) => set('expectedHarvestEndDate', event.target.value)} /></EntityField>
+          <EntityField label={t('cf_estimated_production')} required error={errors.estimatedProductionKg} hint={t('cf_estimate_hint')}><input type="number" min="0" step="0.1" value={draft.estimatedProductionKg} onChange={(event) => set('estimatedProductionKg', event.target.value === '' ? '' : Number(event.target.value))} placeholder="0" /></EntityField>
         </div>
-        <div className="estimate-warning"><CalendarRange size={15} /><span>Harvest timing and estimated quantity are planning information only. They do not confirm a harvest or create available stock.</span></div>
+        <div className="estimate-warning"><CalendarRange size={15} /><span>{t('cf_estimate_warning')}</span></div>
       </EntitySection>
-      <EntitySection number="03" title="Supply-related limitations" description="Record farmer-reported constraints that may affect future supply planning.">
-        <div className="entity-fields-grid"><EntityField label="Water constraints"><textarea rows={3} value={draft.waterConstraints} onChange={(event) => set('waterConstraints', event.target.value)} placeholder="Known crop-cycle water constraints" /></EntityField><EntityField label="Capital / input constraints"><textarea rows={3} value={draft.capitalInputConstraints} onChange={(event) => set('capitalInputConstraints', event.target.value)} placeholder="Input or working-capital limitations" /></EntityField><EntityField label="Other limitations"><textarea rows={3} value={draft.otherLimitations} onChange={(event) => set('otherLimitations', event.target.value)} placeholder="Other supply-related limitations" /></EntityField><EntityField label="Crop cycle notes"><textarea rows={3} value={draft.notes} onChange={(event) => set('notes', event.target.value)} placeholder="Additional notes" /></EntityField></div>
+      <EntitySection number="03" title={t('cf_section_limitations')} description={t('cf_section_limitations_desc')}>
+        <div className="entity-fields-grid"><EntityField label={t('cf_water_constraints')}><textarea rows={3} value={draft.waterConstraints} onChange={(event) => set('waterConstraints', event.target.value)} placeholder={t('cf_water_constraints_placeholder')} /></EntityField><EntityField label={t('cf_input_constraints')}><textarea rows={3} value={draft.capitalInputConstraints} onChange={(event) => set('capitalInputConstraints', event.target.value)} placeholder={t('cf_input_constraints_placeholder')} /></EntityField><EntityField label={t('cf_other_limitations')}><textarea rows={3} value={draft.otherLimitations} onChange={(event) => set('otherLimitations', event.target.value)} placeholder={t('cf_other_limitations_placeholder')} /></EntityField><EntityField label={t('cf_notes')}><textarea rows={3} value={draft.notes} onChange={(event) => set('notes', event.target.value)} placeholder={t('cf_notes_placeholder')} /></EntityField></div>
       </EntitySection>
-    </div><aside className="entity-form-aside"><div className="entity-aside-icon"><CalendarRange size={19} /></div><h3>Crop cycle dates</h3><p>Dates must follow the crop cycle sequence: planting, expected harvest start, then expected harvest end.</p><div className="entity-aside-separator" /><h4>Overlapping cycles</h4><p>A plot cannot have overlapping Planned, Growing or Harvest-ready cycles. Mark an earlier cycle Harvested or Cancelled before creating an overlapping active cycle.</p><div className="entity-aside-separator" /><h4>Participation</h4><p>Crop-cycle estimates are not allocated. Farmers who opt out are excluded from eligible participant queries.</p></aside></div>
-    <div className="entity-form-footer"><Link className="secondary-button" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers'}>Cancel</Link><button className="primary-button" type="button" disabled={saving} onClick={submit}>{saving ? 'Saving…' : existing ? 'Save crop cycle' : 'Add crop cycle'}</button></div>
+    </div><aside className="entity-form-aside"><div className="entity-aside-icon"><CalendarRange size={19} /></div><h3>{t('cf_aside_dates')}</h3><p>{t('cf_date_sequence')}</p><div className="entity-aside-separator" /><h4>{t('cf_overlap')}</h4><p>{t('cf_overlap_detail')}</p><div className="entity-aside-separator" /><h4>{t('cf_participation')}</h4><p>{t('cf_participation_detail')}</p></aside></div>
+    <div className="entity-form-footer"><Link className="secondary-button" to={selectedPlot ? `/plots/${selectedPlot.id}` : '/farmers'}>{t('cf_cancel')}</Link><button className="primary-button" type="button" disabled={saving} onClick={submit}>{saving ? t('cf_saving') : existing ? t('cf_save_changes') : t('cf_add_cycle')}</button></div>
   </div>
 }

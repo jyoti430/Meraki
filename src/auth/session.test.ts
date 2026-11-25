@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AccountSession, normalizeMobile, sessionKey } from './session'
+import { AccountSession, normalizeMobile, previewKey, sessionKey } from './session'
 import type { Account } from '../services/auctionApi'
 
 const account: Account = { access_token: 'test-token', organisation_id: 'demo-org', role: 'fpo' }
@@ -69,5 +69,29 @@ describe('entry account session', () => {
     const session = new AccountSession(undefined, async () => account)
     await session.restore(); await session.connect(true, { mobile_number: '+12025550100', password: 'demo-password', role: 'fpo' })
     expect(session.getSnapshot().account).toEqual(account)
+  })
+  it('keeps an explicit demo preview across a reload without contacting the server', async () => {
+    const saved = storage(); const request = vi.fn()
+    new AccountSession(saved, request).enterDemo('fpo')
+    const reloaded = new AccountSession(saved, request)
+    await reloaded.restore()
+    expect(reloaded.getSnapshot()).toMatchObject({ preview: 'fpo', account: null, checking: false })
+    expect(request).not.toHaveBeenCalled()
+  })
+  it('clears the demo preview on sign-out and when a real account signs in', async () => {
+    const saved = storage()
+    const session = new AccountSession(saved, async () => ({ access_token: 'test-token', organisation_id: 'demo-org', role: 'fpo' }))
+    session.enterDemo('exporter'); await session.signOut()
+    expect(saved.getItem(previewKey)).toBeNull()
+    session.enterDemo('fpo')
+    await session.connect(false, { mobile_number: '+12025550100', password: 'demo-password' }, 'fpo')
+    expect(saved.getItem(previewKey)).toBeNull()
+    expect(session.getSnapshot()).toMatchObject({ preview: null, account: { role: 'fpo' } })
+  })
+  it('ignores an unknown stored preview value', async () => {
+    const saved = storage(); saved.setItem(previewKey, 'admin')
+    const session = new AccountSession(saved, vi.fn())
+    await session.restore()
+    expect(session.getSnapshot()).toMatchObject({ preview: null, account: null, checking: false })
   })
 })

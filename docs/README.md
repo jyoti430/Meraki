@@ -21,6 +21,7 @@ None of these has been validated against real farm outcomes.
 | [HOSTING.md](HOSTING.md) | Vercel frontend and Render API/PostgreSQL deployment |
 | [AUCTION_BACKEND.md](AUCTION_BACKEND.md) | Bidding marketplace: setup with Docker Compose, accounts, auction rules and worker |
 | [MOBILE_SIGN_IN.md](MOBILE_SIGN_IN.md) | Mobile-number sign-in for FPO and exporter demo accounts |
+| [I18N_AUDIT.md](I18N_AUDIT.md) | Supported UI locales, translation architecture, route coverage, glossary and known language gaps |
 | [PART3_OPERATIONS.md](PART3_OPERATIONS.md) | Trade development workspace (contracts, QC, dispatch, claims, settlement records) |
 | [server/CONTRACT.md](../server/CONTRACT.md) | Trade workspace JSON API contract |
 | [PART2_BACKEND.md](PART2_BACKEND.md) | Shared backend foundation, migrations and the [projection](contracts/part1-projection-v1.json) and [reservation](contracts/part3-reservation-v1.json) contracts |
@@ -61,6 +62,8 @@ Frontend (Node 20+):
 npm ci
 npm test
 npm run build
+npm run i18n:audit
+npm run i18n:coverage
 ```
 
 Python (3.12, with `server/requirements.txt` installed in a virtual environment):

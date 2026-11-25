@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import { I18nProvider } from '../i18n'
 
 const identity = vi.hoisted(() => ({ account: null as null | { role: 'fpo' | 'exporter' } }))
 vi.mock('../auth/context', () => ({ useAuth: () => identity }))
@@ -16,7 +17,7 @@ import { TradeBoardPage } from './Auctions'
 describe('trade entry uses shared bidding', () => {
   it.each(['fpo', 'exporter'] as const)('opens the server-backed board for %s without requiring a second identity', role => {
     identity.account = { role }
-    const html = renderToStaticMarkup(<MemoryRouter><TradeBoardPage /></MemoryRouter>)
+    const html = renderToStaticMarkup(<I18nProvider><MemoryRouter><TradeBoardPage /></MemoryRouter></I18nProvider>)
     expect(html).toContain('Server auction board')
     expect(html).toContain('data-shared-board="true"')
     expect(html).not.toContain('Demo Sahyadri FPO')
@@ -24,7 +25,7 @@ describe('trade entry uses shared bidding', () => {
   })
   it('keeps unauthenticated sample preview read-only', () => {
     identity.account = null
-    const html = renderToStaticMarkup(<MemoryRouter><TradeBoardPage /></MemoryRouter>)
+    const html = renderToStaticMarkup(<I18nProvider><MemoryRouter><TradeBoardPage /></MemoryRouter></I18nProvider>)
     expect(html).toContain('Demo Sahyadri FPO')
     expect(html).toContain('Read-only sample')
     expect(html).not.toContain('Server auction board')
