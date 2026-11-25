@@ -8,6 +8,7 @@ import { addDays, fmtAcres, fmtDay } from '../planning/format'
 import { farmerEligibility, plotAcres, plotBusyUntil, replyStateFor } from '../planning/engine'
 import type { Farmer, Plot } from '../types'
 import { InfoTip, StatCard, initials } from '../components/ui'
+import { rowActivation } from '../components/rowActivation'
 import PageHeader from '../components/layout/PageHeader'
 import { useI18n } from '../i18n'
 
@@ -134,7 +135,7 @@ export default function FarmersPlots() {
             const isOpen = open === f.id
             const missing = plots.filter(needsDetails).length
             return <Fragment key={f.id}>
-              <tr className={`click ${isOpen ? 'sel' : ''}`} onClick={() => setOpen(isOpen ? null : f.id)} aria-expanded={isOpen}>
+              <tr className={`click ${isOpen ? 'sel' : ''}`} {...rowActivation(() => setOpen(isOpen ? null : f.id))} aria-expanded={isOpen} aria-label={`${f.name}: show plots`}>
                 <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><span className="m-avatar" style={{ background: '#e5f1de', color: 'var(--forest)' }}>{initials(f.name)}</span><span><Link to={`/farmers-plots/${f.id}`} onClick={(e) => e.stopPropagation()} style={{ fontWeight: 600, textDecoration: 'none' }}>{f.name}</Link><small>{f.village}, {f.district} · {f.preferredLanguage}</small></span></span></td>
                 <td style={{ whiteSpace: 'nowrap' }}><strong>{fmtAcres(plots.reduce((s, p) => s + plotAcres(p), 0))}</strong><small>{plots.length} plot{plots.length === 1 ? '' : 's'}{missing ? ` · ${missing} missing details` : ''}</small></td>
                 <td><ParticipationCell farmer={f} reason={farmerEligibility(f, responses[f.id])} /></td>

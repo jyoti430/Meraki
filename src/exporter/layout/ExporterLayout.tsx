@@ -1,15 +1,15 @@
+import { Fragment } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Gavel, ArrowLeftRight, ClipboardList, Home, PackageSearch, Truck, Handshake } from 'lucide-react'
+import { Gavel, ArrowLeftRight, ClipboardList, Home, PackageSearch, Handshake } from 'lucide-react'
 import { MerakiMark } from '../../components/ui'
 
 const links = [
   { to: '/exporter', label: 'Overview', shortLabel: 'Overview', icon: Home, end: true },
-  { to: '/exporter/requirements', label: 'Procurement & demand', shortLabel: 'Drafts', icon: ClipboardList, end: false },
-  { to: '/exporter/marketplace', label: 'FPO marketplace', shortLabel: 'Supply', icon: PackageSearch, end: false },
-  { to: '/auctions', label: 'Shared crop auctions', shortLabel: 'Auctions', icon: Gavel, end: false },
-  { to: '/exporter/orders', label: 'Orders & fulfilment', shortLabel: 'Lifecycle', icon: Truck, end: false },
-  { to: '/trade', label: 'Trade & fulfilment', shortLabel: 'Trade', icon: Handshake, end: false },
+  { to: '/exporter/requirements', label: 'Requirements', shortLabel: 'Requests', icon: ClipboardList, end: false },
+  { to: '/exporter/marketplace', label: 'Supply examples', shortLabel: 'Supply', icon: PackageSearch, end: false },
+  { to: '/auctions', label: 'Shared auctions', shortLabel: 'Auctions', icon: Gavel, end: false },
+  { to: '/trade', label: 'Trade workflow', shortLabel: 'Trade', icon: Handshake, end: false },
 ]
 
 export default function ExporterLayout({ children }: { children: ReactNode }) {
@@ -19,9 +19,13 @@ export default function ExporterLayout({ children }: { children: ReactNode }) {
       <NavLink to="/" className="e-brand"><MerakiMark size={36} /><span>Meraki</span></NavLink>
       <div className="e-workspace-label">EXPORTER WORKSPACE</div>
       <nav className="e-nav" aria-label="Exporter navigation">
-        {links.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `e-nav-link${isActive ? ' active' : ''}`}>
-          <Icon size={19} aria-hidden="true" /><span>{label}</span>
-        </NavLink>)}
+        {links.map(({ to, label, icon: Icon, end }, index) => <Fragment key={to}>
+          {index === 0 && <p className="e-nav-label">Procurement</p>}
+          {index === 3 && <p className="e-nav-label">Marketplace (optional)</p>}
+          <NavLink to={to} end={end} className={({ isActive }) => `e-nav-link${isActive ? ' active' : ''}`}>
+            <Icon size={19} aria-hidden="true" /><span>{label}</span>
+          </NavLink>
+        </Fragment>)}
       </nav>
       <div className="e-sidebar-spacer" />
       <div className="e-sidebar-note"><span className="e-live-dot" /> {location.pathname.endsWith('/auctions') ? 'Auction workspace' : 'Demo workspace'}<br /><small>{location.pathname.endsWith('/auctions') ? 'Account status is shown in auctions.' : 'Local examples; shared records use the procurement workspace.'}</small></div>

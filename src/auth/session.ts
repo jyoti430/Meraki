@@ -2,6 +2,8 @@ import { auctionRequest, validateAccount } from '../services/auctionApi'
 import type { Account } from '../services/auctionApi'
 
 export const sessionKey = 'meraki-auction-session-v1'
+/** Demo preview role for this tab. Never an account and never sent to a server. */
+export const previewKey = 'meraki-demo-preview-v1'
 type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem' | 'removeItem'>
 type Snapshot = { preview: 'fpo' | 'exporter' | null; account: Account | null; checking: boolean; error: string }
 type Request = (path: string, account: Account | null, body?: unknown) => Promise<unknown>
@@ -21,6 +23,18 @@ export class AccountSession {
   getSnapshot = () => this.snapshot
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener) } }
   private update(value: Snapshot) { this.snapshot = value; this.listeners.forEach(listener => listener()) }
+  private persistPreview(role: 'fpo' | 'exporter' | null) {
+    try {
+      if (role) this.storage?.setItem(previewKey, role)
+      else this.storage?.removeItem(previewKey)
+    } catch { /* Preview still works in memory for this page. */ }
+  }
+  private storedPreview(): 'fpo' | 'exporter' | null {
+    try {
+      const role = this.storage?.getItem(previewKey)
+      return role === 'fpo' || role === 'exporter' ? role : null
+    } catch { return null }
+  }
   private persist(account: Account | null) {
     try {
       if (account) this.storage?.setItem(sessionKey, JSON.stringify(account))
@@ -37,7 +51,12 @@ export class AccountSession {
     try {
       let raw: string | null = null
       try { raw = this.storage?.getItem(sessionKey) ?? null } catch { /* no stored session */ }
-      if (!raw) return
+      if (!raw) {
+        // A reload keeps an explicit demo preview; it never restores an account.
+        const preview = this.storedPreview()
+        if (preview && epoch === this.generation) this.update({ preview, account: null, checking: false, error: '' })
+        return
+      }
       const account = validateAccount(JSON.parse(raw))
       const me = await this.request('/auth/me', account) as Record<string, unknown>
       if (!me || typeof me.user_id !== 'string' || me.organisation_id !== account.organisation_id || me.role !== account.role) throw new Error('Your account changed. Please sign in again.')
@@ -61,23 +80,27 @@ export class AccountSession {
       throw new Error(`This mobile number belongs to an ${result.role === 'fpo' ? 'FPO' : 'exporter'} account. Choose that account type to sign in.`)
     }
     this.persist(null)
+    this.persistPreview(null)
     this.persist(result)
     this.update({ preview: null, account: result, checking: false, error: '' })
   }
   enterDemo = (role: 'fpo' | 'exporter' = 'exporter') => {
     ++this.generation
-    this.persist(null)
+    if (this.snapshot.preview !== role || this.snapshot.account) this.persist(null)
+    this.persistPreview(role)
     this.update({ preview: role, account: null, checking: false, error: '' })
   }
   invalidate = () => {
     ++this.generation
     this.persist(null)
+    this.persistPreview(null)
     this.update({ preview: null, account: null, checking: false, error: 'Your session ended. Please sign in again.' })
   }
   signOut = async () => {
     const account = this.snapshot.account
     ++this.generation
     this.persist(null)
+    this.persistPreview(null)
     this.update({ preview: null, account: null, checking: false, error: '' })
     if (account) {
       try { await this.request('/auth/logout', account, {}) } catch {

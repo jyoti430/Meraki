@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, CalendarDays, Clock3, Plus, Sprout, UsersRound } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, Sprout, UsersRound } from 'lucide-react'
 import { useBuyerOrders } from '../context/BuyerOrdersContext'
 import { runPlan } from '../planning/engine'
 import { fmtDay } from '../planning/format'
@@ -162,6 +162,7 @@ export default function Messages() {
   const [bucket, setBucket] = useState<Bucket | null>(null)
   const [showFarmers, setShowFarmers] = useState(false)
   const workspaceRef = useRef<HTMLDivElement>(null)
+  const [sentNotice, setSentNotice] = useState('')
 
   const involved = [...new Set([...result.farmersInvolved, ...Object.keys(responses).filter((id) => responses[id].status !== 'not-sent')])]
   const stateOf = (id: string) => replyStateFor(id, responses, result.allocations)
@@ -186,7 +187,8 @@ export default function Messages() {
   const pendingIds = campFarmers.filter((id) => { const st = stateOf(id); return st === 'not-sent' || st === 'needs-update' })
 
   function sendCampaign() {
-    if (!pendingIds.length) { window.alert('Every farmer in this campaign already has the current plan.'); return }
+    if (!pendingIds.length) return
+    setSentNotice(`${pendingIds.length} ${camp.crop.name.toLowerCase()} instruction${pendingIds.length > 1 ? 's' : ''} recorded as sent by ${channel}. This is a simulation: no SMS or WhatsApp message left this browser.`)
     sendInstructions(pendingIds.map((id) => { const f = data.farmers.find((x) => x.id === id)!; const lang = languageFor(f.preferredLanguage); return { farmerId: id, channel, language: lang, text: composeInstruction(f.name.split(' ')[0], result.allocations.filter((a) => a.farmerId === id), result.plans, lang, channel, stateOf(id) === 'needs-update') } }))
   }
   const openWorkspace = (b: Bucket | null) => { setBucket(b); setShowFarmers(true); window.setTimeout(() => workspaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }
@@ -217,11 +219,10 @@ export default function Messages() {
       <section className="m-panel m-flexcol" aria-labelledby="camp-title">
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="camp-title">Message campaigns</h2><p className="m-panel-sub">All planting communications for this season.</p></div>
-          <button type="button" className="m-btn m-btn-secondary m-btn-sm" style={{ borderRadius: 10, background: '#e5f1de' }} onClick={sendCampaign}><Plus size={17} />New message</button>
         </div>
         <div>{campaigns.map((p) => {
           const st = campStatus(p); const last = lastSent(p)
-          return <button type="button" key={p.crop.id} className="m-camp" aria-current={p.crop.id === camp.crop.id} onClick={() => { setCropId(p.crop.id); setBucket(null) }}>
+          return <button type="button" key={p.crop.id} className="m-camp" aria-current={p.crop.id === camp.crop.id} onClick={() => { setCropId(p.crop.id); setBucket(null); setSentNotice("") }}>
             <span className="m-roundico" style={{ width: 44, height: 44 }}><Sprout size={22} /></span>
             <span style={{ minWidth: 0 }}><strong>{p.crop.name} planting plan</strong><span className="m-small">{last ? `Sent ${fmtDay(last.at.slice(0, 10))} · ${last.channel}` : `${new Set(p.allocations.map((a) => a.farmerId)).size} farmer${new Set(p.allocations.map((a) => a.farmerId)).size === 1 ? '' : 's'} · not sent yet`}</span></span>
             <span className={`m-camp-pill ${st === 'Sent' ? 'active' : st === 'Draft' || st === 'Update due' ? 'draft' : ''}`}>{st}</span><ArrowRight size={18} />
@@ -241,6 +242,12 @@ export default function Messages() {
           <span className="m-wa-date">{lastSent(camp) ? fmtDay(lastSent(camp)!.at.slice(0, 10)) : 'Draft – not sent'}</span>
           <div className="m-wa-bubble">{sampleText}<time>{lastSent(camp) ? new Date(lastSent(camp)!.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : 'not sent'}{channel === 'WhatsApp' && lastSent(camp) ? ' ✓✓' : ''}</time></div>
           <span className="m-small" style={{ fontSize: 12 }}>Example for {sample.name}.</span>
+        </div>
+        <div className="m-send-row">
+          {pendingIds.length > 0
+            ? <button type="button" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }} onClick={sendCampaign}><Send size={16} aria-hidden="true" />Send to {pendingIds.length} {camp.crop.name.toLowerCase()} farmer{pendingIds.length > 1 ? 's' : ''} (simulated)</button>
+            : <p className="m-small" style={{ margin: 0 }}><CheckCircle2 size={14} aria-hidden="true" /> Every {camp.crop.name.toLowerCase()} farmer has the current plan.</p>}
+          {sentNotice && <p className="m-send-notice" role="status">{sentNotice}</p>}
         </div>
       </section>
     </div>

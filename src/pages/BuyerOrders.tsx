@@ -9,6 +9,7 @@ import type { BuyerOrder } from '../types'
 import { PLANNING_DATE } from '../planning/engine'
 import { addDays, daysBetween, fmtDay, fmtRange, maxDate } from '../planning/format'
 import { InfoTip, StatCard, lineStatusLabel, orderTypeLabel } from '../components/ui'
+import { rowActivation } from '../components/rowActivation'
 import PageHeader from '../components/layout/PageHeader'
 import { fmtT } from './Overview'
 import { useI18n } from '../i18n'
@@ -75,7 +76,8 @@ export default function BuyerOrders() {
   const active = orders.filter((o) => o.status === 'Active').sort((a, b) => (a.product.orderType === b.product.orderType ? (a.product.deliveryStartDate || 'z').localeCompare(b.product.deliveryStartDate || 'z') : a.product.orderType === 'Confirmed' ? -1 : 1))
   const visible = active.filter((o) => market === 'All' || marketOf(o) === market)
   const [selectedId, setSelectedId] = useState(() => active[0]?.id ?? '')
-  const selected = active.find((o) => o.id === selectedId) ?? visible[0]
+  // The detail panel always describes a row the user can see under the current filter.
+  const selected = visible.find((o) => o.id === selectedId) ?? visible[0]
   const other = orders.filter((o) => o.status !== 'Active').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   const sum = (list: BuyerOrder[]) => list.reduce((s, o) => s + Number(o.product.requiredQuantityKg || 0), 0)
   const confirmed = active.filter((o) => o.product.orderType === 'Confirmed')
@@ -100,13 +102,13 @@ export default function BuyerOrders() {
       <section className="m-panel" aria-labelledby="req-title">
         <div className="m-panel-head">
           <div><h2 className="m-panel-title" id="req-title">Buyer requests</h2><p className="m-panel-sub">Current and upcoming buyer demand for pre-sowing planning.</p></div>
-          <div className="m-seg2" role="group" aria-label="Market">{(['All', 'India', 'Singapore'] as MarketFilter[]).map((m) => <button key={m} type="button" aria-pressed={market === m} onClick={() => setMarket(m)}>{m}</button>)}</div>
+          <div className="m-seg2" role="group" aria-label="Market">{(['All', 'India', 'Singapore'] as MarketFilter[]).map((m) => <button key={m} type="button" aria-pressed={market === m} onClick={() => setMarket(m)}>{m} <span className="m-small">{active.filter((o) => m === 'All' || marketOf(o) === m).length}</span></button>)}</div>
         </div>
         <div className="m-dt-scroll"><table className="m-dt">
           <thead><tr><th>Crop</th><th>Buyer &amp; market</th><th>Quantity</th><th>Delivery</th><th>Status <InfoTip text="Committed = buyer has committed; Indicative = interest only" /></th><th>Price</th></tr></thead>
           <tbody>{visible.map((o) => {
             const crop = findCrop(o.product.crop)
-            return <tr key={o.id} className={`click ${selected?.id === o.id ? 'sel' : ''}`} onClick={() => setSelectedId(o.id)} aria-selected={selected?.id === o.id}>
+            return <tr key={o.id} className={`click ${selected?.id === o.id ? 'sel' : ''}`} {...rowActivation(() => setSelectedId(o.id))} aria-current={selected?.id === o.id ? "true" : undefined} aria-label={`${o.product.crop} for ${o.buyer.name}: show planting impact`}>
               <td><span className="m-crop"><span className="e" aria-hidden="true">{crop?.emoji ?? '🌾'}</span><span>{o.product.crop}<small>{o.product.variety || 'Any variety'}</small></span></span></td>
               <td style={{ minWidth: 130 }}>{o.buyer.name}<small><span className={`m-mkt sm ${marketOf(o) === 'Singapore' ? 'sg' : ''}`}>{marketOf(o)}</span></small></td>
               <td className="num"><strong>{fmtT(Number(o.product.requiredQuantityKg))}</strong></td>

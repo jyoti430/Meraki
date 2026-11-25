@@ -59,7 +59,7 @@ export default function AppRoutes() {
     <Route path="/plan" element={<PlantingPlan />} />
     <Route path="/farmers" element={<FarmersPlots />} />
     <Route path="/farm-intelligence" element={<Navigate to="/fpo" replace />} />
-    <Route path="/yield-poc" element={<Suspense fallback={<p className="m-page" role="status">Loading synthetic yield model…</p>}><YieldPoc /></Suspense>} />
+    <Route path="/yield-poc" element={<Suspense fallback={<p className="m-page" role="status">Loading crop outlook…</p>}><YieldPoc /></Suspense>} />
     <Route path="/live-data" element={<Navigate to="/fpo" replace />} />
     <Route path="/messages" element={<Messages />} />
     <Route path="/later" element={<Navigate to="/fpo" replace />} />

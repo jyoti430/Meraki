@@ -9,7 +9,7 @@ import { useAuth } from '../auth/context'
 
 const dateTime = (value: string) => new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 export default function Auctions({ embedded = false }: { embedded?: boolean }) {
-  const { account, session } = useAuth()
+  const { account, preview, session } = useAuth()
   const [items, setItems] = useState<Auction[]>([])
   const [capacities, setCapacities] = useState<Capacity[]>([])
   const [selected, setSelected] = useState<string | null>(null)
@@ -131,7 +131,7 @@ export default function Auctions({ embedded = false }: { embedded?: boolean }) {
   }
   const field = (label: string, name: string, type = 'text', extra: Record<string, string | number> = {}) => <label>{label}<input name={name} type={type} required {...extra} /></label>
   return <div className="a-workspace">
-    {!embedded && <div className="a-heading"><div><h1>Shared crop auctions</h1><p>Whole-lot sales and prequalified forward procurement.</p></div><Link to={account?.role === 'exporter' ? '/exporter' : '/fpo'}>Back to planning examples</Link></div>}
+    {!embedded && <div className="a-heading"><div><h1>Shared crop auctions</h1><p>Whole-lot sales and prequalified forward procurement.</p></div><Link to={(account?.role ?? preview) === 'exporter' ? '/exporter' : '/fpo'}>← Back to {(account?.role ?? preview) === 'exporter' ? 'exporter' : 'FPO'} overview</Link></div>}
     <p className="a-context">These accounts and awards use the shared auction service. Confirming an award here does not create a procurement-workspace contract, shipment or settlement. <Link to="/trade/requirements">Open buyer requirements and partial FPO proposals</Link> or <Link to="/trade">procurement auctions and fulfilment</Link>. Planning examples remain separate. No emails or payments are sent. Real harvested-lot trading stays disabled until the QC bridge is verified.</p>
     {error && <div className="a-error" role="alert">{error}</div>}{notice && <div className="a-notice" role="status">{notice}</div>}
     {!capabilities ? <p role="status">Auction service capabilities are unavailable until a successful health check. Actions are paused.</p> : !authEnabled ? <p className="a-context" role="status">This backend has not enabled password accounts for shared auctions. An operator must configure this workspace before sign-in. The separate <Link to="/trade/requirements">synthetic procurement workspace</Link> remains available where enabled.</p> : !capabilities.auction_mutations_enabled && <p className="a-context" role="status">Auction writes are disabled on this backend. Existing records may be viewed after sign-in; publication, bidding and award decisions remain paused.</p>}

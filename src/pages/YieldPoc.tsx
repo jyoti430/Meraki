@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { buildCropOutlook } from '../yieldPoc/cropOutlook'
 import './YieldPoc.css'
 
@@ -15,7 +16,7 @@ export default function YieldPoc() {
     <header className="yp-heading"><div>
       <div className="m-eyebrow">CROP PLANNING</div>
       <h1 className="m-h1">Crop yield outlook</h1>
-      <p className="m-lead">Explore seven crop options and their expected harvest for your plot area.</p>
+      <p className="m-lead">Compare seven crops by expected harvest for a plot area. For order-by-order allocation across farmers, use the <Link to="/plan">planting plan</Link>.</p>
     </div></header>
 
     <form className="m-card yp-section" noValidate onSubmit={event => {
@@ -38,7 +39,7 @@ export default function YieldPoc() {
           onChange={event => { setArea(event.target.value); setResult(null); setError('') }} />
         <small id="yield-area-help">1 hectare = 10,000 square metres</small>
       </label></div>
-      <button className="m-btn m-btn-primary" type="submit">Run synthesis</button>
+      <button className="m-btn m-btn-primary" type="submit">Compare crops</button>
       {error && <p id="yield-area-error" role="alert" className="yp-error">{error}</p>}
     </form>
 
@@ -52,7 +53,7 @@ export default function YieldPoc() {
           <div><dt>Expected harvest</dt><dd>{fmt(row.harvestKg)} <span>kg</span></dd></div></dl>
         </article>)}</div>
         <p className="m-small">Fixed reference yields are used for this comparison. Expected harvest = yield per hectare × plot area; these estimates do not assess plot-specific suitability.</p>
-      </section> : <p className="m-small" role="status">Run synthesis to see crop options and expected yields.</p>}
+      </section> : <p className="m-small" role="status">Enter a plot area and choose Compare crops to see expected yields.</p>}
     </div>
   </div>
 }

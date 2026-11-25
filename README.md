@@ -10,7 +10,7 @@ Meraki helps an FPO decide what its members should grow, and how much, based on 
 
 **[meraki-tau-opal.vercel.app](https://meraki-tau-opal.vercel.app/)**
 
-To explore without an account, select **FPO** on the sign-in screen and click **Explore demo opportunities**. This opens a demo preview; use the sidebar to reach **Overview** and **Planting Plans** for crop planning. To place bids that other users can see, sign in or create a demo account. All farms, farmers, orders and bids in the demo are synthetic. The demo runs on free-tier hosting, so it may take a moment to wake up and will not stay online indefinitely.
+To explore without an account, choose **FPO planning demo** on the entry screen. It opens the season overview, which links each step of the planning journey (buyer demand, planting plan, farmer messages, replies). **Exporter demo** opens the exporter workspace instead. To place bids that other users can see, sign in or create a demo account. All farms, farmers, orders and bids in the demo are synthetic. The demo runs on free-tier hosting, so it may take a moment to wake up and will not stay online indefinitely.
 
 ## Problem
 
@@ -84,7 +84,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL that Vite prints. Without the backend, the sign-in form cannot connect, but the demo still works: select **FPO**, click **Explore demo opportunities**, then open **Planting Plans** from the sidebar.
+Open the URL that Vite prints. Without the backend, the sign-in form cannot connect, but the demo still works: choose **FPO planning demo**, then follow the progress steps on the overview.
 
 To run the frontend checks:
 

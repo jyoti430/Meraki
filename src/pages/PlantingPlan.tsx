@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, BarChart3, Send, CalendarDays, Check, CheckCircle2, ChevronRight, Clock3, Info, MinusCircle, Pencil, PlusCircle, ShieldCheck, Sprout, UsersRound, Boxes, Zap } from 'lucide-react'
+import { AlertTriangle, ArrowRight, History, BarChart3, Send, CalendarDays, Check, CheckCircle2, ChevronRight, Clock3, Info, MinusCircle, Pencil, PlusCircle, ShieldCheck, Sprout, UsersRound, Boxes, Zap } from 'lucide-react'
 import { usePlan } from '../context/PlanContext'
 import { useBuyerOrders } from '../context/BuyerOrdersContext'
 import { useFarmers } from '../context/FarmersContext'
@@ -10,6 +10,7 @@ import { daysBetween, fmtAcres, fmtDay, fmtPct, toDate } from '../planning/forma
 import { cumulative, weeklySeries } from '../planning/series'
 import { Feasibility, Reasons, StatCard, SupplyMeter, lineStatusLabel, orderTypeLabel } from '../components/ui'
 import LineChart from '../components/LineChart'
+import { rowActivation } from '../components/rowActivation'
 import PageHeader from '../components/layout/PageHeader'
 import { fmtT } from './Overview'
 import { useI18n } from '../i18n'
@@ -152,6 +153,14 @@ export default function PlantingPlan() {
       <StatCard icon={<ShieldCheck size={24} />} label="Risk level" tip={risk.factors.length ? `Why: ${risk.factors.join('; ')}.` : 'No major risks found.'} value={<span className="m-pillbig" style={riskStyle}>{risk.level}</span>} sub={<>{risk.factors[0] ?? 'Planned, farmer-confirmed and committed'}{risk.factors.length > 1 ? ` · +${risk.factors.length - 1} more` : ''}</>} />
     </section>
 
+    {changes[0] && <section className="m-latest-change" aria-label="Latest plan update" role="status">
+      <History size={18} aria-hidden="true" />
+      <div><strong>Latest plan update: {changes[0].title}</strong>
+        <ul>{changes[0].details.slice(0, 2).map((d) => <li key={d}>{d}</li>)}</ul>
+        <Link to="/plan#history" className="m-link">See all {changes.length} update{changes.length === 1 ? '' : 's'}</Link>
+      </div>
+    </section>}
+
     <section className="m-panel" id={plan.crop.id} aria-labelledby="alloc-title" style={{ scrollMarginTop: 16 }}>
       <div className="m-panel-head">
         <div><h2 className="m-panel-title" id="alloc-title">Crop allocation &amp; farmer plan
@@ -210,7 +219,7 @@ export default function PlantingPlan() {
             const key = `${a.orderId}-${a.plotId}`
             const isOpen = open === key
             return <Fragment key={key}>
-              <tr className="click" onClick={() => setOpen(isOpen ? null : key)} aria-expanded={isOpen}>
+              <tr className="click" {...rowActivation(() => setOpen(isOpen ? null : key))} aria-expanded={isOpen} aria-label={`${a.farmerName}, ${a.plotName}: show why this plot`}>
                 <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{a.farmerName}</strong><small>{a.plotName} · {fmtAcres(a.acres)} · for {a.buyerName}{plan.varieties.length > 1 ? ` (${a.variety})` : ''}</small></span></span></td>
                 <td><span className="m-chipdate"><CalendarDays size={16} />{fmtDay(a.sowFrom)} – {fmtDay(a.sowBy)}</span></td>
                 <td><span className="m-chipdate plain"><CalendarDays size={16} />{fmtDay(a.harvestStart)} – {fmtDay(a.harvestEnd)}</span></td>

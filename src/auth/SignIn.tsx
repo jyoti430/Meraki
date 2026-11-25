@@ -5,6 +5,8 @@ import { MerakiMark } from '../components/ui'
 import { auctionRequest, validateAuctionCapabilities } from '../services/auctionApi'
 import type { AuctionCapabilities } from '../services/auctionApi'
 import { useAuth } from './context'
+import { demoHome, type Role } from './workspace'
+import { ArrowRight, Building2, Sprout } from 'lucide-react'
 
 export default function SignIn() {
   const navigate = useNavigate()
@@ -41,9 +43,28 @@ export default function SignIn() {
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not sign in. Please retry.') }
     finally { busy.current = false; setPending(false) }
   }
-  return <main className="auth-page"><section className="auth-card" aria-labelledby="auth-title">
-    <div className="auth-brand"><MerakiMark size={40} /><span>Meraki</span></div>
-    <h1 id="auth-title">{register ? 'Create your account' : 'Sign in to Meraki'}</h1>
+  const explore = (demoRole: Role) => { session.enterDemo(demoRole); navigate(demoHome(demoRole)) }
+  return <main className="auth-page"><div className="auth-layout">
+    <section className="auth-intro" aria-labelledby="demo-title">
+      <div className="auth-brand"><MerakiMark size={40} /><span>Meraki</span></div>
+      <p className="auth-eyebrow">Demand-driven crop planning for FPOs</p>
+      <h1 id="demo-title">Explore without an account</h1>
+      <p>Open a demo workspace with sample farms, buyers and orders. Everything stays in this browser; no messages, bids or payments are sent.</p>
+      <div className="auth-demo-grid">
+        <button type="button" className="auth-demo-card" disabled={pending} onClick={() => explore('fpo')}>
+          <span className="auth-demo-icon"><Sprout size={22} aria-hidden="true" /></span>
+          <span className="auth-demo-copy"><strong>FPO planning demo</strong><span>Turn buyer demand into a collective planting plan, then coordinate farmers and see the plan adjust.</span></span>
+          <ArrowRight size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className="auth-demo-card" disabled={pending} onClick={() => explore('exporter')}>
+          <span className="auth-demo-icon"><Building2 size={22} aria-hidden="true" /></span>
+          <span className="auth-demo-copy"><strong>Exporter demo</strong><span>Review sample requirements, compare FPO supply examples and preview the bidding marketplace.</span></span>
+          <ArrowRight size={18} aria-hidden="true" />
+        </button>
+      </div>
+    </section>
+    <section className="auth-card" aria-labelledby="auth-title">
+    <h2 id="auth-title">{register ? 'Create your account' : 'Sign in'}</h2>
     <p>{register ? 'Start with your mobile number and organisation details.' : 'Use your mobile number and password to open your workspace.'}</p>
     <div className="auth-roles" role="group" aria-label="Account type"><button type="button" disabled={pending} aria-pressed={role === 'fpo'} onClick={() => setRole('fpo')}>FPO</button><button type="button" disabled={pending} aria-pressed={role === 'exporter'} onClick={() => setRole('exporter')}>Exporter</button></div>
     <form onSubmit={submit}>
@@ -65,8 +86,6 @@ export default function SignIn() {
     {!checking && !service && <button className="auth-link" type="button" onClick={() => setAttempt(attempt + 1)}>Retry connection</button>}
     {service?.registration_enabled && <button className="auth-link" type="button" disabled={pending} onClick={() => { setRegister(!register); setError(''); setVisible(false) }}>{register ? 'Already registered? Sign in' : 'New here? Create an account'}</button>}
     {service && !service.registration_enabled && <p>Need an account? Ask your workspace operator.</p>}
-    <p className="auth-footnote">Crop planning and shared auctions for FPOs and exporters.</p>
-    <button type="button" className="auth-link" disabled={pending} onClick={() => { session.enterDemo(role); navigate('/trade') }}>Explore demo opportunities</button>
-    <p className="auth-footnote">Demo preview uses sample data. It does not sign you in.</p>
-  </section></main>
+    <p className="auth-footnote">An account is only needed to place bids in shared auctions that other users can see.</p>
+  </section></div></main>
 }

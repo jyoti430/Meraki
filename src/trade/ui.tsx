@@ -5,6 +5,7 @@ import { useTrade } from './TradeProvider'
 import { decimalToInteger, isoDate, kg, localDateTime, timestamp } from './calculations'
 import type { CommercialTerms, Contribution, Principal } from './types'
 import { useI18n } from '../i18n'
+import { useAuth } from '../auth/context'
 
 export type Values = Record<string, string>
 export type FieldSpec = { name: string; label: string; type?: 'text' | 'textarea' | 'number' | 'date' | 'datetime-local' | 'select' | 'checkbox' | 'members' | 'criteria'; required?: boolean; value?: string; options?: { value: string; label: string }[]; help?: string; placeholder?: string; min?: string; max?: string; step?: string; wide?: boolean }
@@ -100,9 +101,11 @@ function SessionControl() {
 export function TradeFrame({ title, subtitle, eyebrow, children, demo = false, controls }: { title: string; subtitle: string; eyebrow?: string; children: ReactNode; demo?: boolean; controls?: ReactNode }) {
   const { workspace, health, loading, refreshing, error, refresh } = useTrade()
   const { t } = useI18n()
+  const { account, preview } = useAuth()
+  const home = (account?.role ?? preview) === 'exporter' ? { to: '/exporter', label: 'Exporter overview' } : { to: '/fpo', label: 'FPO overview' }
   return <div className="m-page t-page">
     <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div>{!demo && <button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button>}</header>
-    <nav className="t-nav" aria-label="Trade workflow"><Link to="/">Change workspace</Link><Link to="/fpo">FPO dashboard</Link>{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
+    <nav className="t-nav" aria-label="Trade workflow"><Link to={home.to} className="t-nav-back">← {home.label}</Link>{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
     {controls}
     {!demo && <SessionControl />}
     {!demo && error && <Notice error>{error}{workspace && <p>Displayed records are from {timestamp(workspace.server_time)}. Refresh before submitting another action.</p>}</Notice>}

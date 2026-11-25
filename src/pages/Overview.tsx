@@ -1,8 +1,10 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
-import { AlertTriangle, ArrowRight, BarChart3, ChevronDown, Clock3, CloudRain, Info, ShoppingBag, Sprout, TrendingDown, UsersRound, Zap } from 'lucide-react'
+import { AlertTriangle, ArrowRight, BarChart3, Check, ChevronDown, Clock3, CloudRain, Info, ShoppingBag, Sprout, TrendingDown, UsersRound, Zap } from 'lucide-react'
 import { usePlan } from '../context/PlanContext'
+import { planningProgress } from '../planning/progress'
+import { rowActivation } from '../components/rowActivation'
 import { useFarmers } from '../context/FarmersContext'
 import { PLANNING_DATE, farmerEligibility } from '../planning/engine'
 import type { Opportunity } from '../planning/engine'
@@ -44,10 +46,9 @@ function DemandBar({ o, max }: { o: Opportunity; max: number }) {
 
 export default function Overview() {
   const { t } = useI18n()
-  const { result, responses } = usePlan()
+  const { result, responses, planState } = usePlan()
   const { data } = useFarmers()
   const [open, setOpen] = useState<string | null>(null)
-  const [done, setDone] = useState<string[]>([])
 
   const inScope = result.plans.filter((p) => p.status !== 'not-in-scenario')
   const demandKg = result.plans.reduce((s, p) => s + p.confirmedKg + p.indicativeKg, 0)
@@ -74,6 +75,16 @@ export default function Overview() {
   return <div className="m-page">
     <PageHeader title={t('overview_title')} subtitle={t('overview_subtitle')} />
 
+    <nav className="m-progress" aria-label="Planning progress">
+      <ol>{planningProgress(result, responses, planState).map((step, index) => <li key={step.id} className={`m-progress-step ${step.state}`}>
+        <Link to={step.to} aria-current={step.state === 'current' || step.state === 'attention' ? 'step' : undefined}>
+          <span className="m-progress-mark" aria-hidden="true">{step.state === 'done' ? <Check size={15} /> : step.state === 'attention' ? '!' : index + 1}</span>
+          <span className="m-progress-copy"><strong>{step.label}</strong><small>{step.detail}</small></span>
+          <span className="sr-only">{step.state === 'done' ? '(done)' : step.state === 'attention' ? '(needs attention)' : step.state === 'current' ? '(next step)' : ''}</span>
+        </Link>
+      </li>)}</ol>
+    </nav>
+
     <section className="m-stats" aria-label="Season summary">
       <StatCard icon={<ShoppingBag size={24} />} label={t('buyer_demand')} tip="All active buyer orders, committed and indicative" value={fmtT(demandKg)} sub={<>{fmtT(confirmedKg)} buyer-committed</>} />
       <StatCard icon={<Sprout size={24} />} label={t('expected_supply')} tip="Planned planting at the scenario's yield assumption plus crops already growing" value={fmtT(supplyKg)} sub={<>{result.totalAcres.toFixed(1)} acres planned</>} />
@@ -97,7 +108,7 @@ export default function Overview() {
             const a = actionFor(o)
             const isOpen = open === o.crop.id
             return <Fragment key={o.crop.id}>
-              <tr className="click" onClick={() => setOpen(isOpen ? null : o.crop.id)} aria-expanded={isOpen}>
+              <tr className="click" {...rowActivation(() => setOpen(isOpen ? null : o.crop.id))} aria-expanded={isOpen} aria-label={`${o.crop.name}: show why`}>
                 <td><span className="m-crop"><span className="e" aria-hidden="true">{o.crop.emoji}</span><span>{o.crop.name}<small style={{ marginTop: 4 }}><Feasibility level={feasibilityOf(o)} /></small></span></span></td>
                 <td><strong>{o.plan ? fmtT(o.plan.confirmedKg + o.plan.indicativeKg) : '—'}</strong><DemandBar o={o} max={maxDemand} /></td>
                 <td><strong>{o.plan && o.plan.status !== 'not-in-scenario' ? fmtT(o.plan.expectedKg) : '—'}</strong></td>
@@ -117,14 +128,10 @@ export default function Overview() {
       <div className="m-cols-even m-stretch">
         <section className="m-panel" aria-labelledby="next-title">
           <h2 className="m-panel-title sm" id="next-title"><Zap size={24} />{t('next_actions')}</h2>
-          <p className="m-panel-sub" style={{ marginBottom: 8 }}>Keep your seasonal plan on track.</p>
-          <ul className="m-checklist">{result.actions.slice(0, 5).map((a) => {
-            const isDone = done.includes(a.id)
-            return <li key={a.id} className={isDone ? 'done' : ''}>
-              <input type="checkbox" checked={isDone} onChange={() => setDone((d) => (isDone ? d.filter((x) => x !== a.id) : [...d, a.id]))} aria-label={`Mark "${a.title}" done`} />
-              <Link to={a.to}><strong>{a.title}</strong><span>{a.detail}</span></Link>
-            </li>
-          })}</ul>
+          <p className="m-panel-sub" style={{ marginBottom: 8 }}>Generated from the current plan, orders and farmer replies.</p>
+          <ul className="m-action-list">{result.actions.slice(0, 5).map((a) => <li key={a.id}>
+            <Link to={a.to}><span className={`m-action-dot ${a.tone}`} aria-hidden="true" /><span><strong>{a.title}</strong><span>{a.detail}</span></span><span className="m-action-go">{a.cta}<ArrowRight size={14} aria-hidden="true" /></span></Link>
+          </li>)}</ul>
         </section>
         <section className="m-panel" aria-labelledby="watch-title">
           <h2 className="m-panel-title sm" id="watch-title"><AlertTriangle size={24} />{t('watchouts')}</h2>
