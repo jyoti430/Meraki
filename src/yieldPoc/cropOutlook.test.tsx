@@ -1,6 +1,7 @@
 import { MemoryRouter } from 'react-router-dom'
 import { expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { I18nProvider } from '../i18n'
 import YieldPoc from '../pages/YieldPoc'
 import { buildCropOutlook } from './cropOutlook'
 
@@ -33,7 +34,7 @@ it('rejects missing/zero, negative, nonfinite and oversized plot areas', () => {
 })
 
 it('waits for Compare crops before showing yield results', () => {
-  const html = renderToStaticMarkup(<MemoryRouter><YieldPoc /></MemoryRouter>)
+  const html = renderToStaticMarkup(<I18nProvider><MemoryRouter><YieldPoc /></MemoryRouter></I18nProvider>)
   expect(html).toContain('Compare crops')
   expect(html).not.toContain('Crop yield results')
   expect(html).not.toContain('Dummy prediction')

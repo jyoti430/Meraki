@@ -3,7 +3,8 @@ import { Activity, ArrowLeftRight, BarChart3, Gavel, Handshake, Home, MessageSqu
 import { usePlan, resetDemoData } from '../../context/PlanContext'
 import { replyStateFor } from '../../planning/engine'
 import { MerakiMark } from '../ui'
-import { LANGUAGES, useI18n, type TKey } from '../../i18n'
+import { useI18n, type TKey } from '../../i18n'
+import LanguageSelector from '../../i18n/LanguageSelector'
 
 type NavItem = { labelKey: TKey; shortKey: TKey; to: string; icon: any }
 const item = (labelKey: TKey, shortKey: TKey, to: string, icon: any): NavItem => ({ labelKey, shortKey, to, icon })
@@ -45,22 +46,20 @@ export function isNavActive(to: string, pathname: string) {
 
 export default function Sidebar({ pathname }: { pathname: string }) {
   const badge = useMessageBadge()
-  const { t, lang, setLang } = useI18n()
+  const { t } = useI18n()
   return <aside className="m-sidebar">
     <NavLink to="/fpo" className="m-brand" aria-label="Meraki home"><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
-    <nav className="m-nav" aria-label="Main navigation">
+    <nav className="m-nav" aria-label={t('main_navigation')}>
       {navGroups.map((group) => <div className="m-nav-group" key={group.key}>
         <p className="m-nav-label">{t(group.key)}</p>
         {group.items.map(({ labelKey, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')} aria-current={isNavActive(to, pathname) ? 'page' : undefined}>
-          <Icon size={19} strokeWidth={1.8} aria-hidden="true" /><span>{t(labelKey)}</span>{to === '/messages' && badge > 0 && <span className="m-nav-step" aria-label={`${badge} farmers to message`}>{badge}</span>}
+          <Icon size={19} strokeWidth={1.8} aria-hidden="true" /><span>{t(labelKey)}</span>{to === '/messages' && badge > 0 && <span className="m-nav-step" aria-label={t('nav_farmers_to_message', { count: badge })}>{badge}</span>}
         </NavLink>)}
       </div>)}
     </nav>
     <div className="m-sidebar-foot">
-      <label className="m-lang"><span>{t('language')}</span><select value={lang} onChange={(e) => setLang(e.target.value as any)}>
-        {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
-      </select></label>
-      <NavLink to="/"><ArrowLeftRight size={15} aria-hidden="true" /> Change workspace</NavLink>
+      <LanguageSelector />
+      <NavLink to="/"><ArrowLeftRight size={15} aria-hidden="true" /> {t('switch_workspace')}</NavLink>
       <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} aria-hidden="true" /> {t('reset_demo')}</button>
       <div className="m-synthetic-note">{t('synthetic_note')}</div>
     </div>

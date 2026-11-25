@@ -19,6 +19,8 @@
     "preview": "vite preview",
     "test": "vitest run --exclude tests/labReviewService.test.cjs && npm run test:lab",
     "test:lab": "node scripts/runLabReviewTests.cjs",
+    "i18n:audit": "node scripts/audit_i18n.mjs",
+    "i18n:coverage": "node scripts/report_i18n_coverage.mjs",
     "model:poc:train": "python scripts/train_synthetic_yield.py",
     "model:poc:check": "python scripts/train_synthetic_yield.py --check"
   },

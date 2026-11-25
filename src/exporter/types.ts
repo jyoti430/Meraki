@@ -35,7 +35,7 @@ export interface SupplyProjectionExample {
   projectedKg: number
   lowKg: number
   highKg: number
-  deliveryWeek: string
+  deliveryWeekStart: string
   grade: string
   qualitySummary: string
   evidenceSummary: string

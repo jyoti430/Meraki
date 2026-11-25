@@ -4,7 +4,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, ChevronDown, FlaskConical, Gavel
 import { useTrade } from './TradeProvider'
 import { decimalToInteger, isoDate, kg, localDateTime, timestamp } from './calculations'
 import type { CommercialTerms, Contribution, Principal } from './types'
-import { useI18n } from '../i18n'
+import { cropLabel, statusTranslationKey, useI18n, type TKey } from '../i18n'
 import { useAuth } from '../auth/context'
 
 export type Values = Record<string, string>
@@ -15,10 +15,37 @@ const nav = [
   { to: '/trade/shipments', labelKey: 'mod_shipments', icon: Truck }, { to: '/trade/arrivals', labelKey: 'mod_arrival', icon: FlaskConical },
   { to: '/trade/settlements', labelKey: 'mod_settlements_nav', icon: Landmark },
 ] as const
+const tradeTitles: Record<string, TKey> = {
+  'Trade opportunities': 'trade_title', 'Buyer requirements & proposals': 'trade_page_requirements', 'Auction opportunity': 'trade_page_auction',
+  'Contracts & confirmations': 'trade_page_contracts', 'Lots & inspection': 'trade_page_lots', 'QC release review': 'trade_page_review',
+  'Crates & shipments': 'trade_page_shipments', 'Arrival & claims': 'trade_page_arrivals', 'Farmer settlements': 'trade_page_settlements',
+  'Requirement details': 'trade_page_requirement_details',
+}
+const tradeSubtitles: Record<string, TKey> = {
+  'Exporters publish demand; FPOs respond with consented, capacity-backed proposals. Award remains a human decision.': 'trade_page_requirements_sub',
+  'Review the complete published terms before submitting a binding-capacity offer or buyer bid.': 'trade_page_auction_sub',
+  'A winning offer is provisional until both counterparties approve the same versioned terms.': 'trade_page_contracts_sub',
+  'Keep harvest identity, member contributions and scoped quality evidence linked to every physical lot.': 'trade_page_lots_sub',
+  'An assigned reviewer records a reasoned release or hold after checking private inspection evidence.': 'trade_page_review_sub',
+  'Prepare partial deliveries against a confirmed obligation and a released, exclusively eligible lot.': 'trade_page_shipments_sub',
+  'Reconcile physical weights, record inspection evidence and resolve disagreements without rewriting movement history.': 'trade_page_arrivals_sub',
+  'Keep the invoice obligation, independently verified FPO receipt and each member disbursal distinct.': 'trade_page_settlements_sub',
+  'Buyer specification, proposal comparison and contract traceability.': 'trade_page_requirement_details_sub',
+}
+
+function localizedTradeTitle(title: string, t: (key: TKey, vars?: Record<string, string | number>) => string) {
+  if (title.endsWith(' requirement')) return t('trade_page_requirement_for', { crop: cropLabel(title.slice(0, -' requirement'.length), t) })
+  if (title.endsWith(' · harvested lot')) return t('trade_page_harvested_title', { crop: cropLabel(title.slice(0, -' · harvested lot'.length), t) })
+  if (title.endsWith(' · forward supply')) return t('trade_page_forward_title', { crop: cropLabel(title.slice(0, -' · forward supply'.length), t) })
+  const key = tradeTitles[title]
+  return key ? t(key) : title
+}
 
 export function Status({ value }: { value: string }) {
+  const { t } = useI18n()
   const tone = ['confirmed', 'released', 'resolved', 'received', 'paid'].includes(value) ? 'good' : ['cancelled', 'defaulted', 'expired', 'no_sale', 'hold', 'held'].includes(value) ? 'bad' : ['provisional', 'pending', 'open', 'part_paid', 'unverified'].includes(value) ? 'warn' : 'neutral'
-  return <span className={`m-tag m-tag-${tone}`}>{value.replace(/_/g, ' ')}</span>
+  const key = statusTranslationKey(value)
+  return <span className={`m-tag m-tag-${tone}`}>{key ? t(key) : value.replace(/_/g, ' ')}</span>
 }
 export const Empty = ({ children }: { children: ReactNode }) => <div className="t-empty"><PackageCheck size={26} aria-hidden="true" /><p>{children}</p></div>
 export const Notice = ({ children, error = false }: { children: ReactNode; error?: boolean }) => <div className={`t-notice${error ? ' error' : ''}`} role={error ? 'alert' : 'status'}><AlertCircle size={18} aria-hidden="true" /><div>{children}</div></div>
@@ -35,11 +62,13 @@ export function Disclosure({ title, children, open = false }: { title: string; c
 
 function SessionControl() {
   const { workspace, health, connect, disconnect, principals } = useTrade()
+  const { t } = useI18n()
   const [choices, setChoices] = useState<Principal[]>([])
   const [actor, setActor] = useState('')
   const [consent, setConsent] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [errorDetails, setErrorDetails] = useState('')
   const [expanded, setExpanded] = useState(false)
   const generation = useRef(0)
   const operation = useRef<'loading' | 'connecting' | null>(null)
@@ -51,19 +80,19 @@ function SessionControl() {
     generation.current += 1
     const connecting = operation.current === 'connecting'
     operation.current = null
-    setExpanded(false); setPending(false); setChoices([]); setActor(''); setConsent(false); setError('')
+    setExpanded(false); setPending(false); setChoices([]); setActor(''); setConsent(false); setError(''); setErrorDetails('')
     if (connecting || endSession) disconnect()
   }
   const open = async () => {
     if (operation.current) return
     const request = ++generation.current
     operation.current = 'loading'
-    setChoices([]); setActor(''); setConsent(false); setExpanded(true); setPending(true); setError('')
+    setChoices([]); setActor(''); setConsent(false); setExpanded(true); setPending(true); setError(''); setErrorDetails('')
     try {
       const results = await principals()
       if (request === generation.current) setChoices(results)
     } catch (cause) {
-      if (request === generation.current) setError(cause instanceof Error ? cause.message : 'Could not load development identities.')
+      if (request === generation.current) { setError(t('trade_identity_load_failed')); setErrorDetails(cause instanceof Error ? cause.message : '') }
     } finally {
       if (request === generation.current) { operation.current = null; setPending(false) }
     }
@@ -73,28 +102,28 @@ function SessionControl() {
     if (!consent || !actor || operation.current || !choices.some((choice) => choice.id === actor)) return
     const request = ++generation.current
     operation.current = 'connecting'
-    setPending(true); setError('')
+    setPending(true); setError(''); setErrorDetails('')
     try {
       await connect(actor)
       if (request === generation.current) { setExpanded(false); setChoices([]); setActor(''); setConsent(false) }
     } catch (cause) {
-      if (request === generation.current) setError(cause instanceof Error ? cause.message : 'Could not start the development session.')
+      if (request === generation.current) { setError(t('trade_session_start_failed')); setErrorDetails(cause instanceof Error ? cause.message : '') }
     } finally {
       if (request === generation.current) { operation.current = null; setPending(false) }
     }
   }
   return <div className="t-session">
-    <div className="t-session-summary"><FlaskConical size={22} aria-hidden="true" /><div><strong>{workspace ? workspace.principal.display_name : 'Trade workspace'}</strong><span>{workspace ? `${workspace.principal.organisation_id} · ${workspace.principal.role.replace(/_/g, ' ')} · synthetic development session` : 'Choose an explicitly enabled development identity to explore the workflow.'}</span></div>
-      {health?.synthetic && <button className="m-btn m-btn-secondary m-btn-sm" type="button" onClick={() => { void open() }} disabled={pending}>{workspace ? 'Change profile (synthetic actor)' : 'Connect synthetic workspace'}</button>}
-      {workspace && <button className="m-btn m-btn-ghost m-btn-sm" type="button" onClick={() => cancel(true)}>End session</button>}
+    <div className="t-session-summary"><FlaskConical size={22} aria-hidden="true" /><div><strong>{workspace ? workspace.principal.display_name : t('trade_workspace_label')}</strong><span>{workspace ? `${workspace.principal.organisation_id} · ${workspace.principal.role.replace(/_/g, ' ')} · ${t('trade_synthetic_records').toLowerCase()}` : t('trade_session_choose')}</span></div>
+      {health?.synthetic && <button className="m-btn m-btn-secondary m-btn-sm" type="button" onClick={() => { void open() }} disabled={pending}>{workspace ? t('trade_change_profile') : t('trade_connect_workspace')}</button>}
+      {workspace && <button className="m-btn m-btn-ghost m-btn-sm" type="button" onClick={() => cancel(true)}>{t('trade_end_session')}</button>}
     </div>
     {expanded && <form onSubmit={(event) => { void submit(event) }} className="t-session-form">
-      <label className="t-field"><span>Synthetic actor</span><select aria-label="Synthetic actor" value={actor} disabled={pending} onChange={(event) => { if (!operation.current) setActor(event.target.value) }} required><option value="">Choose an actor</option>{choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.display_name} · {choice.role.replace(/_/g, ' ')}</option>)}</select></label>
-      <label className="t-check"><input type="checkbox" checked={consent} disabled={pending} onChange={(event) => { if (!operation.current) setConsent(event.target.checked) }} required /><span>I understand this uses synthetic organisations, capacity and trade records. No money moves.</span></label>
-      <div className="m-row"><button className="m-btn m-btn-primary m-btn-sm" disabled={pending || !consent || !actor}>{pending ? 'Connecting…' : 'Start synthetic session'}</button><button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => cancel()}>Cancel</button></div>
+      <label className="t-field"><span>{t('trade_synthetic_actor')}</span><select aria-label={t('trade_synthetic_actor')} value={actor} disabled={pending} onChange={(event) => { if (!operation.current) setActor(event.target.value) }} required><option value="">{choices.length ? t('trade_choose_actor') : t('trade_no_actor')}</option>{choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.display_name} · {choice.role.replace(/_/g, ' ')}</option>)}</select></label>
+      <label className="t-check"><input type="checkbox" checked={consent} disabled={pending} onChange={(event) => { if (!operation.current) setConsent(event.target.checked) }} required /><span>{t('trade_synthetic_consent')}</span></label>
+      <div className="m-row"><button className="m-btn m-btn-primary m-btn-sm" disabled={pending || !consent || !actor}>{pending ? t('trade_connecting') : t('trade_start_session')}</button><button type="button" className="m-btn m-btn-ghost m-btn-sm" onClick={() => cancel()}>{t('trade_cancel')}</button></div>
     </form>}
-    {error && <Notice error>{error}</Notice>}
-    {health && !health.synthetic && !workspace && <p className="m-small">Development identities are disabled. A verified Part 2 identity adapter is required.</p>}
+    {error && <Notice error><p>{error}</p>{errorDetails && <details><summary>{t('trade_error_details')}</summary><pre>{errorDetails}</pre></details>}</Notice>}
+    {health && !health.synthetic && !workspace && <p className="m-small">{t('trade_development_identities_disabled')}</p>}
   </div>
 }
 
@@ -102,18 +131,21 @@ export function TradeFrame({ title, subtitle, eyebrow, children, demo = false, c
   const { workspace, health, loading, refreshing, error, refresh } = useTrade()
   const { t } = useI18n()
   const { account, preview } = useAuth()
-  const home = (account?.role ?? preview) === 'exporter' ? { to: '/exporter', label: 'Exporter overview' } : { to: '/fpo', label: 'FPO overview' }
+  const displayTitle = localizedTradeTitle(title, t)
+  const subtitleKey = tradeSubtitles[subtitle]
+  const displaySubtitle = subtitleKey ? t(subtitleKey) : subtitle === 'Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.' ? t('trade_sub') : subtitle
+  const home = (account?.role ?? preview) === 'exporter' ? { to: '/exporter', label: t('auction_back_exporter') } : { to: '/fpo', label: t('auction_back_fpo') }
   return <div className="m-page t-page">
-    <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{title}</h1><p className="m-lead">{subtitle}</p></div>{!demo && <button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button>}</header>
-    <nav className="t-nav" aria-label="Trade workflow"><Link to={home.to} className="t-nav-back">← {home.label}</Link>{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
+    <header className="m-pagehead"><div><p className="m-eyebrow">{eyebrow ?? t('nav_trade')}</p><h1 className="m-h1">{displayTitle}</h1><p className="m-lead">{displaySubtitle}</p></div>{!demo && <button type="button" className="m-btn m-btn-secondary m-btn-sm" disabled={refreshing} onClick={() => { void refresh() }}><RefreshCw size={16} className={refreshing ? 't-spin' : ''} aria-hidden="true" />{refreshing ? t('refreshing') : t('refresh')}</button>}</header>
+    <nav className="t-nav" aria-label={t('nav_trade')}><Link to={home.to} className="t-nav-back">← {home.label}</Link>{nav.map((item) => { const Icon = item.icon; return <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : undefined}><Icon size={17} aria-hidden="true" />{t(item.labelKey)}</NavLink> })}</nav>
     {controls}
     {!demo && <SessionControl />}
-    {!demo && error && <Notice error>{error}{workspace && <p>Displayed records are from {timestamp(workspace.server_time)}. Refresh before submitting another action.</p>}</Notice>}
+    {!demo && error && <Notice error><p>{t('trade_error_generic')}</p><details><summary>{t('trade_error_details')}</summary><pre>{error}</pre></details>{workspace && <p>{t('trade_refresh_before_action', { time: timestamp(workspace.server_time) })}</p>}</Notice>}
     {!demo && loading && <div className="t-empty" role="status"><LoaderCircle className="t-spin" size={28} /><p>{t('loading_trade')}</p></div>}
-    {!demo && (health || workspace) && !(workspace?.production_ready ?? health?.production_ready) && <div className="t-gate"><ShieldCheck size={17} aria-hidden="true" /><span><strong>Development workflow.</strong> Live trading is blocked until verified identity, capacity and production acceptance are connected.</span></div>}
-    {!demo && !loading && !workspace && <Panel title="Connect to continue" subtitle="Records, permissions and deadlines come from the trade service."><p>{health?.synthetic ? 'Use “Connect synthetic workspace” above to select an FPO, exporter, QC reviewer or finance reviewer. Each actor sees only its permitted records.' : 'Start the configured trade API and refresh this page. Production requires the verified identity integration.'}</p>{health?.blockers?.length ? <ul className="t-bullets">{health.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}</Panel>}
+    {!demo && (health || workspace) && !(workspace?.production_ready ?? health?.production_ready) && <div className="t-gate"><ShieldCheck size={17} aria-hidden="true" /><span><strong>{t('trade_development_workflow')}</strong> {t('trade_live_blocked')}</span></div>}
+    {!demo && !loading && !workspace && <Panel title={t('trade_connect_continue')} subtitle={t('trade_records_source')}><p>{health?.synthetic ? t('trade_select_identity_help') : t('trade_api_setup_help')}</p>{health?.blockers?.length ? <ul className="t-bullets">{health.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : null}</Panel>}
     {demo && children}
-    {!demo && workspace && <Fragment key={`${workspace.principal.id}:${workspace.principal.organisation_id}:${workspace.principal.role}`}>{children}<footer className="t-footer">Server snapshot {timestamp(workspace.server_time)} · {workspace.synthetic ? 'Synthetic records' : 'Organisation-scoped records'} · Commands are validated and saved by the server.</footer></Fragment>}
+    {!demo && workspace && <Fragment key={`${workspace.principal.id}:${workspace.principal.organisation_id}:${workspace.principal.role}`}>{children}<footer className="t-footer">{t('trade_server_snapshot')} {timestamp(workspace.server_time)} · {workspace.synthetic ? t('trade_synthetic_records') : t('trade_organisation_records')} · {t('trade_server_validates')}</footer></Fragment>}
   </div>
 }
 

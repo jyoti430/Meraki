@@ -9,6 +9,7 @@ import { isoDate, kg, money, timestamp } from './calculations'
 import { ActionLink, CommandForm, Detail, Disclosure, Empty, Metric, Notice, Panel, ResourceId, Status, TermsView, TradeFrame, g, moneyField, paise, positive, reasonField, termFields, termsFrom, weightField, type FieldSpec } from './ui'
 import type { Auction } from './types'
 import { forwardCapacityOptions } from './qualification'
+import { useI18n } from '../i18n'
 
 function AuctionCard({ auction }: { auction: Auction }) {
   const forward = auction.mode === 'forward'
@@ -28,6 +29,7 @@ const scheduleFields: FieldSpec[] = [
 export function TradeBoardPage() {
   const { workspace } = useTrade()
   const { account } = useAuth()
+  const { t } = useI18n()
   const [board, setBoard] = useState<'shared' | 'samples' | 'procurement'>(account ? 'shared' : 'samples')
   const demo = board !== 'procurement'
   const [mode, setMode] = useState('all')
@@ -37,7 +39,7 @@ export function TradeBoardPage() {
   const auctions = (workspace?.auctions ?? []).filter((auction) => (mode === 'all' || auction.mode === mode) && (status === 'all' || auction.status === status) && `${auction.crop} ${auction.variety} ${auction.grade}`.toLowerCase().includes(query.toLowerCase()))
   const isFpo = workspace?.principal.role === 'fpo'
   const isExporter = workspace?.principal.role === 'exporter'
-  return <TradeFrame demo={demo} controls={<div className="t-filter" role="group" aria-label="Opportunity data source" style={{ marginBottom: 20 }}><button className="m-btn m-btn-secondary" type="button" disabled={!account} aria-pressed={board === 'shared'} onClick={() => setBoard('shared')}>Shared auctions</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={board === 'samples'} onClick={() => setBoard('samples')}>Sample listings (read-only)</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={board === 'procurement'} onClick={() => setBoard('procurement')}>Procurement workflow</button></div>} title="Trade opportunities" subtitle="Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.">
+  return <TradeFrame demo={demo} controls={<div className="t-filter" role="group" aria-label={t('trade_board_sources_aria')} style={{ marginBottom: 20 }}><button className="m-btn m-btn-secondary" type="button" disabled={!account} aria-pressed={board === 'shared'} onClick={() => setBoard('shared')}>{t('trade_board_shared')}</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={board === 'samples'} onClick={() => setBoard('samples')}>{t('trade_board_samples')}</button><button className="m-btn m-btn-secondary" type="button" aria-pressed={board === 'procurement'} onClick={() => setBoard('procurement')}>{t('trade_board_procurement')}</button></div>} title="Trade opportunities" subtitle="Agree a clear price and delivery basis, then carry the award through fulfilment and reconciliation.">
 
     {board === 'shared' && account && <SharedAuctions embedded />}
     {board === 'samples' && <DemoTradeBoard />}

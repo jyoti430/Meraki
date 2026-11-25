@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { AlertTriangle, Check, CheckCircle2, CircleDashed, Clock3, Droplets, Handshake, Info, LineChart, Sprout, X } from 'lucide-react'
 import type { CropPlan, Reason, ResponseStatus, Verdict } from '../planning/engine'
 import { fmtKg } from '../planning/format'
+import { useI18n } from '../i18n'
+import { translatePlanningReason } from '../i18n/planning'
 
 export function MerakiMark({ size = 36 }: { size?: number }) {
   const id = `mk-leaf-${useId().replace(/:/g, '')}`
@@ -29,7 +31,9 @@ export function StatCard({ icon, label, value, sub, tone, tip }: { icon: ReactNo
 }
 
 export function Feasibility({ level }: { level: 'high' | 'medium' | 'low' }) {
-  return <span className={`m-feas ${level}`}><span>{level === 'high' ? 'High' : level === 'medium' ? 'Medium' : 'Low'}</span></span>
+  const { t } = useI18n()
+  const label = ({ high: 'feasibility_high', medium: 'feasibility_medium', low: 'feasibility_low' } as const)[level]
+  return <span className={`m-feas ${level}`}><span>{t(label)}</span></span>
 }
 
 export const CropIcon = ({ emoji, label }: { emoji: string; label: string }) => <span className="m-crop-icon" role="img" aria-label={label}>{emoji}</span>
@@ -44,55 +48,63 @@ const sourceMeta: Record<SourceKind, { label: string; cls: string; icon: ReactNo
   timing: { label: 'Timing', cls: 'm-tag-marigold', icon: <Clock3 size={13} /> },
 }
 export function SourceTag({ kind, children }: { kind: SourceKind; children?: ReactNode }) {
+  const { t } = useI18n()
   const meta = sourceMeta[kind]
-  return <span className={`m-tag ${meta.cls}`}>{meta.icon}{children ?? meta.label}</span>
+  const labelKey = ({ order: 'source_buyer_committed', indicative: 'source_indicative', forecast: 'source_forecast', plan: 'source_planned', farm: 'source_farms', timing: 'source_timing' } as const)[kind]
+  return <span className={`m-tag ${meta.cls}`}>{meta.icon}{children ?? t(labelKey)}</span>
 }
 
 export function SourceLegend() {
-  return <div className="m-legend" aria-label="How to read this page">
-    <span><SourceTag kind="order" /> buyer has committed</span>
-    <span><SourceTag kind="indicative" /> buyer interest, not committed</span>
-    <span><SourceTag kind="forecast" /> synthetic estimate – not guaranteed</span>
-    <span><SourceTag kind="plan" /> Meraki’s plan – not yet farmer-confirmed</span>
+  const { t } = useI18n()
+  return <div className="m-legend" aria-label={t('source_legend_title')}>
+    <span><SourceTag kind="order" /> {t('source_legend_committed_help')}</span>
+    <span><SourceTag kind="indicative" /> {t('source_legend_indicative_help')}</span>
+    <span><SourceTag kind="forecast" /> {t('source_legend_forecast_help')}</span>
+    <span><SourceTag kind="plan" /> {t('source_legend_plan_help')}</span>
   </div>
 }
 
-const verdictLabel: Record<Verdict, string> = { strong: 'Strong opportunity', consider: 'Worth considering', caution: 'Not recommended now', 'too-late': 'Too late to sow', 'existing-only': 'Existing orchards only' }
-export const VerdictBadge = ({ verdict }: { verdict: Verdict }) => <span className={`m-verdict ${verdict}`}>{verdict === 'strong' ? <CheckCircle2 size={14} /> : verdict === 'caution' ? <AlertTriangle size={14} /> : null}{verdictLabel[verdict]}</span>
+const verdictKey: Record<Verdict, 'verdict_strong' | 'verdict_consider' | 'verdict_caution' | 'verdict_too_late' | 'verdict_existing_only'> = { strong: 'verdict_strong', consider: 'verdict_consider', caution: 'verdict_caution', 'too-late': 'verdict_too_late', 'existing-only': 'verdict_existing_only' }
+export const VerdictBadge = ({ verdict }: { verdict: Verdict }) => {
+  const { t } = useI18n()
+  return <span className={`m-verdict ${verdict}`}>{verdict === 'strong' ? <CheckCircle2 size={14} /> : verdict === 'caution' ? <AlertTriangle size={14} /> : null}{t(verdictKey[verdict])}</span>
+}
 
 export function Reasons({ reasons, limit }: { reasons: Reason[]; limit?: number }) {
+  const { t, lang } = useI18n()
   const shown = limit ? reasons.slice(0, limit) : reasons
   return <div className="m-reasons">
-    {shown.map((r) => <span key={r.text} className={`m-reason ${r.tone}`}>{r.tone === 'good' ? <Check size={12} /> : r.tone === 'block' ? <X size={12} /> : <AlertTriangle size={12} />}{r.text}</span>)}
-    {limit && reasons.length > limit && <span className="m-reason">+{reasons.length - limit} more</span>}
+    {shown.map((r) => <span key={r.text} className={`m-reason ${r.tone}`}>{r.tone === 'good' ? <Check size={12} /> : r.tone === 'block' ? <X size={12} /> : <AlertTriangle size={12} />}{translatePlanningReason(r.text, t, lang)}</span>)}
+    {limit && reasons.length > limit && <span className="m-reason">{t('reason_more', { count: reasons.length - limit })}</span>}
   </div>
 }
 
 /** Supply vs demand bar. Segments: existing crops, farmer-confirmed, planned (awaiting), gap. Marks: confirmed demand and total demand. */
 export function SupplyMeter({ plan, showLegend = false }: { plan: CropPlan; showLegend?: boolean }) {
+  const { t } = useI18n()
   const demandTotal = plan.confirmedKg + plan.indicativeKg
   const scale = Math.max(plan.targetKg, plan.expectedKg, demandTotal, 1)
   const pct = (n: number) => `${Math.max(0, Math.min(100, (n / scale) * 100))}%`
   const confirmedNew = Math.max(0, plan.farmerConfirmedKg - plan.existingKg)
   const awaiting = Math.max(0, plan.plannedKg - confirmedNew)
   return <div>
-    <div className="m-meter" role="img" aria-label={`Expected supply ${fmtKg(plan.expectedKg)} against ${fmtKg(plan.confirmedKg)} confirmed and ${fmtKg(plan.indicativeKg)} indicative demand`}>
+    <div className="m-meter" role="img" aria-label={t('meter_aria', { supply: fmtKg(plan.expectedKg), confirmed: fmtKg(plan.confirmedKg), indicative: fmtKg(plan.indicativeKg) })}>
       <div className="m-meter-track">
         <div className="m-meter-seg m-seg-existing" style={{ width: pct(plan.existingKg) }} />
         <div className="m-meter-seg m-seg-confirmed" style={{ width: pct(confirmedNew) }} />
         <div className="m-meter-seg m-seg-planned" style={{ width: pct(awaiting) }} />
         <div className="m-meter-seg m-seg-gap" style={{ width: pct(plan.gapKg) }} />
       </div>
-      {plan.confirmedKg > 0 && <span className="m-meter-mark" style={{ left: pct(plan.confirmedKg) }} title="Confirmed demand" />}
-      {plan.indicativeKg > 0 && <span className="m-meter-mark indicative" style={{ left: pct(demandTotal) }} title="Confirmed + indicative demand" />}
+      {plan.confirmedKg > 0 && <span className="m-meter-mark" style={{ left: pct(plan.confirmedKg) }} title={t('meter_confirmed_demand')} />}
+      {plan.indicativeKg > 0 && <span className="m-meter-mark indicative" style={{ left: pct(demandTotal) }} title={t('meter_confirmed_indicative_demand')} />}
     </div>
     {showLegend && <div className="m-meter-legend">
-      {plan.existingKg > 0 && <span><i className="m-swatch m-seg-existing" /> Already growing {fmtKg(plan.existingKg)}</span>}
-      <span><i className="m-swatch m-seg-confirmed" /> Farmer-confirmed {fmtKg(confirmedNew)}</span>
-      <span><i className="m-swatch m-seg-planned" /> Planned, not farmer-confirmed {fmtKg(awaiting)}</span>
-      {plan.gapKg > 0 && <span><i className="m-swatch m-seg-gap" /> Gap {fmtKg(plan.gapKg)}</span>}
-      {plan.confirmedKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--ink)', width: 3 }} /> Committed demand</span>}
-      {plan.indicativeKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--order)', width: 3 }} /> + indicative</span>}
+      {plan.existingKg > 0 && <span><i className="m-swatch m-seg-existing" /> {t('meter_existing', { quantity: fmtKg(plan.existingKg) })}</span>}
+      <span><i className="m-swatch m-seg-confirmed" /> {t('meter_farmer_confirmed', { quantity: fmtKg(confirmedNew) })}</span>
+      <span><i className="m-swatch m-seg-planned" /> {t('meter_planned_not_confirmed', { quantity: fmtKg(awaiting) })}</span>
+      {plan.gapKg > 0 && <span><i className="m-swatch m-seg-gap" /> {t('meter_gap', { quantity: fmtKg(plan.gapKg) })}</span>}
+      {plan.confirmedKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--ink)', width: 3 }} /> {t('source_buyer_committed')} {t('buyer_demand').toLowerCase()}</span>}
+      {plan.indicativeKg > 0 && <span><i className="m-swatch" style={{ background: 'var(--order)', width: 3 }} /> + {t('source_indicative').toLowerCase()}</span>}
     </div>}
   </div>
 }
@@ -105,7 +117,11 @@ export const statusLabel: Record<CropPlan['status'], { label: string; cls: strin
   'not-in-scenario': { label: 'Not in this scenario', cls: 'm-tag-neutral' },
 }
 
-export const PlanStatus = ({ plan }: { plan: CropPlan }) => <span className={`m-tag ${statusLabel[plan.status].cls}`}>{statusLabel[plan.status].label}</span>
+const planStatusKey: Record<CropPlan['status'], 'plan_status_covered' | 'plan_status_partial' | 'plan_status_gap' | 'plan_status_not_plantable' | 'plan_status_not_in_scenario'> = { covered: 'plan_status_covered', partial: 'plan_status_partial', gap: 'plan_status_gap', 'not-plantable': 'plan_status_not_plantable', 'not-in-scenario': 'plan_status_not_in_scenario' }
+export const PlanStatus = ({ plan }: { plan: CropPlan }) => {
+  const { t } = useI18n()
+  return <span className={`m-tag ${statusLabel[plan.status].cls}`}>{t(planStatusKey[plan.status])}</span>
+}
 
 export type ReplyState = ResponseStatus | 'needs-update'
 const replyMeta: Record<ReplyState, { label: string; cls: string; icon: ReactNode }> = {
@@ -116,7 +132,11 @@ const replyMeta: Record<ReplyState, { label: string; cls: string; icon: ReactNod
   constraint: { label: 'Problem reported', cls: 'm-tag-warn', icon: <AlertTriangle size={13} /> },
   'needs-update': { label: 'Plan changed – resend', cls: 'm-tag-warn', icon: <AlertTriangle size={13} /> },
 }
-export const ReplyBadge = ({ state }: { state: ReplyState }) => <span className={`m-tag ${replyMeta[state].cls}`}>{replyMeta[state].icon}{replyMeta[state].label}</span>
+const replyKey: Record<ReplyState, 'reply_not_sent' | 'reply_sent' | 'reply_confirmed' | 'reply_declined' | 'reply_constraint' | 'reply_needs_update'> = { 'not-sent': 'reply_not_sent', sent: 'reply_sent', confirmed: 'reply_confirmed', declined: 'reply_declined', constraint: 'reply_constraint', 'needs-update': 'reply_needs_update' }
+export const ReplyBadge = ({ state }: { state: ReplyState }) => {
+  const { t } = useI18n()
+  return <span className={`m-tag ${replyMeta[state].cls}`}>{replyMeta[state].icon}{t(replyKey[state])}</span>
+}
 
 export const initials = (name: string) => name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
 

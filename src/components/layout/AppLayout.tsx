@@ -8,15 +8,14 @@ import { MerakiMark } from '../ui'
 import { ArrowLeftRight, MoreHorizontal, RotateCcw, X } from 'lucide-react'
 import { resetDemoData } from '../../context/PlanContext'
 import WorkflowAuthorityNotice from '../WorkflowAuthorityNotice'
-import { SEASON_LABEL } from '../../planning/engine'
-import { LANGUAGES, useI18n } from '../../i18n'
-import GoogleTranslate from '../../i18n/GoogleTranslate'
+import { useI18n } from '../../i18n'
+import LanguageSelector from '../../i18n/LanguageSelector'
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { account, preview } = useAuth()
   const { pathname, hash } = useLocation()
   const badge = useMessageBadge()
-  const { t, lang, setLang } = useI18n()
+  const { t } = useI18n()
   const [moreOpen, setMoreOpen] = useState(false)
   const moreDialog = useRef<HTMLDialogElement>(null)
   const moreTrigger = useRef<HTMLButtonElement>(null)
@@ -52,12 +51,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const secondary = navigation.filter((item) => !mobilePrimary.includes(item.to))
   const moreActive = secondary.some((item) => isNavActive(item.to, pathname))
   return <div className="m-shell">
-    <GoogleTranslate />
     <Sidebar pathname={pathname} />
     <div>
       <header className="m-mobile-bar">
         <NavLink to="/fpo" className="m-brand"><MerakiMark size={30} /><div className="m-brand-name" style={{ fontSize: 21 }}>Meraki</div></NavLink>
-        <span className="m-tag m-tag-neutral">{pathname === '/auctions' ? 'Shared auctions' : pathname.startsWith('/trade') ? 'Trade workspace' : SEASON_LABEL}</span>
+        <span className="m-tag m-tag-neutral">{pathname === '/auctions' ? t('exporter_shared_auctions') : pathname.startsWith('/trade') ? t('exporter_trade_workspace') : t('season_rabi')}</span>
       </header>
       <main className="m-main"><WorkflowAuthorityNotice pathname={pathname} />{children}</main>
     </div>
@@ -66,7 +64,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       onClick={(event) => { if (event.target === event.currentTarget) setMoreOpen(false) }}>
       <div className="m-more-content">
         <header className="m-more-head"><h2 className="m-h3" id="more-menu-title">{t('nav_more')}</h2>
-          <button className="m-btn m-btn-secondary" type="button" onClick={() => setMoreOpen(false)} autoFocus><X size={16} aria-hidden="true" /> Close</button>
+          <button className="m-btn m-btn-secondary" type="button" onClick={() => setMoreOpen(false)} autoFocus><X size={16} aria-hidden="true" /> {t('msg_close')}</button>
         </header>
         {navGroups.map((group) => {
           const items = group.items.filter((item) => !mobilePrimary.includes(item.to))
@@ -75,16 +73,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </div>
         })}
         <div className="m-more-foot">
-          <label className="m-lang"><span>{t('language')}</span><select value={lang} onChange={(e) => setLang(e.target.value as any)}>
-            {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
-          </select></label>
-          <NavLink to="/" onClick={() => setMoreOpen(false)}><ArrowLeftRight size={15} aria-hidden="true" /> Change workspace</NavLink>
+          <LanguageSelector />
+          <NavLink to="/" onClick={() => setMoreOpen(false)}><ArrowLeftRight size={15} aria-hidden="true" /> {t('switch_workspace')}</NavLink>
           <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} aria-hidden="true" /> {t('reset_demo')}</button>
           <p className="m-small">{t('synthetic_note')}</p>
         </div>
       </div>
     </dialog>
-    <nav className="m-tabbar" aria-label="Main navigation">
+    <nav className="m-tabbar" aria-label={t('main_navigation')}>
       {navigation.filter((item) => mobilePrimary.includes(item.to)).map(({ shortKey, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')}>
         <Icon size={20} strokeWidth={1.9} aria-hidden="true" />{t(shortKey)}{to === '/messages' && badge > 0 && <span className="m-nav-step">{badge}</span>}
       </NavLink>)}

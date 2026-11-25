@@ -20,19 +20,19 @@ export const DEMO_REQUIREMENTS: ProcurementRequirement[] = [
 export const DEMO_SUPPLY_PROJECTIONS: SupplyProjectionExample[] = [
   {
     id: 'DEMO-SUP-3101', fpoLabel: 'Synthetic FPO Alpha', region: 'Pune region · synthetic', crop: 'Okra', variety: 'Arka Anamika',
-    projectedKg: 5200, lowKg: 4600, highKg: 5900, deliveryWeek: 'Week of 7 Dec 2026', grade: 'Grade A (example)',
+    projectedKg: 5200, lowKg: 4600, highKg: 5900, deliveryWeekStart: '2026-12-07', grade: 'Grade A (example)',
     qualitySummary: 'No lot inspection is represented.', evidenceSummary: 'No evidence attached to this synthetic fixture.',
     uncertaintySummary: 'Illustrative range; not calibrated.', consentSummary: 'Consent and marketplace eligibility are not evaluated in demo data.',
   },
   {
     id: 'DEMO-SUP-3102', fpoLabel: 'Synthetic FPO Beta', region: 'Nashik region · synthetic', crop: 'Tomato', variety: 'Arka Rakshak',
-    projectedKg: 3800, lowKg: 3000, highKg: 4400, deliveryWeek: 'Week of 14 Dec 2026', grade: 'Grade A (example)',
+    projectedKg: 3800, lowKg: 3000, highKg: 4400, deliveryWeekStart: '2026-12-14', grade: 'Grade A (example)',
     qualitySummary: 'No lot inspection is represented.', evidenceSummary: 'No evidence attached to this synthetic fixture.',
     uncertaintySummary: 'Illustrative range; not calibrated.', consentSummary: 'Consent and marketplace eligibility are not evaluated in demo data.',
   },
   {
     id: 'DEMO-SUP-3103', fpoLabel: 'Synthetic FPO Gamma', region: 'Satara region · synthetic', crop: 'Okra', variety: 'Parbhani Kranti',
-    projectedKg: 2700, lowKg: 2100, highKg: 3200, deliveryWeek: 'Week of 14 Dec 2026', grade: 'Grade B (example)',
+    projectedKg: 2700, lowKg: 2100, highKg: 3200, deliveryWeekStart: '2026-12-14', grade: 'Grade B (example)',
     qualitySummary: 'No lot inspection is represented.', evidenceSummary: 'No evidence attached to this synthetic fixture.',
     uncertaintySummary: 'Illustrative range; not calibrated.', consentSummary: 'Consent and marketplace eligibility are not evaluated in demo data.',
   },
