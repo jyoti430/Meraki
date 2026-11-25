@@ -1,11 +1,11 @@
 import ExporterLayout from '../../exporter/layout/ExporterLayout'
 import { useAuth } from '../../auth/context'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import Sidebar, { isNavActive, mobilePrimary, navGroups, navigation, useMessageBadge } from './Sidebar'
 import { MerakiMark } from '../ui'
-import { ArrowLeftRight, MoreHorizontal, RotateCcw } from 'lucide-react'
+import { ArrowLeftRight, MoreHorizontal, RotateCcw, X } from 'lucide-react'
 import { resetDemoData } from '../../context/PlanContext'
 import WorkflowAuthorityNotice from '../WorkflowAuthorityNotice'
 import { SEASON_LABEL } from '../../planning/engine'
@@ -18,12 +18,25 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const badge = useMessageBadge()
   const { t, lang, setLang } = useI18n()
   const [moreOpen, setMoreOpen] = useState(false)
+  const moreDialog = useRef<HTMLDialogElement>(null)
+  const moreTrigger = useRef<HTMLButtonElement>(null)
   useEffect(() => { setMoreOpen(false) }, [pathname])
   useEffect(() => {
-    if (!moreOpen) return
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setMoreOpen(false) }
-    window.addEventListener('keydown', close)
-    return () => window.removeEventListener('keydown', close)
+    const dialog = moreDialog.current
+    if (!moreOpen || !dialog) return
+    const trigger = moreTrigger.current
+    const previousOverflow = document.body.style.overflow
+    const desktop = window.matchMedia('(min-width: 901px)')
+    const closeOnDesktop = () => { if (desktop.matches) setMoreOpen(false) }
+    dialog.showModal()
+    document.body.style.overflow = 'hidden'
+    desktop.addEventListener('change', closeOnDesktop)
+    return () => {
+      desktop.removeEventListener('change', closeOnDesktop)
+      document.body.style.overflow = previousOverflow
+      dialog.close()
+      if (trigger?.isConnected && !desktop.matches) trigger.focus()
+    }
   }, [moreOpen])
 
   useEffect(() => {
@@ -44,32 +57,38 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div>
       <header className="m-mobile-bar">
         <NavLink to="/fpo" className="m-brand"><MerakiMark size={30} /><div className="m-brand-name" style={{ fontSize: 21 }}>Meraki</div></NavLink>
-        <span className="m-tag m-tag-neutral">{SEASON_LABEL}</span>
+        <span className="m-tag m-tag-neutral">{pathname === '/auctions' ? 'Shared auctions' : pathname.startsWith('/trade') ? 'Trade workspace' : SEASON_LABEL}</span>
       </header>
       <main className="m-main"><WorkflowAuthorityNotice pathname={pathname} />{children}</main>
     </div>
-    {moreOpen && <div className="m-more-scrim" onClick={() => setMoreOpen(false)} aria-hidden="true" />}
-    {moreOpen && <div className="m-more-sheet" id="more-menu" role="dialog" aria-label={t('nav_more')}>
-      {navGroups.map((group) => {
-        const items = group.items.filter((item) => !mobilePrimary.includes(item.to))
-        return items.length > 0 && <div key={group.key}><p className="m-nav-label">{t(group.key)}</p>
-          {items.map(({ labelKey, to, icon: Icon }) => <NavLink key={to} to={to} className={() => `m-more-link${isNavActive(to, pathname) ? ' active' : ''}`} onClick={() => setMoreOpen(false)}><Icon size={19} aria-hidden="true" />{t(labelKey)}</NavLink>)}
+    <dialog ref={moreDialog} className="m-more-sheet" id="more-menu" aria-labelledby="more-menu-title"
+      onCancel={(event) => { event.preventDefault(); setMoreOpen(false) }}
+      onClick={(event) => { if (event.target === event.currentTarget) setMoreOpen(false) }}>
+      <div className="m-more-content">
+        <header className="m-more-head"><h2 className="m-h3" id="more-menu-title">{t('nav_more')}</h2>
+          <button className="m-btn m-btn-secondary" type="button" onClick={() => setMoreOpen(false)} autoFocus><X size={16} aria-hidden="true" /> Close</button>
+        </header>
+        {navGroups.map((group) => {
+          const items = group.items.filter((item) => !mobilePrimary.includes(item.to))
+          return items.length > 0 && <div key={group.key}><p className="m-nav-label">{t(group.key)}</p>
+            {items.map(({ labelKey, to, icon: Icon }) => <NavLink key={to} to={to} className={() => `m-more-link${isNavActive(to, pathname) ? ' active' : ''}`} onClick={() => setMoreOpen(false)}><Icon size={19} aria-hidden="true" />{t(labelKey)}</NavLink>)}
+          </div>
+        })}
+        <div className="m-more-foot">
+          <label className="m-lang"><span>{t('language')}</span><select value={lang} onChange={(e) => setLang(e.target.value as any)}>
+            {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
+          </select></label>
+          <NavLink to="/" onClick={() => setMoreOpen(false)}><ArrowLeftRight size={15} aria-hidden="true" /> Change workspace</NavLink>
+          <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} aria-hidden="true" /> {t('reset_demo')}</button>
+          <p className="m-small">{t('synthetic_note')}</p>
         </div>
-      })}
-      <div className="m-more-foot">
-        <label className="m-lang"><span>{t('language')}</span><select value={lang} onChange={(e) => setLang(e.target.value as any)}>
-          {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.native}</option>)}
-        </select></label>
-        <NavLink to="/" onClick={() => setMoreOpen(false)}><ArrowLeftRight size={15} aria-hidden="true" /> Change workspace</NavLink>
-        <button type="button" onClick={() => { if (window.confirm(t('reset_confirm'))) resetDemoData() }}><RotateCcw size={15} aria-hidden="true" /> {t('reset_demo')}</button>
-        <p className="m-small">{t('synthetic_note')}</p>
       </div>
-    </div>}
+    </dialog>
     <nav className="m-tabbar" aria-label="Main navigation">
       {navigation.filter((item) => mobilePrimary.includes(item.to)).map(({ shortKey, to, icon: Icon }) => <NavLink key={to} to={to} className={() => (isNavActive(to, pathname) ? 'active' : '')}>
         <Icon size={20} strokeWidth={1.9} aria-hidden="true" />{t(shortKey)}{to === '/messages' && badge > 0 && <span className="m-nav-step">{badge}</span>}
       </NavLink>)}
-      <button type="button" className={moreActive || moreOpen ? 'active' : ''} aria-expanded={moreOpen} aria-controls="more-menu" onClick={() => setMoreOpen((open) => !open)}>
+      <button ref={moreTrigger} type="button" aria-haspopup="dialog" className={moreActive || moreOpen ? 'active' : ''} aria-expanded={moreOpen} aria-controls="more-menu" onClick={() => setMoreOpen((open) => !open)}>
         <MoreHorizontal size={20} strokeWidth={1.9} aria-hidden="true" />{t('nav_more')}
       </button>
     </nav>

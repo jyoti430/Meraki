@@ -10,7 +10,7 @@ import type { SupplyProjectionExample } from '../types'
 
 const routes = [
   { to: '/exporter/requirements', icon: ClipboardList, title: 'Requirements', text: 'Browse sample buyer requirements and save your own drafts.', source: 'Browser-local drafts', tone: 'muted' },
-  { to: '/exporter/marketplace', icon: PackageSearch, title: 'Supply examples', text: 'Compare illustrative FPO supply forecasts against a requirement.', source: 'Synthetic examples', tone: 'muted' },
+  { to: '/exporter/marketplace', icon: PackageSearch, title: 'Supply examples', text: 'Browse illustrative FPO supply forecasts and look up a requirement.', source: 'Synthetic examples', tone: 'muted' },
   { to: '/auctions', icon: Gavel, title: 'Shared auctions', text: 'Bid on harvested lots or answer forward requests alongside other signed-in users.', source: 'Server-backed · sign-in', tone: 'live' },
   { to: '/trade', icon: Handshake, title: 'Trade workflow', text: 'Requirements, proposals, contracts and fulfilment records in the separate trade service.', source: 'Server-backed · synthetic actors', tone: 'live' },
 ] as const
@@ -52,9 +52,9 @@ export default function ExporterDashboard() {
           </Link>)}</div>}
       </section>
       <section className="e-panel">
-        <div className="e-panel-head"><div><p className="e-eyebrow">Supply · {projectedKg === null ? '—' : tons(projectedKg)} projected</p><h2>Expected supply examples</h2></div><Link to="/exporter/marketplace" className="e-inline-link">Compare <ArrowRight size={16} /></Link></div>
+        <div className="e-panel-head"><div><p className="e-eyebrow">Supply · {projectedKg === null ? '—' : tons(projectedKg)} projected</p><h2>Expected supply examples</h2></div><Link to="/exporter/marketplace" className="e-inline-link">Browse supply <ArrowRight size={16} /></Link></div>
         {supply === null ? <p className="e-muted" role="status">Loading supply examples…</p> : supply.slice(0, 2).map((item) => <div className="e-supply-preview" key={item.id}>
-          <div><strong>{item.crop} · {item.variety}</strong><small>{item.fpoLabel} · {item.deliveryWeek}</small></div><div className="e-supply-preview-right"><b>{tons(item.projectedKg)}</b><StatusBadge tone="muted">Projected</StatusBadge></div>
+          <div className="e-supply-preview-copy"><strong>{item.crop} · {item.variety}</strong><small>{item.fpoLabel} · {item.deliveryWeek}</small></div><div className="e-supply-preview-right"><b>{tons(item.projectedKg)}</b><StatusBadge tone="muted">Projected</StatusBadge></div>
         </div>)}
         <p className="e-footnote">Forecasts are synthetic and are not verified supply offers.</p>
       </section>

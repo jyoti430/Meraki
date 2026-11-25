@@ -101,7 +101,7 @@ export default function BuyerOrders() {
     <div className="m-cols m-cols-demand">
       <section className="m-panel" aria-labelledby="req-title">
         <div className="m-panel-head">
-          <div><h2 className="m-panel-title" id="req-title">Buyer requests</h2><p className="m-panel-sub">Current and upcoming buyer demand for pre-sowing planning.</p></div>
+          <div><h2 className="m-panel-title" id="req-title">Buyer requests</h2><p className="m-panel-sub">Select a request to review <a className="m-link" href="#impact-title">planting impact</a>.</p></div>
           <div className="m-seg2" role="group" aria-label="Market">{(['All', 'India', 'Singapore'] as MarketFilter[]).map((m) => <button key={m} type="button" aria-pressed={market === m} onClick={() => setMarket(m)}>{m} <span className="m-small">{active.filter((o) => m === 'All' || marketOf(o) === m).length}</span></button>)}</div>
         </div>
         <div className="m-dt-scroll"><table className="m-dt">
@@ -121,7 +121,7 @@ export default function BuyerOrders() {
       </section>
 
       <section className="m-panel" aria-labelledby="impact-title">
-        <h2 className="m-panel-title sm" id="impact-title"><Sprout size={26} color="var(--forest)" />Planting impact</h2>
+        <h2 className="m-panel-title sm" id="impact-title" tabIndex={-1}><Sprout size={26} color="var(--forest)" />Planting impact</h2>
         <p className="m-panel-sub" style={{ marginBottom: 14 }}>How this buyer demand affects your planting plan.</p>
         {selected ? <PlantingImpact order={selected} /> : <p className="m-small">Select a buyer request.</p>}
       </section>

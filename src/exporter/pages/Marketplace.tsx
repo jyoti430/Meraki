@@ -30,18 +30,18 @@ export default function Marketplace() {
   }) ?? [], [projections, crop, grade, region])
 
   return <div className="e-page">
-    <ExporterPageHeader eyebrow="Supply discovery" title="FPO marketplace" description="Compare illustrative weekly projections against a requirement. Forecasts are not harvested or available-to-reserve stock." />
+    <ExporterPageHeader eyebrow="Supply discovery" title="FPO marketplace" description="Browse illustrative weekly projections and look up a requirement for reference. Forecasts are not harvested or available-to-reserve stock." />
     <DemoNotice>Marketplace cards are synthetic forecast examples. FPO labels and regions are placeholders, consent and eligibility are not verified, and no farmer or private organisation details are shown. Live reservation is disabled. For harvested lots and bids, open <Link to="/trade">Trade market & bids</Link>.</DemoNotice>
     {error && <div className="e-error" role="alert">{error} <button type="button" className="e-text-button" onClick={() => void loadProjections()}>Retry</button></div>}
     <section className="e-panel e-market-filters">
-      <div className="e-filter-heading"><Filter size={18} /><strong>Compare supply examples</strong><span>Filters only narrow the displayed sample rows; they do not evaluate eligibility.</span></div>
+      <div className="e-filter-heading"><Filter size={18} /><strong>Filter supply examples</strong><span>Filters only narrow the displayed sample rows; they do not evaluate eligibility.</span></div>
       <div className="e-filter-grid">
-        <label className="e-select-label">Compare with requirement<select value={requirementId} onChange={(event) => setRequirementId(event.target.value)}><option value="">No requirement selected</option>{requirements?.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.crop} ({item.source === 'synthetic-demo' ? 'demo' : 'local draft'})</option>)}</select></label>
+        <label className="e-select-label">Requirement reference<select value={requirementId} onChange={(event) => setRequirementId(event.target.value)}><option value="">No requirement selected</option>{requirements?.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.crop} ({item.source === 'synthetic-demo' ? 'demo' : 'local draft'})</option>)}</select></label>
         <label className="e-select-label">Crop<select value={crop} onChange={(event) => setCrop(event.target.value)}><option value="all">All crops</option>{Array.from(new Set(projections?.map((item) => item.crop) ?? [])).map((value) => <option key={value}>{value}</option>)}</select></label>
         <label className="e-select-label">Grade<select value={grade} onChange={(event) => setGrade(event.target.value)}><option value="all">All grades</option>{Array.from(new Set(projections?.map((item) => item.grade) ?? [])).map((value) => <option key={value}>{value}</option>)}</select></label>
         <label className="e-select-label">Region<input value={region} onChange={(event) => setRegion(event.target.value)} placeholder="Filter example regions" /></label>
       </div>
-      {selectedRequirement && <p className="e-compare-hint">Comparing against <strong>{selectedRequirement.id}</strong>: {selectedRequirement.crop} · {selectedRequirement.quantityKg.toLocaleString()} kg · {selectedRequirement.grade}. These figures are not a match decision or reservation.</p>}
+      {selectedRequirement && <p className="e-compare-hint">Selected requirement <strong>{selectedRequirement.id}</strong>: {selectedRequirement.crop} · {selectedRequirement.quantityKg.toLocaleString()} kg · {selectedRequirement.grade}. The reference does not filter results, check eligibility or reserve supply.</p>}
     </section>
     {projections === null && !error ? <div className="e-loading" role="status">Loading synthetic supply examples…</div> : visible.length === 0 ? <div className="e-empty-state"><span className="e-empty-icon"><PackageSearch size={25} /></span><h2>No examples match those filters</h2><p>Clear a filter to review the available synthetic projections.</p><button className="e-button e-button-secondary" type="button" onClick={() => { setCrop('all'); setGrade('all'); setRegion('') }}>Clear filters</button></div> : <div className="e-market-grid">
       {visible.map((listing) => <article className="e-market-card" key={listing.id}>
@@ -51,8 +51,7 @@ export default function Marketplace() {
         <div className="e-project-quantity"><span>Projected volume</span><strong>{listing.projectedKg.toLocaleString()} kg</strong><small>Range {listing.lowKg.toLocaleString()}–{listing.highKg.toLocaleString()} kg · not harvested stock</small></div>
         <div className="e-market-facts"><div><CalendarDays size={15} /><span>{listing.deliveryWeek}</span></div><div><ShieldAlert size={15} /><span>{listing.uncertaintySummary}</span></div></div>
         <div className="e-evidence-box"><strong>Evidence & eligibility</strong><p>{listing.qualitySummary} {listing.evidenceSummary}</p><p>{listing.consentSummary}</p></div>
-        <button className="e-button e-button-disabled" type="button" disabled title="Reservation requires an authenticated organisation and a live eligible listing">Reservation unavailable</button>
-        <small className="e-disabled-reason">No auth provider or live eligibility check is connected.</small>
+        <p className="e-disabled-reason">Reservations are unavailable for supply examples.</p>
       </article>)}
     </div>}
     <p className="e-page-footnote">Part 2 exposes an authenticated market endpoint for consented, reviewed capacities. This no-login demo does not call it or bypass its organisation permissions.</p>

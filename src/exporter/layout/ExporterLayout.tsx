@@ -14,6 +14,12 @@ const links = [
 
 export default function ExporterLayout({ children }: { children: ReactNode }) {
   const location = useLocation()
+  const sharedAuctions = location.pathname === '/auctions'
+  const trade = location.pathname.startsWith('/trade')
+  const workspace = sharedAuctions ? 'Shared auctions' : trade ? 'Trade workspace' : 'Local examples'
+  const context = sharedAuctions ? 'Account status is shown on the auction board.'
+    : trade ? 'Trade records use a separate development identity.'
+    : 'Sample supply and browser-local drafts.'
   return <div className="e-shell">
     <aside className="e-sidebar">
       <NavLink to="/" className="e-brand"><MerakiMark size={36} /><span>Meraki</span></NavLink>
@@ -28,13 +34,13 @@ export default function ExporterLayout({ children }: { children: ReactNode }) {
         </Fragment>)}
       </nav>
       <div className="e-sidebar-spacer" />
-      <div className="e-sidebar-note"><span className="e-live-dot" /> {location.pathname.endsWith('/auctions') ? 'Auction workspace' : 'Demo workspace'}<br /><small>{location.pathname.endsWith('/auctions') ? 'Account status is shown in auctions.' : 'Local examples; shared records use the procurement workspace.'}</small></div>
+      <div className="e-sidebar-note"><span className="e-live-dot" /> {workspace}<br /><small>{context}</small></div>
       <NavLink to="/" className="e-switch-link"><ArrowLeftRight size={17} /> Switch workspace</NavLink>
     </aside>
     <section className="e-main-column">
       <header className="e-mobile-header">
         <NavLink to="/" className="e-brand"><MerakiMark size={30} /><span>Meraki</span></NavLink>
-        <span className="e-demo-pill">Demo workspace</span>
+        <span className="m-tag m-tag-neutral">{workspace}</span>
       </header>
       <main className="e-main" key={location.pathname}>{children}</main>
     </section>

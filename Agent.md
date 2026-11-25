@@ -37,6 +37,7 @@ Baseline counts below concern source inspection and the commands recorded in `do
 | D06 | PROTOTYPE | `planning/series.ts` | Uniform weekly distribution; no validated picking curve or full marketable-yield factors |
 | D07 | PROTOTYPE | `SupplyPlanningService.ts`, `SupplyPlanningContext.tsx`, supply pages | Existing-crop previews, adjustments, reservations and cancellation are local; concurrent clients unprotected |
 | D08 | DONE at baseline test scope | `planning/engine.test.ts`: 15 tests passed; build passed; existing CI runs both | Service, browser, database and field checks not established |
+| D09 | PROTOTYPE | Shared workspace styling, auction presentation and mobile navigation in PR #15. See the [visual audit](docs/VISUAL_AUDIT.md) for dated Chromium and regression evidence. | Live trading, production identities and cross-browser acceptance remain separate. |
 
 Five post-harvest pages contain `ModulePlaceholder`; their existence is not finished implementation. Current dependencies and commands are listed in README. Re-audit before changing statuses.
 
