@@ -5,7 +5,7 @@ import DemoNotice from '../components/DemoNotice'
 import ExporterPageHeader from '../components/ExporterPageHeader'
 import StatusBadge from '../components/StatusBadge'
 import useRequirements from '../hooks/useRequirements'
-import { formatDate, formatNumber, useI18n } from '../../i18n'
+import { cropLabel, formatDate, formatNumber, useI18n } from '../../i18n'
 
 export default function Requirements() {
   const { t, lang } = useI18n()
@@ -30,7 +30,7 @@ export default function Requirements() {
         <div className="e-table-wrap"><table className="e-table"><thead><tr><th>{t('ex_requirement_heading')}</th><th>{t('ex_crop_variety')}</th><th>{t('ex_quantity')}</th><th>{t('ex_grade')}</th><th>{t('ex_destination')}</th><th>{t('ex_required_by')}</th><th>{t('ex_status')}</th><th><span className="sr-only">{t('ex_open')}</span></th></tr></thead>
           <tbody>{filtered.map((item) => <tr key={item.id}>
             <td><Link className="e-table-primary" to={`/exporter/requirements/${item.id}`}>{item.id}</Link><small>{t(item.source === 'synthetic-demo' ? 'ex_synthetic_example' : 'ex_local_browser_draft')}</small></td>
-            <td>{item.crop}<small>{item.variety}</small></td><td>{formatNumber(item.quantityKg, lang)} kg</td><td>{item.grade}</td><td>{item.destination}</td><td>{formatDate(item.requiredBy, lang, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+            <td>{cropLabel(item.crop, t)}<small>{item.variety}</small></td><td>{formatNumber(item.quantityKg, lang)} kg</td><td>{item.grade}</td><td>{item.destination}</td><td>{formatDate(item.requiredBy, lang, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
             <td><StatusBadge tone={item.status === 'active' ? 'good' : 'neutral'}>{t(item.status === 'active' ? 'ex_active_demo' : 'ex_draft_local')}</StatusBadge></td>
             <td><Link aria-label={`${t('ex_open')} ${item.id}`} className="e-icon-link" to={`/exporter/requirements/${item.id}`}><ArrowRight size={17} /></Link></td>
           </tr>)}</tbody>

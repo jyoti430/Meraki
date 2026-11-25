@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { I18nProvider } from '../i18n'
 import { termFields, termsFrom, TermsView } from './ui'
 import type { CommercialTerms } from './types'
 
@@ -26,7 +27,7 @@ describe('versioned commercial terms', () => {
   })
 
   it('displays the complete buyer specification in the contract confirmation snapshot', () => {
-    const html = renderToStaticMarkup(<TermsView terms={snapshot} />)
+    const html = renderToStaticMarkup(<I18nProvider><TermsView terms={snapshot} /></I18nProvider>)
     for (const text of ['Ventilated 5 kg crates', 'Collection appointment required', 'Length', 'cm', '12', 'Sample at collection', 'Colour', 'Buyer preference only', 'Optional']) expect(html).toContain(text)
     expect(html).toContain('<td>0</td>')
     expect(html).toContain('not proof they are satisfied')
@@ -34,7 +35,7 @@ describe('versioned commercial terms', () => {
   })
 
   it('does not describe optional preferences as a shipment block', () => {
-    const html = renderToStaticMarkup(<TermsView terms={{ ...snapshot, quality_specification: snapshot.quality_specification?.map(item => ({ ...item, required: false })) }} />)
+    const html = renderToStaticMarkup(<I18nProvider><TermsView terms={{ ...snapshot, quality_specification: snapshot.quality_specification?.map(item => ({ ...item, required: false })) }} /></I18nProvider>)
     expect(html).toContain('Length')
     expect(html).toContain('not proof they are satisfied')
     expect(html).not.toContain('Shipment creation and dispatch are blocked')

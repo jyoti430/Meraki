@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { interpolateTranslation, translations } from '../i18n'
-import { composeInstruction, languageFor, languages, resolveMessageLanguage, simulatedReplyText } from './messages'
+import { composeInstruction, individualMessageLanguageDecision, languageFor, languages, resolveMessageLanguage, simulatedReplyText } from './messages'
 import type { Allocation } from './engine'
 
 const allocation: Allocation = {
@@ -27,6 +27,14 @@ describe('farmer communication language', () => {
 
   it('does not silently map Urdu or other unsupported preferences to Hindi', () => {
     expect(resolveMessageLanguage('Urdu')).toEqual({ language: 'English', needsCoordinatorConfirmation: true })
+    expect(languageFor('Urdu')).toBe('English')
+  })
+
+  it('separates the manually selected individual preview from farmer preference and batch language', () => {
+    expect(individualMessageLanguageDecision('Hindi', 'Hindi')).toBeNull()
+    expect(individualMessageLanguageDecision('Hindi', 'Marathi')).toBe('preview-differs-from-preference')
+    expect(individualMessageLanguageDecision('Urdu', 'Marathi')).toBe('unsupported-preference')
+    expect(languageFor('Tamil')).toBe('Tamil')
     expect(languageFor('Urdu')).toBe('English')
   })
 

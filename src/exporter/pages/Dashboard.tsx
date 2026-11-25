@@ -10,10 +10,10 @@ import type { SupplyProjectionExample } from '../types'
 import { cropLabel, formatDate, formatNumber, useI18n, type TKey } from '../../i18n'
 
 const routes = [
-  { to: '/exporter/requirements', icon: ClipboardList, title: 'exporter_requirements', text: 'ex_requirements_text', source: 'ex_source_local', tone: 'muted' },
-  { to: '/exporter/marketplace', icon: PackageSearch, title: 'exporter_supply_examples', text: 'ex_supply_text', source: 'ex_source_synthetic', tone: 'muted' },
-  { to: '/auctions', icon: Gavel, title: 'exporter_shared_auctions', text: 'ex_auctions_text', source: 'ex_source_server', tone: 'live' },
-  { to: '/trade', icon: Handshake, title: 'exporter_trade_workflow', text: 'ex_trade_text', source: 'ex_source_actors', tone: 'live' },
+  { to: '/exporter/requirements', icon: ClipboardList, titleKey: 'exporter_requirements', textKey: 'ex_requirements_text', source: 'ex_source_local', tone: 'muted' },
+  { to: '/exporter/marketplace', icon: PackageSearch, titleKey: 'exporter_supply_examples', textKey: 'ex_supply_text', source: 'ex_source_synthetic', tone: 'muted' },
+  { to: '/auctions', icon: Gavel, titleKey: 'exporter_shared_auctions', textKey: 'ex_auctions_text', source: 'ex_source_server', tone: 'live' },
+  { to: '/trade', icon: Handshake, titleKey: 'exporter_trade_workflow', textKey: 'ex_trade_text', source: 'ex_source_actors', tone: 'live' },
 ] as const
 
 function tons(kg: number, lang: 'en' | 'hi' | 'mr' | 'ta' | 'ml') { return `${formatNumber(kg / 1000, lang, { maximumFractionDigits: 1 })} t` }
@@ -37,9 +37,9 @@ export default function ExporterDashboard() {
     {supplyError && <div className="e-error" role="alert">{supplyError}</div>}
 
     <section className="e-route-grid" aria-label={t('ex_workflows_aria')}>
-      {routes.map(({ to, icon: Icon, title, text, source, tone }) => <Link to={to} className="e-route-card" key={to}>
+      {routes.map(({ to, icon: Icon, titleKey, textKey, source, tone }) => <Link to={to} className="e-route-card" key={to}>
         <span className="e-route-icon"><Icon size={20} aria-hidden="true" /></span>
-        <span className="e-route-copy"><strong>{t(title as TKey)}</strong><span>{t(text as TKey)}</span></span>
+        <span className="e-route-copy"><strong>{t(titleKey as TKey)}</strong><span>{t(textKey as TKey)}</span></span>
         <span className={`e-route-source ${tone}`}>{t(source as TKey)}</span>
         <ArrowRight className="e-route-arrow" size={17} aria-hidden="true" />
       </Link>)}

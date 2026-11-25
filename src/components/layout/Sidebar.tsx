@@ -48,7 +48,7 @@ export default function Sidebar({ pathname }: { pathname: string }) {
   const badge = useMessageBadge()
   const { t } = useI18n()
   return <aside className="m-sidebar">
-    <NavLink to="/fpo" className="m-brand" aria-label="Meraki home"><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
+    <NavLink to="/fpo" className="m-brand" aria-label={t('nav_overview')}><MerakiMark size={38} /><div className="m-brand-name">Meraki</div></NavLink>
     <nav className="m-nav" aria-label={t('main_navigation')}>
       {navGroups.map((group) => <div className="m-nav-group" key={group.key}>
         <p className="m-nav-label">{t(group.key)}</p>

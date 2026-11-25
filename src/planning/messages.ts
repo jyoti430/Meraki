@@ -24,6 +24,12 @@ export function resolveMessageLanguage(preferred: string): { language: Language;
 }
 
 export const languageFor = (preferred: string): Language => resolveMessageLanguage(preferred).language
+export type IndividualMessageLanguageDecision = 'unsupported-preference' | 'preview-differs-from-preference' | null
+export function individualMessageLanguageDecision(preferred: string, preview: Language): IndividualMessageLanguageDecision {
+  const resolved = resolveMessageLanguage(preferred)
+  if (resolved.needsCoordinatorConfirmation) return 'unsupported-preference'
+  return resolved.language === preview ? null : 'preview-differs-from-preference'
+}
 
 const cropNames: Record<string, Partial<Record<Language, string>>> = {
   Okra: { Hindi: 'भिंडी', Marathi: 'भेंडी', Tamil: 'வெண்டைக்காய்', Malayalam: 'വെണ്ടയ്ക്ക' },

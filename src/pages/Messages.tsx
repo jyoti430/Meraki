@@ -12,17 +12,17 @@ import type { PlanChange, ReplyInput } from '../context/PlanContext'
 import { useFarmers } from '../context/FarmersContext'
 import { replyStateFor } from '../planning/engine'
 import type { ConstraintKind } from '../planning/engine'
-import { FPO_NAME, composeInstruction, languageFor, languages, resolveMessageLanguage, simulatedReplyText, smsSegments } from '../planning/messages'
+import { FPO_NAME, composeInstruction, individualMessageLanguageDecision, languageFor, languages, resolveMessageLanguage, simulatedReplyText, smsSegments } from '../planning/messages'
 import type { Channel, Language } from '../planning/messages'
 import { ReplyBadge, initials } from '../components/ui'
 import type { ReplyState } from '../components/ui'
-import { cropLabel, formatDate, formatNumber, useI18n, type TKey } from '../i18n'
+import { cropLabel, formatDate, formatNumber, LANGUAGES, useI18n, type TKey } from '../i18n'
 
-const constraintOptions: { id: ConstraintKind; label: string; hint: string; labelKey: TKey; hintKey: TKey }[] = [
-  { id: 'land', label: 'Less land available', hint: 'Caps this farmer’s area; the rest is reassigned.', labelKey: 'msg_constraint_land', hintKey: 'msg_constraint_land_hint' },
-  { id: 'water', label: 'Water problem', hint: 'Flags their planned plots for a coordinator to verify. Held out of the plan until then; farm records are not changed.', labelKey: 'msg_constraint_water', hintKey: 'msg_constraint_water_hint' },
-  { id: 'timing', label: 'Cannot sow in time', hint: 'Not planned for windows they can’t meet. Add the date they can start, if known.', labelKey: 'msg_constraint_timing', hintKey: 'msg_constraint_timing_hint' },
-  { id: 'other', label: 'Other problem', hint: 'Kept in the plan but marked “Needs review” for follow-up.', labelKey: 'msg_constraint_other', hintKey: 'msg_constraint_other_hint' },
+const constraintOptions: { id: ConstraintKind; labelKey: TKey; hintKey: TKey }[] = [
+  { id: 'land', labelKey: 'msg_constraint_land', hintKey: 'msg_constraint_land_hint' },
+  { id: 'water', labelKey: 'msg_constraint_water', hintKey: 'msg_constraint_water_hint' },
+  { id: 'timing', labelKey: 'msg_constraint_timing', hintKey: 'msg_constraint_timing_hint' },
+  { id: 'other', labelKey: 'msg_constraint_other', hintKey: 'msg_constraint_other_hint' },
 ]
 
 const order: Record<ReplyState, number> = { 'needs-update': 0, 'not-sent': 1, constraint: 2, sent: 3, confirmed: 4, declined: 5 }
@@ -65,6 +65,12 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
   const awaitingReply = selected.state === 'sent' || selected.state === 'constraint'
   const sms = smsSegments(draft)
   const pending = rows.filter((r) => (r.state === 'not-sent' || r.state === 'needs-update') && r.allocations.length)
+  const uiLanguage = LANGUAGES.find((item) => item.code === lang)?.native ?? LANGUAGES[0].native
+  const previewLanguage = languages.find((item) => item.id === language)?.label ?? language
+  const languageDecision = individualMessageLanguageDecision(selected.farmer.preferredLanguage, language)
+  const unsupportedPreference = languageDecision === 'unsupported-preference'
+  const languageMismatch = languageDecision === 'preview-differs-from-preference'
+  const preferred = resolveMessageLanguage(selected.farmer.preferredLanguage)
 
   function sendAll() {
     const fallback = pending.map((row) => row.farmer.preferredLanguage).filter((preferred) => resolveMessageLanguage(preferred).needsCoordinatorConfirmation)
@@ -74,7 +80,7 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
 
   function reply(input: ReplyInput, text: string) {
     const change = recordReply(selected.farmer.id, input, text, channel, language)
-    setLastChange(change ?? { id: 'ok', at: new Date().toISOString(), title: `${selected.farmer.name} confirmed`, details: ['Their planned supply now counts as farmer-confirmed.'] })
+    setLastChange(change ?? { id: 'ok', at: new Date().toISOString(), title: '', details: [t('msg_confirmed_reply_detail')] })
     setReplyMode('none'); setNote('')
   }
 
@@ -83,6 +89,8 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
       <p className="m-small" style={{ margin: 0 }}>{t('msg_simulation_disclosure')}</p>
       {pending.length > 0 && <button type="button" className="m-btn m-btn-primary m-btn-sm" style={{ borderRadius: 10 }} onClick={sendAll}><Send size={16} /> {t('msg_send_pending', { count: formatNumber(pending.length, lang) })}</button>}
     </div>
+    <p className="m-small">{t('msg_interface_language', { language: uiLanguage })} · {t('msg_individual_language_policy', { language: previewLanguage })}</p>
+    <p className="m-small">{t('msg_batch_language_policy')}</p>
     <div className="m-msg-layout">
       <section className="m-card m-card-tight" aria-label={t('msg_farmers_in_plan')}>
         <div className="m-farmer-list" role="list">
@@ -103,25 +111,26 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
             <div><h2 className="m-h3">{selected.farmer.name}</h2><p className="m-sub"><Phone size={13} style={{ verticalAlign: '-2px' }} /> {selected.farmer.phone} · {selected.farmer.village} · {t('msg_preferred_language', { language: selected.farmer.preferredLanguage })}</p></div>
             <ReplyBadge state={selected.state} />
           </div>
-          {resolveMessageLanguage(selected.farmer.preferredLanguage).needsCoordinatorConfirmation && <p className="m-alert m-alert-warn" role="note">{t('message_fallback_warning', { language: selected.farmer.preferredLanguage, draftLanguage: languages.find((item) => item.id === language)?.label ?? language })}</p>}
+          {unsupportedPreference && <p className="m-alert m-alert-warn" role="note">{t('message_fallback_warning', { language: selected.farmer.preferredLanguage, draftLanguage: previewLanguage })}</p>}
+          {languageMismatch && <p className="m-alert m-alert-warn" role="note">{t('msg_language_mismatch_confirm', { preferred: languages.find((item) => item.id === preferred.language)?.label ?? preferred.language, actual: previewLanguage })}</p>}
           <div className="m-row" style={{ marginBottom: 16 }}>
             <div className="m-seg" role="group" aria-label={t('msg_channel')}>{(['WhatsApp', 'SMS'] as Channel[]).map((c) => <button key={c} type="button" aria-pressed={channel === c} onClick={() => setChannel(c)}>{c === 'WhatsApp' ? <MessageSquareText size={14} style={{ verticalAlign: '-2px' }} /> : <Smartphone size={14} style={{ verticalAlign: '-2px' }} />} {c}</button>)}</div>
-            <div className="m-seg" role="group" aria-label={t('msg_language')}>{languages.map((l) => <button key={l.id} type="button" aria-pressed={language === l.id} onClick={() => setLanguage(l.id)}>{l.label}</button>)}</div>
+            <div className="m-seg" role="group" aria-label={t('msg_preview_language')}>{languages.map((l) => <button key={l.id} type="button" aria-pressed={language === l.id} onClick={() => setLanguage(l.id)}>{l.label}</button>)}</div>
           </div>
 
           <div className={`m-phone ${channel === 'SMS' ? 'sms' : ''}`}>
-            <div className="m-phone-top"><span className="m-avatar" style={{ width: 34, height: 34, fontSize: 12 }}>{initials(selected.farmer.name)}</span><div><strong>{selected.farmer.name}</strong><span>{channel} · from {FPO_NAME}</span></div></div>
+            <div className="m-phone-top"><span className="m-avatar" style={{ width: 34, height: 34, fontSize: 12 }}>{initials(selected.farmer.name)}</span><div><strong>{selected.farmer.name}</strong><span>{channel} · {t('msg_from_fpo', { name: FPO_NAME })}</span></div></div>
             <div className="m-thread" ref={threadRef}>
-              {thread.map((m) => <div key={m.id} className={`m-bubble ${m.direction}`}>{m.text}<time>{time(m.at, lang)}{m.direction === 'out' ? ` · ${m.channel}` : ''}</time></div>)}
+              {thread.map((m) => <div key={m.id} className={`m-bubble ${m.direction}`}>{m.text}<time>{time(m.at, lang)} · {m.direction === 'out' ? m.channel : t('msg_simulated_reply')} · {t(m.direction === 'out' ? 'msg_actual_language' : 'msg_reply_language', { language: languages.find((item) => item.id === m.language)?.label ?? m.language })}</time></div>)}
               {canSend && <div className="m-bubble draft">{draft}</div>}
               {!thread.length && !canSend && <p className="m-thread-empty">{t('msg_no_messages')}</p>}
             </div>
           </div>
-          {canSend && channel === 'SMS' && <p className="m-small" style={{ textAlign: 'center', margin: '8px 0 0' }}>{sms.chars} characters · {sms.segments} SMS segment{sms.segments > 1 ? 's' : ''}{sms.unicode ? ' (Unicode)' : ''}</p>}
+          {canSend && channel === 'SMS' && <p className="m-small" style={{ textAlign: 'center', margin: '8px 0 0' }}>{t('msg_sms_summary', { chars: formatNumber(sms.chars, lang), segments: formatNumber(sms.segments, lang), unicode: sms.unicode ? ` (${t('msg_unicode')})` : '' })}</p>}
           <div className="m-row" style={{ justifyContent: 'center', marginTop: 16 }}>
             {canSend && <button type="button" className="m-btn m-btn-primary" onClick={() => {
-              const fallback = resolveMessageLanguage(selected.farmer.preferredLanguage)
-              if (fallback.needsCoordinatorConfirmation && !window.confirm(t('message_fallback_warning', { language: selected.farmer.preferredLanguage, draftLanguage: languages.find((item) => item.id === language)?.label ?? language }))) return
+              if (unsupportedPreference && !window.confirm(t('message_fallback_warning', { language: selected.farmer.preferredLanguage, draftLanguage: previewLanguage }))) return
+              if (languageMismatch && !window.confirm(t('msg_language_mismatch_confirm', { preferred: languages.find((item) => item.id === preferred.language)?.label ?? preferred.language, actual: previewLanguage }))) return
               sendInstructions([{ farmerId: selected.farmer.id, text: draft, channel, language }])
             }}><Send size={17} /> {selected.state === 'needs-update' ? t('msg_send_updated_plan') : t('msg_send_channel_simulated', { channel })}</button>}
             {!selected.allocations.length && selected.state !== 'declined' && <p className="m-small">{t('msg_farmer_no_longer_assigned', { name: selected.farmer.name })}</p>}
@@ -130,13 +139,13 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
 
         {awaitingReply && <div className="m-card">
           <h2 className="m-h3">{t('msg_simulate_reply')}</h2>
-          <p className="m-sub" style={{ marginBottom: 14 }}>{t('msg_pick_reply', { name: firstName })}</p>
+          <p className="m-sub" style={{ marginBottom: 14 }}>{t('msg_pick_reply', { name: firstName })} {t('msg_reply_language', { language: previewLanguage })}</p>
           <div className="m-reply-grid">
             <button type="button" className="m-reply-btn" onClick={() => reply({ status: 'confirmed' }, simulatedReplyText('confirmed', language))}><strong><CheckCircle2 size={16} color="var(--good)" /> 1 · {t('msg_will_plant')}</strong><span>{t('msg_farmer_confirmed_supply')}</span></button>
             <button type="button" className="m-reply-btn" onClick={() => reply({ status: 'declined' }, simulatedReplyText('declined', language))}><strong><X size={16} color="var(--bad)" /> 2 · {t('msg_not_this_season')}</strong><span>{t('msg_land_reassigned')}</span></button>
             <button type="button" className="m-reply-btn" aria-pressed={replyMode === 'constraint'} onClick={() => setReplyMode(replyMode === 'constraint' ? 'none' : 'constraint')}><strong><AlertTriangle size={16} color="var(--warn)" /> 3 · {t('msg_report_problem')}</strong><span>{t('msg_land_water_timing')}</span></button>
           </div>
-          {replyMode === 'constraint' && <form className="m-stack" style={{ marginTop: 16 }} onSubmit={(e) => { e.preventDefault(); reply({ status: 'constraint', kind, note: note.trim() || constraintOptions.find((c) => c.id === kind)!.label, availableAcres: kind === 'land' ? Math.max(0, Number(acres) || 0) : undefined, availableFrom: kind === 'timing' && fromDate ? fromDate : undefined }, `${simulatedReplyText(kind, language)}${note.trim() ? ` – ${note.trim()}` : ''}${kind === 'land' ? ` (${acres} ${language === 'Hindi' ? 'एकड़' : language === 'Marathi' ? 'एकर' : language === 'Tamil' ? 'ஏக்கர்' : language === 'Malayalam' ? 'ഏക്കർ' : 'acre'})` : ''}`) }}>
+          {replyMode === 'constraint' && <form className="m-stack" style={{ marginTop: 16 }} onSubmit={(e) => { e.preventDefault(); reply({ status: 'constraint', kind, note: note.trim() || t(constraintOptions.find((c) => c.id === kind)!.labelKey), availableAcres: kind === 'land' ? Math.max(0, Number(acres) || 0) : undefined, availableFrom: kind === 'timing' && fromDate ? fromDate : undefined }, `${simulatedReplyText(kind, language)}${note.trim() ? ` – ${note.trim()}` : ''}${kind === 'land' ? ` (${acres} ${language === 'Hindi' ? 'एकड़' : language === 'Marathi' ? 'एकर' : language === 'Tamil' ? 'ஏக்கர்' : language === 'Malayalam' ? 'ഏക്കർ' : 'acre'})` : ''}`) }}>
             <div className="m-form-grid">
               <label className="m-field">{t('msg_problem')}<select className="m-select" value={kind} onChange={(e) => setKind(e.target.value as ConstraintKind)}>{constraintOptions.map((c) => <option key={c.id} value={c.id}>{t(c.labelKey)}</option>)}</select><small>{t(constraintOptions.find((c) => c.id === kind)!.hintKey)}</small></label>
               {kind === 'land' ? <label className="m-field">{t('msg_acres_can_plant')}<input className="m-input" type="number" min={0} step={0.25} value={acres} onChange={(e) => setAcres(e.target.value)} /><small>{t('msg_currently_assigned', { area: acresText(selected.allocations.reduce((s, a) => s + a.acres, 0), lang) })}</small></label>
@@ -147,7 +156,7 @@ export function FarmerWorkspace({ only }: { only?: string[] }) {
           </form>}
         </div>}
 
-        {lastChange && <div className="m-alert m-alert-good" role="status"><CheckCircle2 size={18} style={{ flex: 'none', marginTop: 2 }} /><div><strong>Plan updated: {lastChange.title}</strong><ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{lastChange.details.map((d) => <li key={d}>{d}</li>)}</ul><Link to="/plan" className="m-link" style={{ marginTop: 6 }}>Review the plan</Link></div></div>}
+        {lastChange && <div className="m-alert m-alert-good" role="status"><CheckCircle2 size={18} style={{ flex: 'none', marginTop: 2 }} /><div><strong>{t('msg_reply_recorded_feedback')}</strong><p className="m-small">{t('msg_plan_impact_details_language')}</p><ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{lastChange.details.map((d) => <li key={d}>{d}</li>)}</ul><Link to="/plan" className="m-link" style={{ marginTop: 6 }}>{t('msg_review_plan')}</Link></div></div>}
       </section>
     </div>
   </div>
@@ -157,6 +166,7 @@ type Bucket = 'confirmed' | 'follow-up' | 'constraint' | 'waiting'
 
 export default function Messages() {
   const { t, lang } = useI18n()
+  const uiLanguage = LANGUAGES.find((item) => item.code === lang)?.native ?? LANGUAGES[0].native
   const { result, responses, messages, sendInstructions, scenario, exclusions, flaggedPlots, planState } = usePlan()
   const { data } = useFarmers()
   const { orders } = useBuyerOrders()
@@ -180,7 +190,7 @@ export default function Messages() {
 
   const before = useMemo(() => runPlan({ orders, data, scenario, responses: {}, exclusions, flaggedPlots: {} }), [orders, data, scenario, exclusions])
 
-  if (!camp) return <div className="m-page"><PageHeader title={t('messages_title')} subtitle={t('messages_sub')} /><Link to="/plan" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>{t('nav_plans')}</Link></div>
+  if (!camp) return <div className="m-page"><PageHeader title={t('messages_title')} subtitle={t('messages_sub')} /><p className="m-small">{t('msg_interface_language', { language: uiLanguage })}</p><Link to="/plan" className="m-btn m-btn-primary" style={{ alignSelf: 'flex-start' }}>{t('nav_plans')}</Link></div>
 
   const campFarmers = [...new Set(camp.allocations.map((a) => a.farmerId))]
   const bucketOf = (id: string): Bucket => { const st = stateOf(id); return st === 'confirmed' ? 'confirmed' : st === 'constraint' ? 'constraint' : st === 'sent' ? 'waiting' : 'follow-up' }
@@ -214,6 +224,7 @@ export default function Messages() {
 
   return <div className="m-page">
     <PageHeader title={t('messages_title')} subtitle={t('messages_sub')} />
+    <p className="m-small">{t('msg_interface_language', { language: uiLanguage })}</p>
 
     <section className="m-stats three" aria-label={t('msg_farmer_responses')}>
       <StatCard icon={<UsersRound size={24} />} label={t('msg_farmers_contacted')} tip={t('msg_farmers_contacted_tip')} value={formatNumber(contacted.length, lang)} sub={t('msg_plan_villages', { count: formatNumber(involved.length, lang), villages: formatNumber(villages, lang) })} />
@@ -240,10 +251,10 @@ export default function Messages() {
 
       <section className="m-panel m-flexcol" aria-labelledby="prev-title">
         <div className="m-panel-head">
-          <div><h2 className="m-panel-title" id="prev-title">{t('msg_preview')}</h2><p className="m-panel-sub">{t('msg_preview_description', { crop: cropLabel(camp.crop.name, t) })}</p></div>
+          <div><h2 className="m-panel-title" id="prev-title">{t('msg_preview')}</h2><p className="m-panel-sub">{t('msg_preview_description', { crop: cropLabel(camp.crop.name, t) })}</p><p className="m-panel-sub">{t('msg_batch_language_policy')}</p></div>
           <div className="m-row">
             <span className="m-select-pill">{channel === 'WhatsApp' ? <MessageSquareText size={18} color="#25a244" /> : <Smartphone size={18} />}<select value={channel} onChange={(e) => setChannel(e.target.value as Channel)} aria-label={t('msg_channel')}><option>WhatsApp</option><option>SMS</option></select></span>
-            <span className="m-select-pill"><select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('msg_language')}>{languages.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></span>
+            <span className="m-select-pill"><select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('msg_preview_language')}>{languages.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}</select></span>
           </div>
         </div>
         <div className={`m-wa ${channel === 'SMS' ? 'sms' : ''}`} style={{ flex: 1 }}>

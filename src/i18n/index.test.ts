@@ -3,6 +3,7 @@ import {
   formatINR,
   formatDate,
   formatNumber,
+  cropLabel,
   getTranslationCoverage,
   interpolateTranslation,
   LANGUAGES,
@@ -54,8 +55,53 @@ describe('Meraki UI locales', () => {
     expect(formatNumber(1234.5, 'en')).toContain(',')
     expect(formatINR(1234, 'en')).toContain('₹')
     expect(statusTranslationKey('part_paid')).toBe('status_part_paid')
+    expect(statusTranslationKey('published')).toBe('status_published')
+    expect(statusTranslationKey('partially_awarded')).toBe('status_partially_awarded')
+    expect(statusTranslationKey('scheduled')).toBe('status_scheduled')
     expect(statusTranslationKey('completed')).toBe('status_completed')
     expect(statusTranslationKey('future_status')).toBeUndefined()
+  })
+
+  it('maps auction outcome codes to translated labels without changing the underlying codes', () => {
+    const outcomes = ['scheduled', 'open', 'provisional', 'awarded', 'no_sale', 'cancelled'] as const
+    for (const status of outcomes) {
+      const key = statusTranslationKey(status)
+      expect(key, status).toBeDefined()
+      for (const { code } of LANGUAGES.filter(({ code }) => code !== 'en')) {
+        expect(translations[code][key!], `${code}.${status}`).not.toBe(translations.en[key!])
+      }
+    }
+  })
+
+  it('translates core Trade and message context keys in every supported locale', () => {
+    for (const { code } of LANGUAGES.filter(({ code }) => code !== 'en')) {
+      const untranslated = getTranslationCoverage(code as Exclude<Lang, 'en'>).untranslated
+      expect(untranslated.filter((key) => /^(trq_|trc_|trui_|trb_|msg_(interface_language|preview_language|individual_language_policy|batch_language_policy|actual_language|reply_language|language_mismatch_confirm|sms_summary|simulated_reply|unicode))/.test(key)), code).toEqual([])
+      const summary = interpolateTranslation(translations[code].trc_contract_summary, { quantity: '500 kg', price: '₹42', version: 3 }, code)
+      const link = interpolateTranslation(translations[code].trq_open_contract, { id: 'contract-01', status: 'Provisional' }, code)
+      expect(summary).not.toMatch(/\{(?:quantity|price|version)\}/)
+      expect(link).not.toMatch(/\{(?:id|status)\}/)
+      expect(translations[code].msg_batch_language_policy).toContain(code === 'hi' ? 'किसान' : code === 'mr' ? 'शेतकऱ्याच्या' : code === 'ta' ? 'விவசாயியின்' : 'കർഷകന്റെ')
+    }
+  })
+
+  it('translates Farmer Details and supply safety copy with intact interpolation', () => {
+    for (const { code } of LANGUAGES.filter(({ code }) => code !== 'en')) {
+      const untranslated = getTranslationCoverage(code as Exclude<Lang, 'en'>).untranslated
+      expect(untranslated.filter((key) => /^(fd_|sp_)/.test(key)), code).toEqual([])
+      const prompt = interpolateTranslation(translations[code].sp_confirm_plan, { quantity: '1,250 kg' }, code)
+      const consent = interpolateTranslation(translations[code].fd_confirm_membership, { action: translations[code].fd_activate_membership, name: 'Farmer' }, code)
+      expect(prompt).not.toContain('{quantity}')
+      expect(consent).not.toMatch(/\{(?:action|name)\}/)
+    }
+  })
+
+  it('localises the fallback message shown after a simulated farmer confirmation', () => {
+    for (const { code } of LANGUAGES) {
+      const detail = translations[code].msg_confirmed_reply_detail
+      expect(detail).toBeTruthy()
+      if (code !== 'en') expect(detail).not.toBe(translations.en.msg_confirmed_reply_detail)
+    }
   })
 
   it('discloses that message drafts in all five languages are simulated and need review', () => {
@@ -150,6 +196,15 @@ describe('Meraki UI locales', () => {
       expect(label).toBe(code === 'en' ? 'Black soil' : translations[code].soil_label_black)
     }
     expect(soilLabel('Farmer-defined soil note', (key) => translations.en[key])).toBe('Farmer-defined soil note')
+  })
+
+  it('localises crop display names while preserving buyer-defined variety data', () => {
+    for (const { code } of LANGUAGES) {
+      const translate = (key: keyof typeof translations.en) => translations[code][key]
+      const label = cropLabel('Okra', translate)
+      expect(label).toBe(code === 'en' ? 'Okra' : translations[code].crop_name_okra)
+      expect(cropLabel('Arka Anamika', translate)).toBe('Arka Anamika')
+    }
   })
 
   it('reports untranslated dictionary entries instead of counting English inheritance as coverage', () => {

@@ -87,6 +87,9 @@ const STATUS_KEYS: Record<string, TKey> = {
   unverified: "status_unverified", submitted: "status_submitted", accepted: "status_accepted",
   released: "status_released", resolved: "status_resolved", defaulted: "status_defaulted",
   no_sale: "status_no_sale", part_paid: "status_part_paid",
+  published: "status_published", withdrawn: "status_withdrawn", not_selected: "status_not_selected",
+  unallocated: "status_unallocated", partially_awarded: "status_partially_awarded", fully_awarded: "status_fully_awarded",
+  scheduled: "status_scheduled", dispatched: "status_dispatched",
 };
 
 export function statusTranslationKey(value: string): TKey | undefined {
