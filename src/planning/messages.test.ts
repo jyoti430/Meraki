@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { interpolateTranslation, translations } from '../i18n'
-import { composeInstruction, individualMessageLanguageDecision, languageFor, languages, resolveMessageLanguage, simulatedReplyText } from './messages'
+import { composeInstruction, individualMessageLanguageDecision, languageFor, languages, resolveMessageLanguage, simulatedReplyText, smsSegments } from './messages'
 import type { Allocation } from './engine'
 
 const allocation: Allocation = {
@@ -72,5 +72,30 @@ describe('farmer communication language', () => {
       expect(resolved).toContain('தமிழ்')
       expect(resolved).not.toMatch(/\{(?:language|draftLanguage)\}/)
     }
+  })
+})
+
+describe('SMS segment estimation', () => {
+  it('uses GSM-7 single and concatenated capacities, including extension septets', () => {
+    expect(smsSegments('').segments).toBe(0)
+    expect(smsSegments('a'.repeat(160))).toMatchObject({ unicode: false, chars: 160, segments: 1 })
+    expect(smsSegments('a'.repeat(161)).segments).toBe(2)
+    expect(smsSegments('a'.repeat(306)).segments).toBe(2)
+    expect(smsSegments('a'.repeat(307)).segments).toBe(3)
+    expect(smsSegments('^'.repeat(80))).toMatchObject({ unicode: false, segments: 1 })
+    expect(smsSegments('^'.repeat(81))).toMatchObject({ unicode: false, segments: 2 })
+  })
+
+  it('uses UCS-2 code units and multipart capacity for Indian scripts and emoji', () => {
+    for (const character of ['अ', 'அ', 'അ']) {
+      expect(smsSegments(character)).toMatchObject({ unicode: true, segments: 1 })
+      expect(smsSegments(character.repeat(70)).segments).toBe(1)
+      expect(smsSegments(character.repeat(71)).segments).toBe(2)
+      expect(smsSegments(character.repeat(134)).segments).toBe(2)
+      expect(smsSegments(character.repeat(135)).segments).toBe(3)
+    }
+    expect(smsSegments('😀')).toMatchObject({ unicode: true, chars: 2, segments: 1 })
+    expect(smsSegments('😀'.repeat(35))).toMatchObject({ chars: 70, segments: 1 })
+    expect(smsSegments('😀'.repeat(36))).toMatchObject({ chars: 72, segments: 2 })
   })
 })

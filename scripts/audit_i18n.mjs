@@ -13,13 +13,17 @@ const explicitExceptions = new Set([
   'CC BY 4.0', 'Open-Meteo terms', 'English', 'Hindi', 'Marathi', 'Tamil', 'Malayalam',
 ])
 const coreFiles = new Set([
+  'src/auth/SignIn.tsx',
+  'src/exporter/pages/SegmentSelection.tsx',
+  'src/pages/Overview.tsx', 'src/pages/BuyerOrders.tsx', 'src/pages/PlantingPlan.tsx',
   'src/components/layout/Sidebar.tsx',
   'src/pages/Auctions.tsx', 'src/pages/FarmerDetails.tsx', 'src/pages/Messages.tsx',
-  'src/exporter/pages/Dashboard.tsx', 'src/exporter/pages/Requirements.tsx', 'src/exporter/pages/RequirementDetails.tsx',
+  'src/exporter/pages/Dashboard.tsx', 'src/exporter/pages/Requirements.tsx', 'src/exporter/pages/RequirementDetails.tsx', 'src/exporter/pages/Marketplace.tsx',
   'src/trade/Auctions.tsx', 'src/trade/DemoTradeBoard.tsx', 'src/trade/Requirements.tsx', 'src/trade/Contracts.tsx', 'src/trade/ui.tsx',
 ])
 const coreLiteralExceptions = new Map([
   ['src/pages/Auctions.tsx', new Set(['/kg'])],
+  ['src/pages/BuyerOrders.tsx', new Set(['/kg'])],
   ['src/pages/FarmerDetails.tsx', new Set(['ORD-DEMO-024'])],
   ['src/pages/Messages.tsx', new Set(['WhatsApp'])],
   ['src/trade/DemoTradeBoard.tsx', new Set(['/ kg'])],

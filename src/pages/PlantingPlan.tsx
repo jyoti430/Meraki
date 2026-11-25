@@ -238,7 +238,7 @@ export default function PlantingPlan() {
         <thead><tr><th>{t('plan_ui_farmer_plot')}</th><th>{t('plan_ui_planting_window')} <InfoTipInline /></th><th>{t('plan_ui_harvest_window')}</th><th>{t('plan_ui_quantity')}</th><th>{t('plan_ui_feasibility')}</th><th>{t('plan_ui_status')}</th>{editing && <th><span className="sr-only">{t('plan_ui_edit')}</span></th>}</tr></thead>
         <tbody>
           {plan.existing.map((e) => <tr key={`${e.cycle.id}-${e.orderId}`}>
-            <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{e.farmer?.name}</strong><small>{e.plot.name} · for {plan.lines.find((l) => l.order.id === e.orderId)?.order.buyer.name}</small></span></span></td>
+            <td><span className="m-row" style={{ flexWrap: 'nowrap', gap: 12 }}><UsersRound size={20} color="var(--mute)" /><span><strong style={{ fontWeight: 600 }}>{e.farmer?.name}</strong><small>{e.plot.name} · {t('plan_ui_buyer')}: {plan.lines.find((l) => l.order.id === e.orderId)?.order.buyer.name}</small></span></span></td>
             <td><span className="m-chipdate">{t('plan_ui_already_planted')}</span></td>
             <td><span className="m-chipdate plain"><CalendarDays size={16} />{day(e.windowStart)} – {day(e.windowEnd)}</span></td>
             <td><strong>{fmtT(e.kg, lang)}</strong><small>{t('plan_ui_in_window')}</small></td>

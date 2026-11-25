@@ -87,9 +87,31 @@ export function simulatedReplyText(kind: 'confirmed' | 'declined' | 'land' | 'wa
   return phrases[kind][language]
 }
 
-/** SMS segment count: 160 chars (GSM-7) or 70 chars for Unicode scripts. */
+const gsm7Basic = new Set(Array.from(
+  '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà',
+))
+const gsm7Extended = new Set(Array.from('\f^{}\\[~]|€'))
+
+/**
+ * Estimate SMS segments from encoded SMS units. GSM-7 extension characters
+ * take two septets; UCS-2 length is measured in UTF-16 code units (so an
+ * emoji outside the BMP takes two). This is a draft estimate, not delivery or
+ * billing information.
+ */
 export function smsSegments(text: string) {
-  const unicode = /[^\u0000-\u007f]/.test(text)
-  const per = unicode ? 70 : 160
-  return { unicode, chars: text.length, segments: Math.max(1, Math.ceil(text.length / per)) }
+  let septets = 0
+  let unicode = false
+  for (const character of text) {
+    if (gsm7Basic.has(character)) septets += 1
+    else if (gsm7Extended.has(character)) septets += 2
+    else { unicode = true; break }
+  }
+
+  const units = unicode ? text.length : septets
+  const singleSegmentLimit = unicode ? 70 : 160
+  const multipartSegmentLimit = unicode ? 67 : 153
+  const segments = units === 0 ? 0 : units <= singleSegmentLimit
+    ? 1
+    : Math.ceil(units / multipartSegmentLimit)
+  return { unicode, chars: text.length, segments }
 }
